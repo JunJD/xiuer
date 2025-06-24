@@ -1,0 +1,15 @@
+{
+  "buildCommand": "python3 -m venv venv && . venv/bin/activate && pip install -r requirements.txt && alembic upgrade head && deactivate && rm -rf venv",
+  "outputDirectory": "api",
+  "git": {
+    "deploymentEnabled": {
+      "main": false
+    }
+  },
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "api/index.py"
+    }
+  ]
+}

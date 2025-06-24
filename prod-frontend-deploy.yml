@@ -1,0 +1,36 @@
+name: Vercel Production Frontend Deployment
+env:
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_FRONTEND }}
+on:
+  push:
+    branches:
+      - main
+jobs:
+  Deploy-Production-Frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: nextjs-frontend
+    steps:
+      - uses: actions/checkout@v2
+
+      # Install pnpm
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      # Install Vercel CLI globally
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+
+      # Pull Vercel environment information
+      - name: Pull Vercel Environment Information
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+
+      # Build project artifacts
+      - name: Build Project Artifacts
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+      # Deploy project artifacts to Vercel
+      - name: Deploy Project Artifacts to Vercel
+        run: vercel deploy --prebuilt --prod --archive=split-tgz --token=${{ secrets.VERCEL_TOKEN }}

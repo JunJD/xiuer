@@ -1,0 +1,43 @@
+[project]
+name = "app"
+version = "0.0.3"
+description = ""
+authors = [{ name = "Anderson Resende", email = "anderson@vinta.com.br" }]
+requires-python = ">=3.12,<3.13"
+readme = "README.md"
+dependencies = [
+    "fastapi[standard]>=0.115.0,<0.116",
+    "asyncpg>=0.29.0,<0.30",
+    "fastapi-users[sqlalchemy]>=13.0.0,<14",
+    "pydantic-settings>=2.5.2,<3",
+    "fastapi-mail>=1.4.1,<2",
+]
+
+[dependency-groups]
+dev = [
+    "pre-commit>=3.4.0,<4",
+    "ruff>=0.1.0,<0.2",
+    "watchdog>=5.0.3,<6",
+    "python-dotenv>=1.0.1,<2",
+    "pytest>=8.3.3,<9",
+    "pytest-mock>=3.14.0,<4",
+    "mypy>=1.13.0,<2",
+    "coveralls>=4.0.1,<5",
+    "alembic>=1.14.0,<2",
+    "pytest-asyncio>=0.24.0,<0.25",
+    "mkdocs-material>=9.6.9",
+    "mkdocs-material[imaging]>=9.6.9",
+]
+
+[tool.uv]
+package = false
+
+[tool.hatch.build.targets.sdist]
+include = ["commands"]
+
+[tool.hatch.build.targets.wheel]
+include = ["commands"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

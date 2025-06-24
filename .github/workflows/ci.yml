@@ -1,0 +1,111 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-fastapi:
+    name: FastAPI CI
+
+    runs-on: ubuntu-latest
+
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      TEST_DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
+      ACCESS_SECRET_KEY: ${{ secrets.ACCESS_SECRET_KEY }}
+      RESET_PASSWORD_SECRET_KEY: ${{ secrets.RESET_PASSWORD_SECRET_KEY }}
+      VERIFICATION_SECRET_KEY: ${{ secrets.VERIFICATION_SECRET_KEY }}
+      CORS_ORIGINS: ${{ secrets.CORS_ORIGINS }}
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: testdatabase
+        ports:
+          - 5433:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install the project
+        working-directory: ./fastapi_backend
+        run: uv sync --all-extras --dev
+
+      - name: Run tests
+        working-directory: ./fastapi_backend
+        run: uv run coverage run -m pytest
+
+      - name: Generate XML coverage report
+        working-directory: ./fastapi_backend
+        run: uv run coverage xml -o coverage.xml
+
+      - name: Coveralls GitHub Action
+        uses: coverallsapp/github-action@v2.3.4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          flag-name: python-coverage
+          parallel: true
+          path-to-lcov: fastapi_backend/coverage.xml
+
+  build-frontend:
+    name: Next.js CI
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Node dependencies
+        working-directory: ./nextjs-frontend
+        run: pnpm install
+
+      - name: Run tests
+        working-directory: ./nextjs-frontend
+        run: pnpm run coverage
+
+      - name: Coveralls GitHub Action
+        uses: coverallsapp/github-action@v2.3.4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          flag-name: node-coverage
+          parallel: true
+
+  finish:
+
+    name: Coveralls
+
+    needs: [ build-fastapi, build-frontend ]
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Close parallel build
+        uses: coverallsapp/github-action@v2.3.4
+        with:
+          parallel-finished: true
+          carryforward: "python-coverage,node-coverage"

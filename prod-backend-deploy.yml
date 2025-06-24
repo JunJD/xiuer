@@ -1,0 +1,48 @@
+name: Vercel Production Backend Deployment
+env:
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_BACKEND }}
+on:
+  push:
+    branches:
+      - main
+jobs:
+  Deploy-Production-Backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: fastapi_backend
+    steps:
+      - uses: actions/checkout@v2
+
+      # Install Vercel CLI globally
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+
+      # Pull Vercel environment information
+      - name: Pull Vercel Environment Information
+        run: vercel pull --yes --environment=production --local-config=vercel.prod.json --token=${{ secrets.VERCEL_TOKEN }}
+
+      # Pull Vercel environment variables
+      - name: Pull Vercel Environment Information
+        run: vercel env pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+
+      # Install Alembic and other required dependencies
+      - name: Install Alembic and dependencies
+        run: pip install -r requirements.txt
+
+      # Run alembic migration
+      - name: Run alembic migration
+        run: |
+          set -o allexport
+          source .env.local
+          set +o allexport 
+          alembic upgrade head
+
+      # Build project artifacts
+      - name: Build Project Artifacts
+        run: vercel build --prod --local-config=vercel.prod.json --token=${{ secrets.VERCEL_TOKEN }}
+
+      # Deploy project artifacts to Vercel
+      - name: Deploy Project Artifacts to Vercel
+        run: vercel deploy --prebuilt --prod --archive=split-tgz --local-config=vercel.prod.json --token=${{ secrets.VERCEL_TOKEN }}

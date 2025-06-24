@@ -1,0 +1,54 @@
+name: pre-commit
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  pre-commit:
+
+    runs-on: ubuntu-latest
+
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      TEST_DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
+      ACCESS_SECRET_KEY: ${{ secrets.ACCESS_SECRET_KEY }}
+      RESET_PASSWORD_SECRET_KEY: ${{ secrets.RESET_PASSWORD_SECRET_KEY }}
+      VERIFICATION_SECRET_KEY: ${{ secrets.VERIFICATION_SECRET_KEY }}
+      OPENAPI_OUTPUT_FILE: ${{ secrets.OPENAPI_OUTPUT_FILE }}
+      CORS_ORIGINS: ${{ secrets.CORS_ORIGINS }}
+
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install the project
+        working-directory: ./fastapi_backend
+        run: uv sync --all-extras --dev
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Node dependencies
+        working-directory: ./nextjs-frontend
+        run: pnpm install
+
+      - name: Run pre-commit
+        uses: pre-commit/action@v3.0.1

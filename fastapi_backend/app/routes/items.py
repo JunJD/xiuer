@@ -6,7 +6,7 @@ from sqlalchemy.future import select
 
 from app.database import User, get_async_session
 from app.models import Item
-from app.schemas import ItemRead, ItemCreate
+from app.schemas.items import ItemRead, ItemCreate
 from app.users import current_active_user
 
 router = APIRouter(tags=["item"])

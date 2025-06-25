@@ -49,6 +49,25 @@ import type {
   DeleteItemData,
   DeleteItemError,
   DeleteItemResponse,
+  GetKeywordsData,
+  GetKeywordsError,
+  GetKeywordsResponse,
+  CreateKeywordData,
+  CreateKeywordError,
+  CreateKeywordResponse,
+  UpdateKeywordData,
+  UpdateKeywordError,
+  UpdateKeywordResponse,
+  DeleteKeywordData,
+  DeleteKeywordError,
+  DeleteKeywordResponse,
+  ToggleKeywordStatusData,
+  ToggleKeywordStatusError,
+  ToggleKeywordStatusResponse,
+  GetCategoriesError,
+  GetCategoriesResponse,
+  GetKeywordStatsError,
+  GetKeywordStatsResponse,
 } from "./types.gen";
 
 export const client = createClient(createConfig());
@@ -295,5 +314,124 @@ export const deleteItem = <ThrowOnError extends boolean = false>(
   >({
     ...options,
     url: "/items/{item_id}",
+  });
+};
+
+/**
+ * Get Keywords
+ * 获取关键词列表
+ */
+export const getKeywords = <ThrowOnError extends boolean = false>(
+  options?: OptionsLegacyParser<GetKeywordsData, ThrowOnError>,
+) => {
+  return (options?.client ?? client).get<
+    GetKeywordsResponse,
+    GetKeywordsError,
+    ThrowOnError
+  >({
+    ...options,
+    url: "/api/keywords/",
+  });
+};
+
+/**
+ * Create Keyword
+ * 创建新关键词
+ */
+export const createKeyword = <ThrowOnError extends boolean = false>(
+  options: OptionsLegacyParser<CreateKeywordData, ThrowOnError>,
+) => {
+  return (options?.client ?? client).post<
+    CreateKeywordResponse,
+    CreateKeywordError,
+    ThrowOnError
+  >({
+    ...options,
+    url: "/api/keywords/",
+  });
+};
+
+/**
+ * Update Keyword
+ * 更新关键词
+ */
+export const updateKeyword = <ThrowOnError extends boolean = false>(
+  options: OptionsLegacyParser<UpdateKeywordData, ThrowOnError>,
+) => {
+  return (options?.client ?? client).put<
+    UpdateKeywordResponse,
+    UpdateKeywordError,
+    ThrowOnError
+  >({
+    ...options,
+    url: "/api/keywords/{keyword_id}",
+  });
+};
+
+/**
+ * Delete Keyword
+ * 删除关键词
+ */
+export const deleteKeyword = <ThrowOnError extends boolean = false>(
+  options: OptionsLegacyParser<DeleteKeywordData, ThrowOnError>,
+) => {
+  return (options?.client ?? client).delete<
+    DeleteKeywordResponse,
+    DeleteKeywordError,
+    ThrowOnError
+  >({
+    ...options,
+    url: "/api/keywords/{keyword_id}",
+  });
+};
+
+/**
+ * Toggle Keyword Status
+ * 切换关键词启用/禁用状态
+ */
+export const toggleKeywordStatus = <ThrowOnError extends boolean = false>(
+  options: OptionsLegacyParser<ToggleKeywordStatusData, ThrowOnError>,
+) => {
+  return (options?.client ?? client).patch<
+    ToggleKeywordStatusResponse,
+    ToggleKeywordStatusError,
+    ThrowOnError
+  >({
+    ...options,
+    url: "/api/keywords/{keyword_id}/toggle",
+  });
+};
+
+/**
+ * Get Categories
+ * 获取所有关键词分类
+ */
+export const getCategories = <ThrowOnError extends boolean = false>(
+  options?: OptionsLegacyParser<unknown, ThrowOnError>,
+) => {
+  return (options?.client ?? client).get<
+    GetCategoriesResponse,
+    GetCategoriesError,
+    ThrowOnError
+  >({
+    ...options,
+    url: "/api/keywords/categories",
+  });
+};
+
+/**
+ * Get Keyword Stats
+ * 获取关键词统计信息
+ */
+export const getKeywordStats = <ThrowOnError extends boolean = false>(
+  options?: OptionsLegacyParser<unknown, ThrowOnError>,
+) => {
+  return (options?.client ?? client).get<
+    GetKeywordStatsResponse,
+    GetKeywordStatsError,
+    ThrowOnError
+  >({
+    ...options,
+    url: "/api/keywords/stats",
   });
 };

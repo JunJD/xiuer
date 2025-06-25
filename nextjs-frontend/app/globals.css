@@ -3,58 +3,93 @@
 @tailwind utilities;
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-    --radius: 0.5rem;
+    /* 小红书风格 - 浅色主题 */
+    --background: 0 0% 98%;                    /* 温暖的白色背景 */
+    --foreground: 0 0% 15%;                    /* 深灰色文字 */
+    
+    --card: 0 0% 100%;                         /* 纯白卡片 */
+    --card-foreground: 0 0% 15%;               /* 卡片文字 */
+    
+    --popover: 0 0% 100%;                      /* 弹出层背景 */
+    --popover-foreground: 0 0% 15%;            /* 弹出层文字 */
+    
+    /* 小红书经典红色作为主色 */
+    --primary: 350 89% 60%;                    /* 小红书红 #fe2c55 */
+    --primary-foreground: 0 0% 98%;            /* 主色上的白色文字 */
+    
+    /* 柔和的玫瑰色作为次要色 */
+    --secondary: 350 25% 95%;                  /* 浅玫瑰色背景 */
+    --secondary-foreground: 350 15% 25%;       /* 次要色文字 */
+    
+    /* 温暖的灰色调 */
+    --muted: 20 14% 96%;                       /* 温暖的浅灰 */
+    --muted-foreground: 20 5% 45%;             /* 静音文字颜色 */
+    
+    /* 强调色使用橙红色 */
+    --accent: 15 86% 95%;                      /* 浅橙红背景 */
+    --accent-foreground: 15 25% 25%;           /* 强调色文字 */
+    
+    /* 警告/错误色 */
+    --destructive: 0 84% 60%;                  /* 标准红色 */
+    --destructive-foreground: 0 0% 98%;        /* 警告色文字 */
+    
+    /* 边框和输入框 */
+    --border: 20 10% 90%;                      /* 温暖的边框色 */
+    --input: 20 10% 94%;                       /* 输入框背景 */
+    --ring: 350 89% 60%;                       /* 焦点环颜色 */
+    
+    /* 图表颜色 - 小红书风格 */
+    --chart-1: 350 89% 60%;                    /* 主红色 */
+    --chart-2: 25 95% 65%;                     /* 橙色 */
+    --chart-3: 340 75% 70%;                    /* 粉红色 */
+    --chart-4: 15 86% 60%;                     /* 橙红色 */
+    --chart-5: 320 65% 75%;                    /* 紫红色 */
+    
+    --radius: 0.75rem;                         /* 更圆润的圆角 */
   }
 
   .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
+    /* 小红书风格 - 深色主题 */
+    --background: 0 0% 8%;                     /* 深色背景 */
+    --foreground: 20 14% 92%;                  /* 浅色文字 */
+    
+    --card: 0 0% 12%;                          /* 深色卡片 */
+    --card-foreground: 20 14% 92%;             /* 卡片文字 */
+    
+    --popover: 0 0% 12%;                       /* 深色弹出层 */
+    --popover-foreground: 20 14% 92%;          /* 弹出层文字 */
+    
+    /* 深色模式下的小红书红 */
+    --primary: 350 89% 65%;                    /* 稍亮的红色 */
+    --primary-foreground: 0 0% 98%;            /* 主色文字 */
+    
+    /* 深色次要色 */
+    --secondary: 350 15% 15%;                  /* 深玫瑰色 */
+    --secondary-foreground: 350 25% 85%;       /* 次要色文字 */
+    
+    /* 深色静音色 */
+    --muted: 20 10% 15%;                       /* 深灰色 */
+    --muted-foreground: 20 14% 65%;            /* 静音文字 */
+    
+    /* 深色强调色 */
+    --accent: 15 20% 18%;                      /* 深橙红 */
+    --accent-foreground: 15 60% 85%;           /* 强调色文字 */
+    
+    /* 深色警告色 */
+    --destructive: 0 75% 55%;                  /* 深色红 */
+    --destructive-foreground: 0 0% 98%;        /* 警告文字 */
+    
+    /* 深色边框 */
+    --border: 20 10% 20%;                      /* 深色边框 */
+    --input: 20 10% 16%;                       /* 深色输入框 */
+    --ring: 350 89% 65%;                       /* 深色焦点环 */
+    
+    /* 深色图表颜色 */
+    --chart-1: 350 89% 65%;                    /* 主红色 */
+    --chart-2: 25 85% 70%;                     /* 橙色 */
+    --chart-3: 340 75% 75%;                    /* 粉红色 */
+    --chart-4: 15 76% 65%;                     /* 橙红色 */
+    --chart-5: 320 65% 80%;                    /* 紫红色 */
   }
 }
 
@@ -65,5 +100,87 @@
 
   body {
     @apply bg-background text-foreground;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+
+  /* 小红书风格的自定义样式 */
+  .xhs-gradient {
+    background: linear-gradient(135deg, 
+      hsl(var(--primary)) 0%, 
+      hsl(15 86% 60%) 50%, 
+      hsl(340 75% 70%) 100%
+    );
+  }
+
+  .xhs-text-gradient {
+    background: linear-gradient(135deg, 
+      hsl(var(--primary)) 0%, 
+      hsl(15 86% 60%) 100%
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* 悬浮效果 */
+  .xhs-hover {
+    @apply transition-all duration-200 ease-in-out;
+  }
+
+  .xhs-hover:hover {
+    @apply shadow-lg transform -translate-y-0.5;
+    box-shadow: 0 10px 25px -3px hsla(var(--primary), 0.15);
+  }
+
+  /* 按钮样式 */
+  .xhs-button {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90;
+    @apply rounded-full px-6 py-3 font-medium;
+    @apply transition-all duration-200 ease-in-out;
+    @apply shadow-md hover:shadow-lg;
+  }
+
+  .xhs-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px -2px hsla(var(--primary), 0.25);
+  }
+
+  /* 卡片样式 */
+  .xhs-card {
+    @apply bg-card border border-border rounded-xl p-6;
+    @apply shadow-sm hover:shadow-md transition-shadow duration-200;
+    backdrop-filter: blur(10px);
+  }
+
+  /* 标签样式 */
+  .xhs-tag {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-sm;
+    @apply bg-secondary text-secondary-foreground;
+    @apply border border-border/50;
+  }
+
+  .xhs-tag.new {
+    @apply bg-emerald-50 text-emerald-700 border-emerald-200;
+  }
+
+  .xhs-tag.changed {
+    @apply bg-amber-50 text-amber-700 border-amber-200;
+  }
+
+  .xhs-tag.important {
+    @apply bg-red-50 text-red-700 border-red-200;
+  }
+
+  /* 深色模式下的标签 */
+  .dark .xhs-tag.new {
+    @apply bg-emerald-950/50 text-emerald-300 border-emerald-800;
+  }
+
+  .dark .xhs-tag.changed {
+    @apply bg-amber-950/50 text-amber-300 border-amber-800;
+  }
+
+  .dark .xhs-tag.important {
+    @apply bg-red-950/50 text-red-300 border-red-800;
   }
 }

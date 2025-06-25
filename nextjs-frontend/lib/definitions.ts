@@ -42,3 +42,17 @@ export const itemSchema = z.object({
       message: "Quantity must be a positive integer",
     }),
 });
+
+export const keywordSchema = z.object({
+  keyword: z.string().min(1, { message: "Keyword is required" }),
+  category: z.string().optional(),
+  weight: z
+    .string()
+    .optional()
+    .transform((val) => val ? parseInt(val, 10) : 1) // Convert to integer, default to 1
+    .refine((val) => Number.isInteger(val) && val >= 1 && val <= 10, {
+      message: "Weight must be an integer between 1 and 10",
+    }),
+  is_active: z.boolean().optional().default(true),
+  description: z.string().optional(),
+});

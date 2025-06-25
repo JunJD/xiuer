@@ -1,9 +1,10 @@
 from fastapi import FastAPI
-from .schemas import UserCreate, UserRead, UserUpdate
+from .schemas.users import UserCreate, UserRead, UserUpdate
 from .users import auth_backend, fastapi_users, AUTH_URL_PATH
 from fastapi.middleware.cors import CORSMiddleware
 from .utils import simple_generate_unique_route_id
 from app.routes.items import router as items_router
+from app.api.endpoints.keywords import router as keywords_router
 from app.config import settings
 
 app = FastAPI(
@@ -49,3 +50,6 @@ app.include_router(
 
 # Include items routes
 app.include_router(items_router, prefix="/items")
+
+# Include keywords management routes
+app.include_router(keywords_router, prefix="/api/keywords", tags=["keywords"])

@@ -48,6 +48,39 @@ export type ItemRead = {
   user_id: string;
 };
 
+export type KeywordCreate = {
+  keyword: string;
+  category?: string | null;
+  weight?: number;
+  is_active?: boolean;
+  description?: string | null;
+};
+
+export type KeywordListResponse = {
+  keywords: Array<KeywordResponse>;
+  total: number;
+  categories: Array<string>;
+};
+
+export type KeywordResponse = {
+  keyword: string;
+  category?: string | null;
+  weight?: number;
+  is_active?: boolean;
+  description?: string | null;
+  id: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type KeywordUpdate = {
+  keyword?: string | null;
+  category?: string | null;
+  weight?: number | null;
+  is_active?: boolean | null;
+  description?: string | null;
+};
+
 export type login = {
   grant_type?: string | null;
   username: string;
@@ -206,3 +239,64 @@ export type DeleteItemData = {
 export type DeleteItemResponse = unknown;
 
 export type DeleteItemError = HTTPValidationError;
+
+export type GetKeywordsData = {
+  query?: {
+    active_only?: boolean;
+    category?: string | null;
+    limit?: number;
+    search?: string | null;
+    skip?: number;
+  };
+};
+
+export type GetKeywordsResponse = KeywordListResponse;
+
+export type GetKeywordsError = HTTPValidationError;
+
+export type CreateKeywordData = {
+  body: KeywordCreate;
+};
+
+export type CreateKeywordResponse = KeywordResponse;
+
+export type CreateKeywordError = HTTPValidationError;
+
+export type UpdateKeywordData = {
+  body: KeywordUpdate;
+  path: {
+    keyword_id: string;
+  };
+};
+
+export type UpdateKeywordResponse = KeywordResponse;
+
+export type UpdateKeywordError = HTTPValidationError;
+
+export type DeleteKeywordData = {
+  path: {
+    keyword_id: string;
+  };
+};
+
+export type DeleteKeywordResponse = unknown;
+
+export type DeleteKeywordError = HTTPValidationError;
+
+export type ToggleKeywordStatusData = {
+  path: {
+    keyword_id: string;
+  };
+};
+
+export type ToggleKeywordStatusResponse = unknown;
+
+export type ToggleKeywordStatusError = HTTPValidationError;
+
+export type GetCategoriesResponse = Array<string>;
+
+export type GetCategoriesError = unknown;
+
+export type GetKeywordStatsResponse = unknown;
+
+export type GetKeywordStatsError = unknown;

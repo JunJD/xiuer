@@ -1,4 +1,7 @@
-FROM node:20-bookworm
+FROM node:20-alpine
+
+# Install bash
+RUN apk add --no-cache bash
 
 # Set the working directory
 WORKDIR /app
@@ -17,6 +20,11 @@ USER node
 
 # Copy the rest of your application code
 COPY . .
+
+# Ensure start.sh has execute permissions
+USER root
+RUN chmod +x ./start.sh
+USER node
 
 EXPOSE 3000
 

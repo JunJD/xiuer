@@ -62,10 +62,10 @@ docker-up-test-db: ## Start the test database container
 	$(DOCKER_COMPOSE) up db_test
 
 docker-migrate-db: ## Run database migrations using Alembic
-	$(DOCKER_COMPOSE) run --rm backend alembic upgrade head
+	$(DOCKER_COMPOSE) run --rm backend uv run alembic upgrade head
 
 docker-db-schema: ## Generate a new migration schema. Usage: make docker-db-schema migration_name="add users"
-	$(DOCKER_COMPOSE) run --rm backend alembic revision --autogenerate -m "$(migration_name)"
+	$(DOCKER_COMPOSE) run --rm backend uv run alembic revision --autogenerate -m "$(migration_name)"
 
 docker-test-backend: ## Run tests for the backend
 	$(DOCKER_COMPOSE) run --rm backend pytest

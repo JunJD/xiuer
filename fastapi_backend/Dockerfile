@@ -1,4 +1,4 @@
-FROM python:3.12-bookworm
+FROM python:3.12-slim
 
 # Set the working directory
 WORKDIR /app
@@ -18,10 +18,8 @@ ENV PATH="/root/.local/bin/:$PATH"
 # Copy dependency files first to leverage Docker caching
 COPY pyproject.toml uv.lock ./
 
-# Install dependencies using uv
-RUN uv sync --frozen
-
-ENV PATH="/app/.venv/bin:$PATH"
+# Remove any existing virtual environment and install dependencies (production)
+RUN rm -rf .venv && uv sync --frozen
 
 # Copy the rest of the application code
 COPY . .

@@ -1,0 +1,131 @@
+name: Test XHS Access
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  test-xhs-access:
+    runs-on: ubuntu-latest
+    
+    env:
+      COOKIES: ${{ secrets.XHS_COOKIES }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.9"
+          
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          
+      - name: Install Python dependencies
+        working-directory: ./Spider_XHS
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          
+      - name: Install Node.js dependencies
+        working-directory: ./Spider_XHS
+        run: |
+          npm install
+          
+      - name: Create .env file
+        working-directory: ./Spider_XHS
+        run: |
+          echo "COOKIES=${{ secrets.XHS_COOKIES }}" > .env
+          
+      - name: Create test script
+        working-directory: ./Spider_XHS
+        run: |
+          cat > test_xhs_access.py << 'EOF'
+          import os
+          import sys
+          from loguru import logger
+          from apis.xhs_pc_apis import XHS_Apis
+          from xhs_utils.common_util import init
+          
+          def test_xhs_access():
+              """测试小红书服务可访问性"""
+              try:
+                  # 初始化
+                  cookies_str, base_path = init()
+                  
+                  if not cookies_str:
+                      logger.error("COOKIES 环境变量未设置")
+                      return False
+                      
+                  logger.info(f"Cookie 长度: {len(cookies_str) if cookies_str else 0}")
+                  
+                  # 创建API实例
+                  xhs_apis = XHS_Apis()
+                  
+                  # 测试一个简单的搜索请求
+                  logger.info("开始测试小红书搜索功能...")
+                  success, msg, notes = xhs_apis.search_some_note(
+                      query="测试", 
+                      require_num=1, 
+                      cookies_str=cookies_str,
+                      sort_type_choice=0,
+                      note_type=0,
+                      note_time=0,
+                      note_range=0,
+                      pos_distance=0,
+                      geo=None,
+                      proxies=None
+                  )
+                  
+                  if success:
+                      logger.success(f"✅ 小红书服务可访问！搜索到 {len(notes) if notes else 0} 个结果")
+                      return True
+                  else:
+                      logger.error(f"❌ 小红书服务访问失败: {msg}")
+                      return False
+                      
+              except Exception as e:
+                  logger.error(f"❌ 测试过程中发生错误: {str(e)}")
+                  return False
+          
+          if __name__ == "__main__":
+              logger.info("🚀 开始测试小红书服务可访问性...")
+              result = test_xhs_access()
+              
+              if result:
+                  logger.success("🎉 测试完成：小红书服务可正常访问")
+                  sys.exit(0)
+              else:
+                  logger.error("💥 测试失败：小红书服务无法访问")
+                  sys.exit(1)
+          EOF
+          
+      - name: Run XHS access test
+        working-directory: ./Spider_XHS
+        run: |
+          python test_xhs_access.py
+          
+      - name: Test network connectivity
+        run: |
+          echo "=== 网络连接测试 ==="
+          ping -c 3 www.xiaohongshu.com || echo "Ping 失败"
+          echo ""
+          echo "=== DNS 解析测试 ==="
+          nslookup www.xiaohongshu.com || echo "DNS 解析失败"
+          echo ""
+          echo "=== HTTP 访问测试 ==="
+          curl -I https://www.xiaohongshu.com --max-time 10 || echo "HTTP 访问失败"
+          
+      - name: Clean up test files
+        working-directory: ./Spider_XHS
+        if: always()
+        run: |
+          rm -f test_xhs_access.py
+          rm -f .env 

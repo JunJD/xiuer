@@ -61,11 +61,33 @@ async def receive_xhs_webhook(
                     webhook_data.data,
                     db
                 )
+                logger.info(f"SUCCESS状态收到数据，后台处理中")
             
             return WebhookResponse(
                 status="received",
                 message="成功数据已接收，后台处理中"
             )
+        
+        elif webhook_data.status == WebhookStatus.COMPLETED:
+            # 任务完成（可能含部分错误），如果有数据也要处理
+            logger.info(f"任务完成: {webhook_data.message}")
+            
+            if webhook_data.data:
+                background_tasks.add_task(
+                    process_webhook_data_background,
+                    webhook_data.data,
+                    db
+                )
+                logger.info(f"COMPLETED状态收到数据，后台处理中")
+                return WebhookResponse(
+                    status="received",
+                    message="完成数据已接收，后台处理中"
+                )
+            else:
+                return WebhookResponse(
+                    status="received", 
+                    message="完成通知已接收（无数据）"
+                )
         
         elif webhook_data.status in [WebhookStatus.ERROR, WebhookStatus.FAILED]:
             # 错误处理
@@ -73,14 +95,6 @@ async def receive_xhs_webhook(
             return WebhookResponse(
                 status="received",
                 message="错误信息已接收"
-            )
-        
-        elif webhook_data.status == WebhookStatus.COMPLETED:
-            # 任务完成
-            logger.info(f"任务完成: {webhook_data.message}")
-            return WebhookResponse(
-                status="received", 
-                message="完成通知已接收"
             )
         
         else:

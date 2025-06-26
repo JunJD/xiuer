@@ -8,6 +8,10 @@ services:
       - TEST_DATABASE_URL=postgresql+asyncpg://postgres:password@db:5433/testdatabase
       - MAIL_SERVER=mailhog
       - AUTO_MIGRATE=false  # Set to 'true' to enable automatic migrations on startup
+      # GitHub 配置
+      - GITHUB_TOKEN=${GITHUB_TOKEN:-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}  # 从环境变量读取
+      - GITHUB_REPO_OWNER=${GITHUB_REPO_OWNER:-JunJD}  # 默认 JunJD
+      - GITHUB_REPO_NAME=${GITHUB_REPO_NAME:-xiuer-spider}  # 默认 xiuer-spider
     ports:
       - "8000:8000"
     networks:

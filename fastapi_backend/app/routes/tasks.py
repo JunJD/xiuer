@@ -86,7 +86,7 @@ async def trigger_crawl_task(
             raise HTTPException(status_code=500, detail="GitHub token 未配置")
         
         repo_owner = os.getenv("GITHUB_REPO_OWNER", "JunJD")
-        repo_name = os.getenv("GITHUB_REPO_NAME", "xiuer")
+        repo_name = os.getenv("GITHUB_REPO_NAME", "xiuer-spider")
         
         headers = {
             "Authorization": f"token {github_token}",

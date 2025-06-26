@@ -33,6 +33,7 @@ class WebhookBase(BaseModel):
     message: str
     timestamp: datetime
     run_id: str
+    task_id: Optional[str] = None  # 添加task_id字段，用于关联爬取任务
     elapsed_time: Optional[float] = None
     progress: Optional[int] = Field(None, ge=0, le=100)
 

@@ -2270,6 +2270,17 @@
             "type": "string",
             "title": "Run Id"
           },
+          "task_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Task Id"
+          },
           "elapsed_time": {
             "anyOf": [
               {

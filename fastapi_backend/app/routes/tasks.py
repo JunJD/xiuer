@@ -70,13 +70,20 @@ async def trigger_crawl_task(
         # 不要刷新关系，只获取任务ID
         task_id = task.id
         
-        # 准备GitHub Actions参数
+        # 准备GitHub Actions参数 - 根据workflow的repository_dispatch要求
+        # 参考workflow中的client_payload参数要求
         github_payload = {
-            "event_type": "run-xhs-spider",
+            "event_type": "search-xhs",  # 匹配workflow中的types: [search-xhs, crawl-task]
             "client_payload": {
+                # GitHub Actions workflow期望的直接参数
+                "query": task_request.keyword,
+                "num": task_request.target_count,
+                "sort_type": task_request.sort_type,
+                "cookies": task_request.cookies or "",
                 "webhook_url": task_request.webhook_url,
-                "task_type": "search",
-                "task_params": task_request.model_dump_json()
+                "get_comments": False,  # 默认不获取评论
+                "no_delay": False,      # 默认启用延迟
+                "task_id": str(task_id),  # 重要：添加task_id以便webhook回调时更新对应任务
             }
         }
         

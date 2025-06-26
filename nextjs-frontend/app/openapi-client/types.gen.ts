@@ -187,6 +187,7 @@ export type WebhookRequest = {
   message: string;
   timestamp: string;
   run_id: string;
+  task_id?: string | null;
   elapsed_time?: number | null;
   progress?: number | null;
 };

@@ -15,7 +15,7 @@ class Base(DeclarativeBase):
 class User(SQLAlchemyBaseUserTableUUID, Base):
     items = relationship("Item", back_populates="user", cascade="all, delete-orphan")
     logs = relationship("UserLog", back_populates="user", cascade="all, delete-orphan")
-    crawl_tasks = relationship("CrawlTask", back_populates="owner", cascade="all, delete-orphan")
+    crawl_tasks = relationship("CrawlTask", cascade="all, delete-orphan")
 
 
 class Item(Base):
@@ -208,7 +208,7 @@ class CrawlTask(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     # 关系映射
-    owner = relationship("User", back_populates="crawl_tasks")
+    owner = relationship("User", overlaps="crawl_tasks")
 
 
 # 业务关键词配置表

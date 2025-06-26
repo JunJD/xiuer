@@ -37,4 +37,4 @@ class Logger:
         logger.debug(message, *args)
 
 # 导出logger实例
-logger = Logger() 
+app_logger = Logger() 

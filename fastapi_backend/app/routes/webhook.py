@@ -21,7 +21,7 @@ from app.schemas.webhook import (
     BatchProcessResult
 )
 from app.services.xhs_async_service import XhsDataService
-from app.core.logger import logger
+from app.core.logger import app_logger as logger
 
 router = APIRouter()
 

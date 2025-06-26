@@ -1,6 +1,6 @@
 """
-小红书数据处理服务 - 异步版本
-负责处理从webhook接收到的小红书数据，包括笔记、评论等
+小红书数据异步服务
+处理小红书笔记和评论数据的业务逻辑
 """
 
 from typing import List, Optional, Dict, Any, Tuple
@@ -26,7 +26,7 @@ from app.schemas.webhook import (
     NoteProcessResult,
     BatchProcessResult
 )
-from app.core.logger import logger
+from app.core.logger import app_logger as logger
 
 
 class XhsDataService:

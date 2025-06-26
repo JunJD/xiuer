@@ -17,7 +17,7 @@ from app.schemas.webhook import (
     TaskTriggerResponse,
 )
 from app.models import CrawlTask, TaskStatus, User
-from app.core.logger import logger
+from app.core.logger import app_logger as logger
 
 router = APIRouter()
 
@@ -26,13 +26,35 @@ router = APIRouter()
 async def trigger_crawl_task(
     task_request: CrawlTaskRequest,
     db: AsyncSession = Depends(get_async_session)
-    # current_user: Optional[User] = None  # TODO: 添加用户认证
+    # NOTE: 不需要用户认证，因为可能被外部系统调用
 ):
     """
     触发爬取任务
     """
     try:
-        # 创建任务记录
+        # 创建任务记录 - 使用系统用户ID或创建匿名任务
+        # 查找或创建系统用户
+        from sqlalchemy import select
+        system_user_email = "system@webhook.local"
+        
+        result = await db.execute(select(User).where(User.email == system_user_email))
+        system_user = result.scalar_one_or_none()
+        
+        if not system_user:
+            # 创建系统用户（简化版本，避免循环导入）
+            import uuid
+            system_user = User(
+                id=uuid.uuid4(),
+                email=system_user_email,
+                hashed_password="$argon2id$v=19$m=65536,t=3,p=4$dummy$dummyhash",  # 固定的假密码
+                is_active=True,
+                is_superuser=False,
+                is_verified=True
+            )
+            db.add(system_user)
+            await db.commit()
+            await db.refresh(system_user)
+        
         task = CrawlTask(
             task_name=task_request.task_name,
             keyword=task_request.keyword,
@@ -40,12 +62,13 @@ async def trigger_crawl_task(
             sort_type=task_request.sort_type,
             cookies=task_request.cookies,
             status=TaskStatus.PENDING,
-            owner_id=None  # TODO: 从认证用户获取
+            owner_id=system_user.id
         )
         
         db.add(task)
         await db.commit()
-        await db.refresh(task)
+        # 不要刷新关系，只获取任务ID
+        task_id = task.id
         
         # 准备GitHub Actions参数
         github_payload = {
@@ -83,7 +106,7 @@ async def trigger_crawl_task(
             return TaskTriggerResponse(
                 success=True,
                 message="爬取任务已成功触发",
-                task_id=str(task.id),
+                task_id=str(task_id),
                 github_run_url=f"https://github.com/{repo_owner}/{repo_name}/actions"
             )
         else:

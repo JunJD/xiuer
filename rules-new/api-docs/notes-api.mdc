@@ -1,0 +1,139 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+---
+description: Notes API documentation with MDC components examples
+globs: fastapi_backend/app/routes/notes.py, fastapi_backend/app/schemas/note.py
+---
+
+# 笔记 API 文档示例
+
+这是使用 MDC 组件编写 API 文档的示例。
+
+## 创建笔记
+
+::api-endpoint{method="POST" path="/api/notes"}
+创建新的小红书笔记记录
+
+### 请求参数
+
+::props-table
+| 参数 | 类型 | 必需 | 描述 |
+|------|------|------|------|
+| title | string | ✓ | 笔记标题，1-100字符 |
+| content | string | ✓ | 笔记内容 |
+| tags | string[] | ✗ | 标签数组 |
+| note_id | string | ✓ | 小红书笔记ID |
+| author_id | string | ✓ | 作者ID |
+::
+
+### 请求示例
+
+```json
+{
+  "title": "美食分享",
+  "content": "今天尝试了新的烘焙配方...",
+  "tags": ["美食", "烘焙", "分享"],
+  "note_id": "6516a1234567890",
+  "author_id": "user_123456"
+}
+```
+
+### 响应示例
+
+```json
+{
+  "id": 1,
+  "note_id": "6516a1234567890",
+  "title": "美食分享",
+  "content": "今天尝试了新的烘焙配方...",
+  "tags": ["美食", "烘焙", "分享"],
+  "author_id": "user_123456",
+  "created_at": "2024-01-01T10:00:00Z",
+  "updated_at": "2024-01-01T10:00:00Z"
+}
+```
+
+### 错误响应
+
+::alert{type="warning"}
+当请求参数验证失败时，返回 400 状态码：
+
+```json
+{
+  "detail": "Field validation error",
+  "errors": [
+    {
+      "field": "title",
+      "message": "String should have at most 100 characters"
+    }
+  ]
+}
+```
+::
+::
+
+## 获取笔记列表
+
+::api-endpoint{method="GET" path="/api/notes"}
+获取笔记列表，支持分页和筛选
+
+### 查询参数
+
+::props-table
+| 参数 | 类型 | 必需 | 默认值 | 描述 |
+|------|------|------|--------|------|
+| page | integer | ✗ | 1 | 页码 |
+| limit | integer | ✗ | 20 | 每页数量 |
+| tag | string | ✗ | - | 标签筛选 |
+| author_id | string | ✗ | - | 作者筛选 |
+::
+
+### 响应示例
+
+```json
+{
+  "items": [
+    {
+      "id": 1,
+      "note_id": "6516a1234567890",
+      "title": "美食分享",
+      "content": "今天尝试了新的烘焙配方...",
+      "tags": ["美食", "烘焙", "分享"],
+      "author_id": "user_123456",
+      "created_at": "2024-01-01T10:00:00Z"
+    }
+  ],
+  "total": 1,
+  "page": 1,
+  "limit": 20,
+  "pages": 1
+}
+```
+::
+
+## 认证要求
+
+::alert{type="info"}
+所有 API 端点都需要在请求头中包含有效的 JWT token：
+
+```
+Authorization: Bearer <your-jwt-token>
+```
+::
+
+## 状态码说明
+
+::props-table
+| 状态码 | 说明 |
+|-------|------|
+| 200 | 请求成功 |
+| 201 | 创建成功 |
+| 400 | 请求参数错误 |
+| 401 | 未授权 |
+| 403 | 禁止访问 |
+| 404 | 资源不存在 |
+| 500 | 服务器内部错误 |
+::

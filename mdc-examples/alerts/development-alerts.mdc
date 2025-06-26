@@ -1,0 +1,194 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+---
+description: Common development alerts and notifications using MDC
+globs: docs/**/*.md, mdc-examples/**/*.mdc
+---
+
+# 开发警告提示示例
+
+这是在开发文档中常用的警告提示 MDC 组件示例。
+
+## 信息提示
+
+::alert{type="info"}
+**信息提示**: 用于展示一般性信息和说明。
+
+- 适用于功能介绍
+- 使用建议
+- 补充说明
+::
+
+## 成功提示
+
+::alert{type="success"}
+**成功提示**: 用于展示正确的做法或成功的结果。
+
+✅ 测试全部通过  
+✅ 代码审查完成  
+✅ 部署成功  
+::
+
+## 警告提示
+
+::alert{type="warning"}
+**警告提示**: 用于提醒开发者注意的事项。
+
+⚠️ 这个 API 在下个版本中将被弃用  
+⚠️ 请确保在生产环境中设置正确的环境变量  
+⚠️ 大量数据操作可能影响性能  
+::
+
+## 错误提示
+
+::alert{type="error"}
+**错误提示**: 用于展示错误信息或禁止的操作。
+
+❌ 禁止在生产环境中使用此配置  
+❌ 该功能尚未实现  
+❌ 已知 Bug: 在某些情况下可能导致数据丢失  
+::
+
+## 安全相关
+
+::alert{type="error"}
+**安全警告**: 敏感操作和安全注意事项
+
+🔒 **重要**: 永远不要在代码中硬编码密码或 API 密钥  
+🔒 所有用户输入都必须进行验证和清理  
+🔒 确保在生产环境中启用 HTTPS  
+::
+
+## 性能相关
+
+::alert{type="warning"}
+**性能注意事项**:
+
+⚡ 此操作可能耗时较长，建议使用异步处理  
+⚡ 大量数据查询时请使用分页  
+⚡ 避免在循环中进行数据库查询（N+1 问题）  
+::
+
+## 版本兼容性
+
+::alert{type="info"}
+**版本要求**:
+
+- Python 3.12+
+- Node.js 18+
+- PostgreSQL 13+
+- Docker 20.10+
+
+在旧版本中可能无法正常工作。
+::
+
+## 环境配置
+
+::alert{type="warning"}
+**环境配置检查清单**:
+
+确保以下环境变量已正确设置：
+
+- `DATABASE_URL`: 数据库连接字符串
+- `JWT_SECRET_KEY`: JWT 密钥
+- `REDIS_URL`: Redis 连接字符串
+- `LOG_LEVEL`: 日志级别
+::
+
+## 开发工具建议
+
+::alert{type="success"}
+**推荐开发工具**:
+
+🛠️ **后端开发**:
+- IDE: VS Code / PyCharm
+- 代码格式化: black + isort
+- 类型检查: mypy
+- 测试: pytest
+
+🛠️ **前端开发**:
+- IDE: VS Code
+- 包管理: pnpm
+- 代码格式化: Prettier + ESLint
+- 测试: Jest + React Testing Library
+::
+
+## API 使用注意事项
+
+::alert{type="warning"}
+**API 调用限制**:
+
+- 每分钟最多 100 次请求
+- 单次请求体大小不超过 10MB
+- 超时时间设置为 30 秒
+- 使用 JWT token 进行身份验证
+::
+
+## 数据库迁移
+
+::alert{type="error"}
+**重要**: 数据库迁移注意事项
+
+在执行数据库迁移前请务必：
+
+1. 备份生产数据库
+2. 在测试环境中验证迁移脚本
+3. 确认回滚方案
+4. 通知相关团队成员
+
+```bash
+# 创建迁移
+alembic revision --autogenerate -m "Add new table"
+
+# 执行迁移
+alembic upgrade head
+
+# 回滚迁移
+alembic downgrade -1
+```
+::
+
+## 测试覆盖率
+
+::alert{type="success"}
+**测试覆盖率目标**:
+
+✅ 单元测试覆盖率 ≥ 80%  
+✅ 集成测试覆盖核心业务流程  
+✅ E2E 测试覆盖关键用户路径  
+
+使用以下命令检查覆盖率：
+
+```bash
+pytest --cov=app --cov-report=html
+```
+::
+
+## 代码审查清单
+
+::alert{type="info"}
+**代码审查要点**:
+
+📋 **功能性**:
+- [ ] 功能是否按预期工作
+- [ ] 边界条件是否处理
+- [ ] 错误处理是否完善
+
+📋 **代码质量**:
+- [ ] 命名是否清晰
+- [ ] 函数是否足够简洁
+- [ ] 是否有重复代码
+
+📋 **安全性**:
+- [ ] 输入验证是否充分
+- [ ] 敏感信息是否保护
+- [ ] 权限控制是否正确
+
+📋 **性能**:
+- [ ] 是否存在性能瓶颈
+- [ ] 数据库查询是否优化
+- [ ] 内存使用是否合理
+::

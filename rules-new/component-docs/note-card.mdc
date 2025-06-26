@@ -1,0 +1,167 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+---
+description: React component documentation with MDC examples
+globs: nextjs-frontend/components/**/*.tsx, nextjs-frontend/components/**/*.ts
+---
+
+# React 组件文档示例
+
+这是使用 MDC 组件编写 React 组件文档的示例。
+
+## NoteCard 组件
+
+::component-demo
+---
+component: NoteCard
+props:
+  note:
+    noteId: "note_123"
+    title: "示例笔记"
+    content: "这是一个示例笔记内容，展示了如何使用 NoteCard 组件。"
+    tags: ["React", "TypeScript", "示例"]
+    publishedAt: "2024-01-01T10:00:00Z"
+  onEdit: function
+  onDelete: function
+---
+::
+
+### 组件说明
+
+NoteCard 是用于展示单个笔记信息的卡片组件，支持编辑和删除操作。
+
+### Props
+
+::props-table
+| 属性 | 类型 | 必需 | 默认值 | 描述 |
+|------|------|------|--------|------|
+| note | Note | ✓ | - | 笔记数据对象 |
+| onEdit | (noteId: string) => void | ✗ | - | 编辑回调函数 |
+| onDelete | (noteId: string) => void | ✗ | - | 删除回调函数 |
+| className | string | ✗ | - | 自定义 CSS 类名 |
+| disabled | boolean | ✗ | false | 是否禁用交互 |
+::
+
+### Note 类型定义
+
+::props-table
+| 属性 | 类型 | 必需 | 描述 |
+|------|------|------|------|
+| noteId | string | ✓ | 笔记唯一标识 |
+| title | string | ✓ | 笔记标题 |
+| content | string | ✓ | 笔记内容 |
+| tags | string[] | ✗ | 标签数组 |
+| publishedAt | string | ✓ | 发布时间 (ISO 8601) |
+::
+
+### 使用示例
+
+::code-block{language="tsx"}
+```tsx
+import { NoteCard } from '@/components/NoteCard'
+import type { Note } from '@/types/note'
+
+const mockNote: Note = {
+  noteId: "note_123",
+  title: "我的第一篇笔记",
+  content: "这是笔记的详细内容...",
+  tags: ["生活", "分享"],
+  publishedAt: "2024-01-01T10:00:00Z"
+}
+
+function NotesPage() {
+  const handleEdit = (noteId: string) => {
+    console.log('编辑笔记:', noteId)
+    // 处理编辑逻辑
+  }
+
+  const handleDelete = (noteId: string) => {
+    console.log('删除笔记:', noteId)
+    // 处理删除逻辑
+  }
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <NoteCard
+        note={mockNote}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+      />
+    </div>
+  )
+}
+```
+::
+
+### 样式定制
+
+::alert{type="info"}
+NoteCard 组件使用 Tailwind CSS 构建，支持通过 `className` prop 进行样式定制：
+
+```tsx
+<NoteCard
+  note={note}
+  className="shadow-lg hover:shadow-xl transition-shadow"
+  onEdit={handleEdit}
+/>
+```
+::
+
+### 无障碍访问
+
+::alert{type="success"}
+组件已实现无障碍访问支持：
+
+- 所有交互元素都有合适的 ARIA 标签
+- 支持键盘导航
+- 屏幕阅读器友好
+- 符合 WCAG 2.1 AA 标准
+::
+
+### 测试
+
+::code-block{language="tsx"}
+```tsx
+import { render, screen, fireEvent } from '@testing-library/react'
+import { NoteCard } from '@/components/NoteCard'
+
+const mockNote = {
+  noteId: 'test-note',
+  title: '测试笔记',
+  content: '测试内容',
+  tags: ['测试'],
+  publishedAt: '2024-01-01T00:00:00Z'
+}
+
+test('should render note information', () => {
+  render(<NoteCard note={mockNote} />)
+  
+  expect(screen.getByText('测试笔记')).toBeInTheDocument()
+  expect(screen.getByText('测试内容')).toBeInTheDocument()
+  expect(screen.getByText('#测试')).toBeInTheDocument()
+})
+
+test('should call onEdit when edit button clicked', () => {
+  const onEdit = jest.fn()
+  render(<NoteCard note={mockNote} onEdit={onEdit} />)
+  
+  fireEvent.click(screen.getByText('编辑'))
+  expect(onEdit).toHaveBeenCalledWith('test-note')
+})
+```
+::
+
+### 性能优化
+
+::alert{type="warning"}
+建议使用 React.memo 包装组件以避免不必要的重渲染：
+
+```tsx
+export const NoteCard = React.memo<NoteCardProps>(({ note, onEdit, onDelete }) => {
+  // 组件实现
+})
+```
+::

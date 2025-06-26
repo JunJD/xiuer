@@ -1,0 +1,49 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# MDC Examples
+
+这个目录包含了项目中使用的 MDC (Markdown Components) 示例文件。
+
+## 目录结构
+
+```
+mdc-examples/
+├── api-docs/           # API 文档 MDC 示例
+├── component-docs/     # 组件文档 MDC 示例
+├── code-examples/      # 代码示例 MDC 组件
+├── alerts/            # 警告提示 MDC 组件
+└── README.mdc         # 本文件
+```
+
+## MDC 组件说明
+
+### 1. API 文档组件
+用于文档化 REST API 端点，包含请求/响应示例。
+
+### 2. 组件演示组件
+用于展示 React 组件的使用方式和属性。
+
+### 3. 代码高亮组件
+用于展示代码块，支持语法高亮和复制功能。
+
+### 4. 属性表格组件
+用于文档化组件或函数的参数/属性。
+
+### 5. 警告提示组件
+用于在文档中展示重要信息、警告或提示。
+
+## 使用方式
+
+1. 复制对应的 MDC 组件代码
+2. 根据需要修改内容
+3. 在你的 Markdown 文档中使用
+
+## 注意事项
+
+- 所有 MDC 组件都应该在 MkDocs 环境中使用
+- 确保 MDC 插件已正确配置
+- 参考现有示例进行自定义
+- 每个 .mdc 文件必须包含 YAML frontmatter

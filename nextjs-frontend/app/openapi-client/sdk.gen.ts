@@ -68,6 +68,31 @@ import type {
   GetCategoriesResponse,
   GetKeywordStatsError,
   GetKeywordStatsResponse,
+  ReceiveXhsWebhookData,
+  ReceiveXhsWebhookError,
+  ReceiveXhsWebhookResponse,
+  TestWebhookError,
+  TestWebhookResponse,
+  GetNotesStatsError,
+  GetNotesStatsResponse,
+  SearchNotesData,
+  SearchNotesError,
+  SearchNotesResponse,
+  GetNoteDetailData,
+  GetNoteDetailError,
+  GetNoteDetailResponse,
+  TriggerCrawlTaskData,
+  TriggerCrawlTaskError,
+  TriggerCrawlTaskResponse,
+  GetTasksData,
+  GetTasksError,
+  GetTasksResponse,
+  GetTaskDetailData,
+  GetTaskDetailError,
+  GetTaskDetailResponse,
+  CancelTaskData,
+  CancelTaskError,
+  CancelTaskResponse,
 } from "./types.gen";
 
 export const client = createClient(createConfig());
@@ -433,5 +458,158 @@ export const getKeywordStats = <ThrowOnError extends boolean = false>(
   >({
     ...options,
     url: "/api/keywords/stats",
+  });
+};
+
+/**
+ * Receive Xhs Webhook
+ * 接收小红书爬虫结果的webhook端点
+ */
+export const receiveXhsWebhook = <ThrowOnError extends boolean = false>(
+  options: OptionsLegacyParser<ReceiveXhsWebhookData, ThrowOnError>,
+) => {
+  return (options?.client ?? client).post<
+    ReceiveXhsWebhookResponse,
+    ReceiveXhsWebhookError,
+    ThrowOnError
+  >({
+    ...options,
+    url: "/api/webhook/xhs-result",
+  });
+};
+
+/**
+ * Test Webhook
+ * 测试webhook端点
+ */
+export const testWebhook = <ThrowOnError extends boolean = false>(
+  options?: OptionsLegacyParser<unknown, ThrowOnError>,
+) => {
+  return (options?.client ?? client).post<
+    TestWebhookResponse,
+    TestWebhookError,
+    ThrowOnError
+  >({
+    ...options,
+    url: "/api/webhook/test",
+  });
+};
+
+/**
+ * Get Notes Stats
+ * 获取笔记统计信息
+ */
+export const getNotesStats = <ThrowOnError extends boolean = false>(
+  options?: OptionsLegacyParser<unknown, ThrowOnError>,
+) => {
+  return (options?.client ?? client).get<
+    GetNotesStatsResponse,
+    GetNotesStatsError,
+    ThrowOnError
+  >({
+    ...options,
+    url: "/api/notes/stats",
+  });
+};
+
+/**
+ * Search Notes
+ * 搜索和筛选笔记
+ */
+export const searchNotes = <ThrowOnError extends boolean = false>(
+  options?: OptionsLegacyParser<SearchNotesData, ThrowOnError>,
+) => {
+  return (options?.client ?? client).get<
+    SearchNotesResponse,
+    SearchNotesError,
+    ThrowOnError
+  >({
+    ...options,
+    url: "/api/notes/",
+  });
+};
+
+/**
+ * Get Note Detail
+ * 获取单个笔记详情
+ */
+export const getNoteDetail = <ThrowOnError extends boolean = false>(
+  options: OptionsLegacyParser<GetNoteDetailData, ThrowOnError>,
+) => {
+  return (options?.client ?? client).get<
+    GetNoteDetailResponse,
+    GetNoteDetailError,
+    ThrowOnError
+  >({
+    ...options,
+    url: "/api/notes/{note_id}",
+  });
+};
+
+/**
+ * Trigger Crawl Task
+ * 触发爬取任务
+ */
+export const triggerCrawlTask = <ThrowOnError extends boolean = false>(
+  options: OptionsLegacyParser<TriggerCrawlTaskData, ThrowOnError>,
+) => {
+  return (options?.client ?? client).post<
+    TriggerCrawlTaskResponse,
+    TriggerCrawlTaskError,
+    ThrowOnError
+  >({
+    ...options,
+    url: "/api/tasks/trigger-crawl",
+  });
+};
+
+/**
+ * Get Tasks
+ * 获取任务列表
+ */
+export const getTasks = <ThrowOnError extends boolean = false>(
+  options?: OptionsLegacyParser<GetTasksData, ThrowOnError>,
+) => {
+  return (options?.client ?? client).get<
+    GetTasksResponse,
+    GetTasksError,
+    ThrowOnError
+  >({
+    ...options,
+    url: "/api/tasks/",
+  });
+};
+
+/**
+ * Get Task Detail
+ * 获取任务详情
+ */
+export const getTaskDetail = <ThrowOnError extends boolean = false>(
+  options: OptionsLegacyParser<GetTaskDetailData, ThrowOnError>,
+) => {
+  return (options?.client ?? client).get<
+    GetTaskDetailResponse,
+    GetTaskDetailError,
+    ThrowOnError
+  >({
+    ...options,
+    url: "/api/tasks/{task_id}",
+  });
+};
+
+/**
+ * Cancel Task
+ * 取消任务
+ */
+export const cancelTask = <ThrowOnError extends boolean = false>(
+  options: OptionsLegacyParser<CancelTaskData, ThrowOnError>,
+) => {
+  return (options?.client ?? client).delete<
+    CancelTaskResponse,
+    CancelTaskError,
+    ThrowOnError
+  >({
+    ...options,
+    url: "/api/tasks/{task_id}",
   });
 };

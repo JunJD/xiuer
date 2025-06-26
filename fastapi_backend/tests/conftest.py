@@ -10,7 +10,7 @@ from app.models import User, Base
 
 from app.database import get_user_db, get_async_session
 from app.main import app
-from app.users import get_jwt_strategy
+from app.services.users import get_jwt_strategy
 
 
 @pytest_asyncio.fixture(scope="function")

@@ -1,13 +1,13 @@
 import pytest
 from pathlib import Path
 from fastapi_mail import ConnectionConfig, MessageSchema
-from app.email import get_email_config, send_reset_password_email
+from app.services.email import get_email_config, send_reset_password_email
 from app.models import User
 
 
 @pytest.fixture
 def mock_settings(mocker):
-    mock = mocker.patch("app.email.settings")
+    mock = mocker.patch("app.services.email.settings")
     # Set up mock settings with test values
     mock.MAIL_USERNAME = "test_user"
     mock.MAIL_PASSWORD = "test_pass"
@@ -51,7 +51,7 @@ def test_get_email_config(mock_settings):
 @pytest.mark.asyncio
 async def test_send_reset_password_email(mock_settings, mock_user, mocker):
     # Mock FastMail
-    mock_fastmail = mocker.patch("app.email.FastMail")
+    mock_fastmail = mocker.patch("app.services.email.FastMail")
     mock_fastmail_instance = mock_fastmail.return_value
     mock_fastmail_instance.send_message = mocker.AsyncMock()
 

@@ -1,10 +1,13 @@
 from fastapi import FastAPI
 from .schemas.users import UserCreate, UserRead, UserUpdate
-from .users import auth_backend, fastapi_users, AUTH_URL_PATH
+from .services.users import auth_backend, fastapi_users, AUTH_URL_PATH
 from fastapi.middleware.cors import CORSMiddleware
 from .utils import simple_generate_unique_route_id
 from app.routes.items import router as items_router
-from app.api.endpoints.keywords import router as keywords_router
+from app.routes.keywords import router as keywords_router
+from app.routes.webhook import router as webhook_router
+from app.routes.notes import router as notes_router
+from app.routes.tasks import router as tasks_router
 from app.config import settings
 
 app = FastAPI(
@@ -53,3 +56,12 @@ app.include_router(items_router, prefix="/items")
 
 # Include keywords management routes
 app.include_router(keywords_router, prefix="/api/keywords", tags=["keywords"])
+
+# Include webhook routes (数据接收和处理)
+app.include_router(webhook_router, prefix="/api/webhook", tags=["webhook"])
+
+# Include notes routes (笔记查询)
+app.include_router(notes_router, prefix="/api/notes", tags=["notes"])
+
+# Include tasks routes (任务管理)
+app.include_router(tasks_router, prefix="/api/tasks", tags=["tasks"])

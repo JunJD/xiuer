@@ -18,6 +18,28 @@ from .keywords import (
     KeywordListResponse
 )
 
+# Webhook 相关模式
+from .webhook import (
+    WebhookStatus,
+    TaskType,
+    WebhookBase,
+    XhsAuthorInfo,
+    XhsInteractInfo,
+    XhsNoteData,
+    XhsSearchResult,
+    XhsUserResult,
+    XhsCommentData,
+    WebhookRequest,
+    WebhookResponse,
+    CrawlTaskRequest,
+    TaskTriggerResponse,
+    NoteProcessResult,
+    BatchProcessResult,
+    NoteStatsResponse,
+    NoteQueryParams,
+    XhsNoteResponse
+)
+
 __all__ = [
     # 用户模式
     "UserRead",
@@ -35,4 +57,24 @@ __all__ = [
     "KeywordUpdate", 
     "KeywordResponse",
     "KeywordListResponse",
+    
+    # Webhook 模式
+    "WebhookStatus",
+    "TaskType",
+    "WebhookBase",
+    "XhsAuthorInfo",
+    "XhsInteractInfo", 
+    "XhsNoteData",
+    "XhsSearchResult",
+    "XhsUserResult",
+    "XhsCommentData",
+    "WebhookRequest",
+    "WebhookResponse",
+    "CrawlTaskRequest",
+    "TaskTriggerResponse",
+    "NoteProcessResult",
+    "BatchProcessResult",
+    "NoteStatsResponse",
+    "NoteQueryParams",
+    "XhsNoteResponse",
 ] 

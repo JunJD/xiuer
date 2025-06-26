@@ -22,6 +22,36 @@ export type Body_auth_verify_verify = {
   token: string;
 };
 
+/**
+ * 爬取任务请求
+ */
+export type CrawlTaskRequest = {
+  /**
+   * 任务名称
+   */
+  task_name: string;
+  /**
+   * 搜索关键词
+   */
+  keyword: string;
+  /**
+   * 目标爬取数量
+   */
+  target_count?: number;
+  /**
+   * 排序方式
+   */
+  sort_type?: number;
+  /**
+   * 自定义cookies
+   */
+  cookies?: string | null;
+  /**
+   * 接收结果的webhook URL
+   */
+  webhook_url: string;
+};
+
 export type ErrorModel = {
   detail:
     | string
@@ -90,6 +120,27 @@ export type login = {
   client_secret?: string | null;
 };
 
+/**
+ * 笔记统计响应
+ */
+export type NoteStatsResponse = {
+  total_notes: number;
+  new_notes: number;
+  changed_notes: number;
+  important_notes: number;
+  today_crawled: number;
+};
+
+/**
+ * 任务触发响应
+ */
+export type TaskTriggerResponse = {
+  success: boolean;
+  message: string;
+  task_id?: string | null;
+  github_run_url?: string | null;
+};
+
 export type UserCreate = {
   email: string;
   password: string;
@@ -118,6 +169,127 @@ export type ValidationError = {
   loc: Array<string | number>;
   msg: string;
   type: string;
+};
+
+/**
+ * 完整的Webhook请求模式
+ */
+export type WebhookRequest = {
+  data?:
+    | XhsSearchResult
+    | XhsNoteData
+    | XhsUserResult
+    | {
+        [key: string]: unknown;
+      }
+    | null;
+  status: WebhookStatus;
+  message: string;
+  timestamp: string;
+  run_id: string;
+  elapsed_time?: number | null;
+  progress?: number | null;
+};
+
+/**
+ * Webhook响应
+ */
+export type WebhookResponse = {
+  status?: string;
+  message?: string;
+  processed_count?: number | null;
+  errors?: Array<string> | null;
+};
+
+/**
+ * Webhook状态枚举
+ */
+export type WebhookStatus =
+  | "started"
+  | "progress"
+  | "success"
+  | "error"
+  | "completed"
+  | "failed";
+
+/**
+ * 小红书作者信息
+ */
+export type XhsAuthorInfo = {
+  user_id?: string | null;
+  nickname?: string | null;
+  avatar?: string | null;
+};
+
+/**
+ * 小红书互动信息
+ */
+export type XhsInteractInfo = {
+  liked_count?: number;
+  collected_count?: number;
+  comment_count?: number;
+  share_count?: number;
+};
+
+/**
+ * 小红书笔记数据
+ */
+export type XhsNoteData = {
+  note_id: string;
+  note_url?: string | null;
+  note_type?: string | null;
+  author?: XhsAuthorInfo | null;
+  title?: string | null;
+  desc?: string | null;
+  tags?: Array<string> | null;
+  upload_time?: string | null;
+  ip_location?: string | null;
+  interact_info?: XhsInteractInfo | null;
+  video_cover?: string | null;
+  video_addr?: string | null;
+  image_list?: Array<string> | null;
+  xsec_token?: string | null;
+};
+
+/**
+ * 笔记响应模式
+ */
+export type XhsNoteResponse = {
+  id: string;
+  note_id: string;
+  note_url: string | null;
+  note_type: string | null;
+  title: string | null;
+  desc: string | null;
+  author_nickname: string | null;
+  liked_count: number;
+  comment_count: number;
+  current_tags: Array<string> | null;
+  is_new: boolean;
+  is_changed: boolean;
+  is_important: boolean;
+  first_crawl_time: string;
+  last_crawl_time: string;
+};
+
+/**
+ * 搜索结果数据
+ */
+export type XhsSearchResult = {
+  query: string;
+  total_found: number;
+  notes: Array<XhsNoteData>;
+};
+
+/**
+ * 用户结果数据
+ */
+export type XhsUserResult = {
+  user_url: string;
+  notes_count: number;
+  notes: Array<{
+    [key: string]: unknown;
+  }>;
 };
 
 export type AuthJwtLoginData = {
@@ -300,3 +472,85 @@ export type GetCategoriesError = unknown;
 export type GetKeywordStatsResponse = unknown;
 
 export type GetKeywordStatsError = unknown;
+
+export type ReceiveXhsWebhookData = {
+  body: WebhookRequest;
+};
+
+export type ReceiveXhsWebhookResponse = WebhookResponse;
+
+export type ReceiveXhsWebhookError = HTTPValidationError;
+
+export type TestWebhookResponse = unknown;
+
+export type TestWebhookError = unknown;
+
+export type GetNotesStatsResponse = NoteStatsResponse;
+
+export type GetNotesStatsError = unknown;
+
+export type SearchNotesData = {
+  query?: {
+    author_user_id?: string;
+    is_changed?: boolean;
+    is_important?: boolean;
+    is_new?: boolean;
+    keyword?: string;
+    limit?: number;
+    offset?: number;
+  };
+};
+
+export type SearchNotesResponse = Array<XhsNoteResponse>;
+
+export type SearchNotesError = HTTPValidationError;
+
+export type GetNoteDetailData = {
+  path: {
+    note_id: string;
+  };
+};
+
+export type GetNoteDetailResponse = unknown;
+
+export type GetNoteDetailError = HTTPValidationError;
+
+export type TriggerCrawlTaskData = {
+  body: CrawlTaskRequest;
+};
+
+export type TriggerCrawlTaskResponse = TaskTriggerResponse;
+
+export type TriggerCrawlTaskError = HTTPValidationError;
+
+export type GetTasksData = {
+  query?: {
+    limit?: number;
+    offset?: number;
+    status?: string;
+  };
+};
+
+export type GetTasksResponse = unknown;
+
+export type GetTasksError = HTTPValidationError;
+
+export type GetTaskDetailData = {
+  path: {
+    task_id: string;
+  };
+};
+
+export type GetTaskDetailResponse = unknown;
+
+export type GetTaskDetailError = HTTPValidationError;
+
+export type CancelTaskData = {
+  path: {
+    task_id: string;
+  };
+};
+
+export type CancelTaskResponse = unknown;
+
+export type CancelTaskError = HTTPValidationError;

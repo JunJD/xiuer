@@ -1109,6 +1109,417 @@
           }
         }
       }
+    },
+    "/api/webhook/xhs-result": {
+      "post": {
+        "tags": [
+          "webhook"
+        ],
+        "summary": "Receive Xhs Webhook",
+        "description": "\u63a5\u6536\u5c0f\u7ea2\u4e66\u722c\u866b\u7ed3\u679c\u7684webhook\u7aef\u70b9",
+        "operationId": "receive_xhs_webhook",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/webhook/test": {
+      "post": {
+        "tags": [
+          "webhook"
+        ],
+        "summary": "Test Webhook",
+        "description": "\u6d4b\u8bd5webhook\u7aef\u70b9",
+        "operationId": "test_webhook",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notes/stats": {
+      "get": {
+        "tags": [
+          "notes"
+        ],
+        "summary": "Get Notes Stats",
+        "description": "\u83b7\u53d6\u7b14\u8bb0\u7edf\u8ba1\u4fe1\u606f",
+        "operationId": "get_notes_stats",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NoteStatsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notes/": {
+      "get": {
+        "tags": [
+          "notes"
+        ],
+        "summary": "Search Notes",
+        "description": "\u641c\u7d22\u548c\u7b5b\u9009\u7b14\u8bb0",
+        "operationId": "search_notes",
+        "parameters": [
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Keyword"
+            }
+          },
+          {
+            "name": "is_new",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "title": "Is New"
+            }
+          },
+          {
+            "name": "is_changed",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "title": "Is Changed"
+            }
+          },
+          {
+            "name": "is_important",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "title": "Is Important"
+            }
+          },
+          {
+            "name": "author_user_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Author User Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/XhsNoteResponse"
+                  },
+                  "title": "Response Notes-Search Notes"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notes/{note_id}": {
+      "get": {
+        "tags": [
+          "notes"
+        ],
+        "summary": "Get Note Detail",
+        "description": "\u83b7\u53d6\u5355\u4e2a\u7b14\u8bb0\u8be6\u60c5",
+        "operationId": "get_note_detail",
+        "parameters": [
+          {
+            "name": "note_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Note Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/tasks/trigger-crawl": {
+      "post": {
+        "tags": [
+          "tasks"
+        ],
+        "summary": "Trigger Crawl Task",
+        "description": "\u89e6\u53d1\u722c\u53d6\u4efb\u52a1",
+        "operationId": "trigger_crawl_task",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrawlTaskRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskTriggerResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/tasks/": {
+      "get": {
+        "tags": [
+          "tasks"
+        ],
+        "summary": "Get Tasks",
+        "description": "\u83b7\u53d6\u4efb\u52a1\u5217\u8868",
+        "operationId": "get_tasks",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "title": "Offset"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Status"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/tasks/{task_id}": {
+      "get": {
+        "tags": [
+          "tasks"
+        ],
+        "summary": "Get Task Detail",
+        "description": "\u83b7\u53d6\u4efb\u52a1\u8be6\u60c5",
+        "operationId": "get_task_detail",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "tasks"
+        ],
+        "summary": "Cancel Task",
+        "description": "\u53d6\u6d88\u4efb\u52a1",
+        "operationId": "cancel_task",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1189,6 +1600,61 @@
           "token"
         ],
         "title": "Body_auth-verify:verify"
+      },
+      "CrawlTaskRequest": {
+        "properties": {
+          "task_name": {
+            "type": "string",
+            "title": "Task Name",
+            "description": "\u4efb\u52a1\u540d\u79f0"
+          },
+          "keyword": {
+            "type": "string",
+            "title": "Keyword",
+            "description": "\u641c\u7d22\u5173\u952e\u8bcd"
+          },
+          "target_count": {
+            "type": "integer",
+            "maximum": 500.0,
+            "minimum": 1.0,
+            "title": "Target Count",
+            "description": "\u76ee\u6807\u722c\u53d6\u6570\u91cf",
+            "default": 50
+          },
+          "sort_type": {
+            "type": "integer",
+            "maximum": 4.0,
+            "minimum": 0.0,
+            "title": "Sort Type",
+            "description": "\u6392\u5e8f\u65b9\u5f0f",
+            "default": 1
+          },
+          "cookies": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cookies",
+            "description": "\u81ea\u5b9a\u4e49cookies"
+          },
+          "webhook_url": {
+            "type": "string",
+            "title": "Webhook Url",
+            "description": "\u63a5\u6536\u7ed3\u679c\u7684webhook URL"
+          }
+        },
+        "type": "object",
+        "required": [
+          "task_name",
+          "keyword",
+          "webhook_url"
+        ],
+        "title": "CrawlTaskRequest",
+        "description": "\u722c\u53d6\u4efb\u52a1\u8bf7\u6c42"
       },
       "ErrorModel": {
         "properties": {
@@ -1506,6 +1972,81 @@
         "type": "object",
         "title": "KeywordUpdate"
       },
+      "NoteStatsResponse": {
+        "properties": {
+          "total_notes": {
+            "type": "integer",
+            "title": "Total Notes"
+          },
+          "new_notes": {
+            "type": "integer",
+            "title": "New Notes"
+          },
+          "changed_notes": {
+            "type": "integer",
+            "title": "Changed Notes"
+          },
+          "important_notes": {
+            "type": "integer",
+            "title": "Important Notes"
+          },
+          "today_crawled": {
+            "type": "integer",
+            "title": "Today Crawled"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total_notes",
+          "new_notes",
+          "changed_notes",
+          "important_notes",
+          "today_crawled"
+        ],
+        "title": "NoteStatsResponse",
+        "description": "\u7b14\u8bb0\u7edf\u8ba1\u54cd\u5e94"
+      },
+      "TaskTriggerResponse": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "title": "Success"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "task_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Task Id"
+          },
+          "github_run_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Github Run Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "success",
+          "message"
+        ],
+        "title": "TaskTriggerResponse",
+        "description": "\u4efb\u52a1\u89e6\u53d1\u54cd\u5e94"
+      },
       "UserCreate": {
         "properties": {
           "email": {
@@ -1690,6 +2231,548 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "WebhookRequest": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/XhsSearchResult"
+              },
+              {
+                "$ref": "#/components/schemas/XhsNoteData"
+              },
+              {
+                "$ref": "#/components/schemas/XhsUserResult"
+              },
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data"
+          },
+          "status": {
+            "$ref": "#/components/schemas/WebhookStatus"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Timestamp"
+          },
+          "run_id": {
+            "type": "string",
+            "title": "Run Id"
+          },
+          "elapsed_time": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Elapsed Time"
+          },
+          "progress": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 100.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Progress"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "message",
+          "timestamp",
+          "run_id"
+        ],
+        "title": "WebhookRequest",
+        "description": "\u5b8c\u6574\u7684Webhook\u8bf7\u6c42\u6a21\u5f0f"
+      },
+      "WebhookResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "default": "received"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "\u6570\u636e\u5df2\u63a5\u6536"
+          },
+          "processed_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Processed Count"
+          },
+          "errors": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Errors"
+          }
+        },
+        "type": "object",
+        "title": "WebhookResponse",
+        "description": "Webhook\u54cd\u5e94"
+      },
+      "WebhookStatus": {
+        "type": "string",
+        "enum": [
+          "started",
+          "progress",
+          "success",
+          "error",
+          "completed",
+          "failed"
+        ],
+        "title": "WebhookStatus",
+        "description": "Webhook\u72b6\u6001\u679a\u4e3e"
+      },
+      "XhsAuthorInfo": {
+        "properties": {
+          "user_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Id"
+          },
+          "nickname": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nickname"
+          },
+          "avatar": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avatar"
+          }
+        },
+        "type": "object",
+        "title": "XhsAuthorInfo",
+        "description": "\u5c0f\u7ea2\u4e66\u4f5c\u8005\u4fe1\u606f"
+      },
+      "XhsInteractInfo": {
+        "properties": {
+          "liked_count": {
+            "type": "integer",
+            "title": "Liked Count",
+            "default": 0
+          },
+          "collected_count": {
+            "type": "integer",
+            "title": "Collected Count",
+            "default": 0
+          },
+          "comment_count": {
+            "type": "integer",
+            "title": "Comment Count",
+            "default": 0
+          },
+          "share_count": {
+            "type": "integer",
+            "title": "Share Count",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "title": "XhsInteractInfo",
+        "description": "\u5c0f\u7ea2\u4e66\u4e92\u52a8\u4fe1\u606f"
+      },
+      "XhsNoteData": {
+        "properties": {
+          "note_id": {
+            "type": "string",
+            "title": "Note Id"
+          },
+          "note_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note Url"
+          },
+          "note_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note Type"
+          },
+          "author": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/XhsAuthorInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "desc": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Desc"
+          },
+          "tags": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tags"
+          },
+          "upload_time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Upload Time"
+          },
+          "ip_location": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ip Location"
+          },
+          "interact_info": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/XhsInteractInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "video_cover": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Video Cover"
+          },
+          "video_addr": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Video Addr"
+          },
+          "image_list": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image List"
+          },
+          "xsec_token": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Xsec Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "note_id"
+        ],
+        "title": "XhsNoteData",
+        "description": "\u5c0f\u7ea2\u4e66\u7b14\u8bb0\u6570\u636e"
+      },
+      "XhsNoteResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "note_id": {
+            "type": "string",
+            "title": "Note Id"
+          },
+          "note_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note Url"
+          },
+          "note_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note Type"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "desc": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Desc"
+          },
+          "author_nickname": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Author Nickname"
+          },
+          "liked_count": {
+            "type": "integer",
+            "title": "Liked Count"
+          },
+          "comment_count": {
+            "type": "integer",
+            "title": "Comment Count"
+          },
+          "current_tags": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Tags"
+          },
+          "is_new": {
+            "type": "boolean",
+            "title": "Is New"
+          },
+          "is_changed": {
+            "type": "boolean",
+            "title": "Is Changed"
+          },
+          "is_important": {
+            "type": "boolean",
+            "title": "Is Important"
+          },
+          "first_crawl_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "First Crawl Time"
+          },
+          "last_crawl_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Last Crawl Time"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "note_id",
+          "note_url",
+          "note_type",
+          "title",
+          "desc",
+          "author_nickname",
+          "liked_count",
+          "comment_count",
+          "current_tags",
+          "is_new",
+          "is_changed",
+          "is_important",
+          "first_crawl_time",
+          "last_crawl_time"
+        ],
+        "title": "XhsNoteResponse",
+        "description": "\u7b14\u8bb0\u54cd\u5e94\u6a21\u5f0f"
+      },
+      "XhsSearchResult": {
+        "properties": {
+          "query": {
+            "type": "string",
+            "title": "Query"
+          },
+          "total_found": {
+            "type": "integer",
+            "title": "Total Found"
+          },
+          "notes": {
+            "items": {
+              "$ref": "#/components/schemas/XhsNoteData"
+            },
+            "type": "array",
+            "title": "Notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "query",
+          "total_found",
+          "notes"
+        ],
+        "title": "XhsSearchResult",
+        "description": "\u641c\u7d22\u7ed3\u679c\u6570\u636e"
+      },
+      "XhsUserResult": {
+        "properties": {
+          "user_url": {
+            "type": "string",
+            "title": "User Url"
+          },
+          "notes_count": {
+            "type": "integer",
+            "title": "Notes Count"
+          },
+          "notes": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_url",
+          "notes_count",
+          "notes"
+        ],
+        "title": "XhsUserResult",
+        "description": "\u7528\u6237\u7ed3\u679c\u6570\u636e"
       },
       "login": {
         "properties": {

@@ -9,9 +9,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import desc
 
-from ...database import get_async_session
-from ...models import BusinessKeyword, User
-from ...schemas.keywords import (
+from ..database import get_async_session
+from ..models import BusinessKeyword, User
+from ..schemas.keywords import (
     KeywordCreate,
     KeywordUpdate,
     KeywordResponse,

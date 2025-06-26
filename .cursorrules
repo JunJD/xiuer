@@ -1,0 +1,545 @@
+# 小红书数据分析平台 - Cursor Rules
+
+You are an expert full-stack developer proficient in **Python 3.12**, **FastAPI**, **Next.js 14**, **TypeScript**, **PostgreSQL**, **Docker**, and modern web development best practices.
+
+## 🎯 Core Expertise
+- Backend: FastAPI + AsyncSQLAlchemy + Pydantic v2 + Alembic
+- Frontend: Next.js 14 (App Router) + TypeScript + Tailwind CSS + React Query + Zustand
+- Database: PostgreSQL + Redis (caching)
+- DevOps: Docker + GitHub Actions + MkDocs
+- Crawler: Python + PyExecJS + Loguru
+- Testing: pytest + Jest + React Testing Library
+
+## 📁 Monorepo Structure
+
+```
+project_root/
+├── fastapi_backend/         # FastAPI 后端服务
+│   ├── app/
+│   │   ├── core/           # 核心配置 (config, database, logger)
+│   │   ├── models.py       # SQLAlchemy ORM 模型
+│   │   ├── schemas/        # Pydantic 数据模型
+│   │   ├── services/       # 业务逻辑层
+│   │   ├── routes/         # API 路由层
+│   │   └── main.py         # FastAPI 应用入口
+│   ├── tests/              # 后端测试
+│   ├── alembic/            # 数据库迁移
+│   └── pyproject.toml
+├── nextjs-frontend/         # Next.js 前端应用
+│   ├── app/                # App Router 页面
+│   ├── components/         # UI 组件
+│   ├── lib/                # 工具库和 hooks
+│   └── __tests__/          # 前端测试
+├── Spider_XHS/              # 小红书爬虫系统
+│   ├── apis/               # API 接口封装
+│   ├── xhs_utils/          # 爬虫工具函数
+│   ├── src/                # 核心爬虫代码
+│   ├── main.py             # 爬虫入口
+│   └── pyproject.toml
+├── docs/                   # MkDocs 文档
+├── .github/workflows/      # GitHub Actions
+├── docker-compose.yml      # 开发环境
+└── mkdocs.yml             # 文档配置
+```
+
+## 🏗️ Architecture Principles
+
+### Backend (FastAPI)
+- **分层架构**: Routes → Services → Models
+- **依赖注入**: 使用 FastAPI 的 Dependency Injection
+- **异步优先**: 所有数据库操作使用 AsyncSession
+- **类型安全**: 严格的 Pydantic 数据验证
+- **错误处理**: 统一的 HTTPException 处理
+
+### Frontend (Next.js)
+- **App Router**: 使用 Next.js 14 最新路由系统
+- **服务端组件**: 优先使用 RSC，必要时才用客户端组件
+- **类型安全**: TypeScript strict mode + Zod 验证
+- **状态管理**: Zustand (全局) + React Query (服务端状态)
+- **样式系统**: Tailwind CSS + CSS Modules
+
+### Spider (Python)
+- **异步爬取**: 使用 asyncio 提升性能
+- **错误重试**: 内置重试机制和容错处理
+- **数据管道**: 爬取 → 清洗 → 存储 → Webhook 通知
+- **反反爬**: 动态 User-Agent + 请求间隔控制
+
+## 💻 Code Style Guidelines
+
+### Python (Backend & Spider)
+```python
+# 文件结构示例: app/services/note_service.py
+from __future__ import annotations
+
+from datetime import datetime
+from typing import Optional
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+
+from app.models import XhsNote, User
+from app.schemas.note import NoteCreate, NoteUpdate
+from app.core.logger import app_logger as logger
+
+
+class NoteService:
+    """小红书笔记服务层"""
+    
+    def __init__(self, db: AsyncSession) -> None:
+        self.db = db
+    
+    async def create_note(
+        self, 
+        note_data: NoteCreate, 
+        user_id: int
+    ) -> XhsNote:
+        """创建新笔记"""
+        note = XhsNote(
+            **note_data.model_dump(),
+            user_id=user_id,
+            created_at=datetime.utcnow()
+        )
+        self.db.add(note)
+        await self.db.commit()
+        await self.db.refresh(note)
+        
+        logger.info(f"Created note {note.note_id} for user {user_id}")
+        return note
+    
+    async def get_note_by_id(self, note_id: str) -> Optional[XhsNote]:
+        """根据ID获取笔记"""
+        stmt = select(XhsNote).where(XhsNote.note_id == note_id)
+        result = await self.db.execute(stmt)
+        return result.scalar_one_or_none()
+```
+
+### TypeScript (Frontend)
+```typescript
+// 文件结构示例: lib/api/notes.ts
+import { z } from 'zod'
+
+// 类型定义
+export const NoteSchema = z.object({
+  noteId: z.string(),
+  title: z.string().min(1).max(100),
+  content: z.string().min(1),
+  tags: z.array(z.string()).optional(),
+  publishedAt: z.string().datetime(),
+})
+
+export type Note = z.infer<typeof NoteSchema>
+
+// API 客户端
+export class NotesApi {
+  private baseUrl: string
+
+  constructor(baseUrl: string) {
+    this.baseUrl = baseUrl
+  }
+
+  async getNotes(params?: {
+    page?: number
+    limit?: number
+    tag?: string
+  }): Promise<Note[]> {
+    const searchParams = new URLSearchParams()
+    if (params?.page) searchParams.set('page', params.page.toString())
+    if (params?.limit) searchParams.set('limit', params.limit.toString())
+    if (params?.tag) searchParams.set('tag', params.tag)
+
+    const response = await fetch(`${this.baseUrl}/notes?${searchParams}`)
+    if (!response.ok) {
+      throw new Error(`Failed to fetch notes: ${response.statusText}`)
+    }
+
+    const data = await response.json()
+    return z.array(NoteSchema).parse(data)
+  }
+}
+```
+
+### React Components
+```tsx
+// 文件结构示例: components/NoteCard.tsx
+'use client'
+
+import { useState } from 'react'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { Card, CardHeader, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import type { Note } from '@/lib/api/notes'
+
+interface NoteCardProps {
+  note: Note
+  onEdit?: (noteId: string) => void
+  onDelete?: (noteId: string) => void
+}
+
+export function NoteCard({ note, onEdit, onDelete }: NoteCardProps) {
+  const [isLoading, setIsLoading] = useState(false)
+  const queryClient = useQueryClient()
+
+  const deleteMutation = useMutation({
+    mutationFn: async (noteId: string) => {
+      const response = await fetch(`/api/notes/${noteId}`, {
+        method: 'DELETE',
+      })
+      if (!response.ok) throw new Error('Failed to delete note')
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notes'] })
+    },
+  })
+
+  const handleDelete = async () => {
+    if (!confirm('确定要删除这条笔记吗？')) return
+    
+    setIsLoading(true)
+    try {
+      await deleteMutation.mutateAsync(note.noteId)
+      onDelete?.(note.noteId)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  return (
+    <Card className="w-full max-w-sm">
+      <CardHeader>
+        <h3 className="font-semibold text-lg line-clamp-2">
+          {note.title}
+        </h3>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <p className="text-sm text-muted-foreground line-clamp-3">
+          {note.content}
+        </p>
+        
+        {note.tags && note.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {note.tags.map(tag => (
+              <span 
+                key={tag}
+                className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full"
+              >
+                #{tag}
+              </span>
+            ))}
+          </div>
+        )}
+        
+        <div className="flex justify-between pt-2">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => onEdit?.(note.noteId)}
+          >
+            编辑
+          </Button>
+          <Button 
+            variant="destructive" 
+            size="sm"
+            disabled={isLoading}
+            onClick={handleDelete}
+          >
+            {isLoading ? '删除中...' : '删除'}
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+```
+
+## 🔧 Development Rules
+
+### Naming Conventions
+- **文件名**: `snake_case.py` (Python), `kebab-case.ts` (工具), `PascalCase.tsx` (组件)
+- **变量/函数**: `snake_case` (Python), `camelCase` (TypeScript)
+- **类名**: `PascalCase` (所有语言)
+- **常量**: `UPPER_SNAKE_CASE` (所有语言)
+- **数据库表**: `snake_case` 复数形式 (如 `xhs_notes`)
+
+### Import Organization
+```python
+# Python 导入顺序
+from __future__ import annotations
+
+# 标准库
+import asyncio
+from datetime import datetime
+from typing import Optional
+
+# 第三方库
+from fastapi import HTTPException
+from sqlalchemy import select
+
+# 本地导入
+from app.core.logger import app_logger as logger
+from app.models import XhsNote
+```
+
+```typescript
+// TypeScript 导入顺序
+// React 相关
+import { useState, useEffect } from 'react'
+import { NextRequest, NextResponse } from 'next/server'
+
+// 第三方库
+import { z } from 'zod'
+import { clsx } from 'clsx'
+
+// 本地导入
+import { Button } from '@/components/ui/button'
+import { NotesApi } from '@/lib/api/notes'
+import type { Note } from '@/types/note'
+```
+
+### Error Handling
+```python
+# 后端错误处理
+from fastapi import HTTPException, status
+
+# 业务逻辑错误
+raise HTTPException(
+    status_code=status.HTTP_400_BAD_REQUEST,
+    detail="笔记不存在或已被删除"
+)
+
+# 权限错误
+raise HTTPException(
+    status_code=status.HTTP_403_FORBIDDEN,
+    detail="无权限访问该资源"
+)
+```
+
+```typescript
+// 前端错误处理
+try {
+  const response = await fetch('/api/notes')
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+  }
+  return await response.json()
+} catch (error) {
+  console.error('获取笔记失败:', error)
+  toast.error('获取数据失败，请稍后重试')
+  throw error
+}
+```
+
+## 📝 Documentation with MDC
+
+### API 文档 (MDC格式)
+```markdown
+::api-endpoint{method="POST" path="/api/notes"}
+创建新笔记
+
+#request
+```json
+{
+  "title": "笔记标题",
+  "content": "笔记内容",
+  "tags": ["标签1", "标签2"]
+}
+```
+
+#response
+```json
+{
+  "noteId": "note_123",
+  "title": "笔记标题",
+  "content": "笔记内容",
+  "tags": ["标签1", "标签2"],
+  "createdAt": "2024-01-01T00:00:00Z"
+}
+```
+::
+
+### 组件文档 (MDC格式)
+```markdown
+::component-demo
+---
+component: NoteCard
+props:
+  note:
+    noteId: "note_123"
+    title: "示例笔记"
+    content: "这是一个示例笔记内容"
+    tags: ["React", "TypeScript"]
+---
+::
+
+### Props
+
+::props-table
+| 属性 | 类型 | 必需 | 默认值 | 描述 |
+|------|------|------|--------|------|
+| note | Note | ✓ | - | 笔记数据对象 |
+| onEdit | (noteId: string) => void | ✗ | - | 编辑回调函数 |
+| onDelete | (noteId: string) => void | ✗ | - | 删除回调函数 |
+::
+```
+
+## 🧪 Testing Standards
+
+### Backend Tests
+```python
+# tests/services/test_note_service.py
+import pytest
+from unittest.mock import AsyncMock
+
+from app.services.note_service import NoteService
+from app.schemas.note import NoteCreate
+
+
+@pytest.mark.asyncio
+async def test_create_note_success():
+    """测试成功创建笔记"""
+    # Arrange
+    mock_db = AsyncMock()
+    service = NoteService(mock_db)
+    note_data = NoteCreate(
+        title="测试笔记",
+        content="测试内容"
+    )
+    
+    # Act
+    result = await service.create_note(note_data, user_id=1)
+    
+    # Assert
+    assert result.title == "测试笔记"
+    assert result.user_id == 1
+    mock_db.add.assert_called_once()
+    mock_db.commit.assert_called_once()
+```
+
+### Frontend Tests
+```typescript
+// __tests__/components/NoteCard.test.tsx
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { NoteCard } from '@/components/NoteCard'
+
+const mockNote = {
+  noteId: 'note_123',
+  title: '测试笔记',
+  content: '测试内容',
+  tags: ['测试'],
+  publishedAt: '2024-01-01T00:00:00Z'
+}
+
+describe('NoteCard', () => {
+  let queryClient: QueryClient
+
+  beforeEach(() => {
+    queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } }
+    })
+  })
+
+  it('should render note information correctly', () => {
+    render(
+      <QueryClientProvider client={queryClient}>
+        <NoteCard note={mockNote} />
+      </QueryClientProvider>
+    )
+
+    expect(screen.getByText('测试笔记')).toBeInTheDocument()
+    expect(screen.getByText('测试内容')).toBeInTheDocument()
+    expect(screen.getByText('#测试')).toBeInTheDocument()
+  })
+
+  it('should call onEdit when edit button is clicked', () => {
+    const onEdit = jest.fn()
+    
+    render(
+      <QueryClientProvider client={queryClient}>
+        <NoteCard note={mockNote} onEdit={onEdit} />
+      </QueryClientProvider>
+    )
+
+    fireEvent.click(screen.getByText('编辑'))
+    expect(onEdit).toHaveBeenCalledWith('note_123')
+  })
+})
+```
+
+## 🚀 Performance & Security
+
+### Database Optimization
+- 使用数据库索引优化查询性能
+- 实现分页和懒加载避免大数据集
+- 使用 Redis 缓存热点数据
+- 数据库连接池管理
+
+### Frontend Optimization
+- 使用 Next.js 的 Image 组件优化图片
+- 实现虚拟滚动处理大列表
+- 代码分割和懒加载组件
+- 使用 React.memo 和 useMemo 优化渲染
+
+### Security Best Practices
+- 输入验证和 SQL 注入防护
+- JWT token 安全存储和刷新
+- CORS 和 CSRF 防护
+- 敏感数据加密存储
+
+## 📊 Logging & Monitoring
+
+```python
+# 统一日志格式
+from app.core.logger import app_logger as logger
+
+# 结构化日志
+logger.info(
+    "User action completed",
+    extra={
+        "user_id": user.id,
+        "action": "create_note",
+        "note_id": note.note_id,
+        "duration_ms": 150
+    }
+)
+
+# 错误日志
+logger.error(
+    "Database connection failed",
+    extra={
+        "error": str(e),
+        "retry_count": retry_count,
+        "max_retries": 3
+    },
+    exc_info=True
+)
+```
+
+## 🔄 Git Workflow
+
+### Commit Messages
+```
+feat(backend): add note sharing functionality
+fix(frontend): resolve infinite scroll pagination bug
+perf(spider): optimize data extraction performance
+docs(api): update webhook integration guide
+test(notes): add unit tests for note service
+chore(deps): update dependencies to latest versions
+```
+
+### Branch Naming
+- `feature/note-sharing-system`
+- `bugfix/pagination-infinite-loop`
+- `hotfix/security-vulnerability`
+- `docs/api-documentation-update`
+
+---
+
+## 🎯 Key Principles
+
+1. **类型安全第一**: 使用 TypeScript strict mode 和 Pydantic 严格验证
+2. **性能优化**: 异步优先，合理缓存，避免 N+1 查询
+3. **用户体验**: 响应式设计，加载状态，错误处理
+4. **代码质量**: 单元测试覆盖，代码审查，自动化检查
+5. **安全意识**: 输入验证，权限控制，数据加密
+6. **文档完整**: API 文档，组件文档，架构说明
+
+> 每次开发新功能时，请参考上述规则确保代码质量和项目一致性。遇到不确定的情况，优先考虑类型安全和用户体验。

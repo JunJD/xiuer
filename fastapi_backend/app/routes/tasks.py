@@ -27,7 +27,7 @@ from app.schemas.tasks import (
     TaskStatusEnum
 )
 from app.models import CrawlTask, TaskStatus, User
-from sqlalchemy import select, func, and_
+from sqlalchemy import select, func, and_, case, literal_column
 from app.core.logger import app_logger as logger
 
 router = APIRouter()
@@ -95,8 +95,6 @@ async def trigger_crawl_task(
                 "task_id": str(task_id)   # 转成字符串
             }
         }
-
-        print(github_payload)
         
         # 发送请求到GitHub API
         github_token = os.getenv("GITHUB_TOKEN")
@@ -114,8 +112,6 @@ async def trigger_crawl_task(
         }
         
         url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/actions/workflows/{workflow_id}/dispatches"
-        print(github_token)
-        print(url)
         
         response = requests.post(url, json=github_payload, headers=headers)
         
@@ -227,7 +223,50 @@ async def get_tasks(
         raise HTTPException(status_code=500, detail=f"获取任务失败: {str(e)}")
 
 
-@router.get("/{task_id}", response_model=TaskResponse)
+@router.get("/stats", response_model=TaskStatsResponse, name="get_task_stats")
+async def get_task_stats(
+    db: AsyncSession = Depends(get_async_session)
+):
+    """
+    获取任务统计信息
+    """
+    try:
+        # 查询总数
+        total_query = select(func.count(CrawlTask.id).label("total"))
+        total_result = await db.execute(total_query)
+        total = total_result.scalar() or 0
+        
+        # 查询各状态任务数量
+        pending_query = select(func.count(CrawlTask.id).label("pending")).where(CrawlTask.status == TaskStatus.PENDING)
+        pending_result = await db.execute(pending_query)
+        pending = pending_result.scalar() or 0
+        
+        running_query = select(func.count(CrawlTask.id).label("running")).where(CrawlTask.status == TaskStatus.RUNNING)
+        running_result = await db.execute(running_query)
+        running = running_result.scalar() or 0
+        
+        completed_query = select(func.count(CrawlTask.id).label("completed")).where(CrawlTask.status == TaskStatus.COMPLETED)
+        completed_result = await db.execute(completed_query)
+        completed = completed_result.scalar() or 0
+        
+        failed_query = select(func.count(CrawlTask.id).label("failed")).where(CrawlTask.status == TaskStatus.FAILED)
+        failed_result = await db.execute(failed_query)
+        failed = failed_result.scalar() or 0
+        
+        return TaskStatsResponse(
+            total_tasks=total,
+            pending_tasks=pending,
+            running_tasks=running,
+            completed_tasks=completed,
+            failed_tasks=failed
+        )
+        
+    except Exception as e:
+        logger.error(f"获取任务统计失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"获取任务统计失败: {str(e)}")
+
+
+@router.get("/detail/{task_id}", response_model=TaskResponse)
 async def get_task_detail(
     task_id: str,
     db: AsyncSession = Depends(get_async_session)
@@ -236,6 +275,13 @@ async def get_task_detail(
     获取任务详情
     """
     try:
+        # 验证 task_id 是否为有效的 UUID 格式
+        import uuid
+        try:
+            uuid_obj = uuid.UUID(task_id)
+        except ValueError:
+            raise HTTPException(status_code=400, detail=f"无效的任务ID格式: {task_id}")
+        
         # 查询任务
         query = select(CrawlTask).where(CrawlTask.id == task_id)
         result = await db.execute(query)
@@ -279,6 +325,13 @@ async def cancel_task(
     取消任务
     """
     try:
+        # 验证 task_id 是否为有效的 UUID 格式
+        import uuid
+        try:
+            uuid_obj = uuid.UUID(task_id)
+        except ValueError:
+            raise HTTPException(status_code=400, detail=f"无效的任务ID格式: {task_id}")
+        
         # 查询任务
         query = select(CrawlTask).where(CrawlTask.id == task_id)
         result = await db.execute(query)
@@ -308,52 +361,7 @@ async def cancel_task(
         
     except Exception as e:
         logger.error(f"取消任务失败: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"取消任务失败: {str(e)}") 
-
-
-@router.get("/stats", response_model=TaskStatsResponse)
-async def get_task_stats(
-    db: AsyncSession = Depends(get_async_session)
-):
-    """
-    获取任务统计信息
-    """
-    try:
-        # 查询各状态任务数量
-        stats_query = select(
-            func.count(CrawlTask.id).label("total"),
-            func.sum(func.case(
-                (CrawlTask.status == TaskStatus.PENDING, 1),
-                else_=0
-            )).label("pending"),
-            func.sum(func.case(
-                (CrawlTask.status == TaskStatus.RUNNING, 1),
-                else_=0
-            )).label("running"),
-            func.sum(func.case(
-                (CrawlTask.status == TaskStatus.COMPLETED, 1),
-                else_=0
-            )).label("completed"),
-            func.sum(func.case(
-                (CrawlTask.status == TaskStatus.FAILED, 1),
-                else_=0
-            )).label("failed")
-        )
-        
-        result = await db.execute(stats_query)
-        stats = result.first()
-        
-        return TaskStatsResponse(
-            total_tasks=stats.total or 0,
-            pending_tasks=stats.pending or 0,
-            running_tasks=stats.running or 0,
-            completed_tasks=stats.completed or 0,
-            failed_tasks=stats.failed or 0
-        )
-        
-    except Exception as e:
-        logger.error(f"获取任务统计失败: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"获取任务统计失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"取消任务失败: {str(e)}")
 
 
 @router.post("/", response_model=TaskActionResponse)

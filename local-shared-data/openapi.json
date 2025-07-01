@@ -1506,7 +1506,29 @@
         }
       }
     },
-    "/api/tasks/{task_id}": {
+    "/api/tasks/stats": {
+      "get": {
+        "tags": [
+          "tasks"
+        ],
+        "summary": "Get Task Stats",
+        "description": "\u83b7\u53d6\u4efb\u52a1\u7edf\u8ba1\u4fe1\u606f",
+        "operationId": "get_task_stats",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskStatsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/tasks/detail/{task_id}": {
       "get": {
         "tags": [
           "tasks"
@@ -1547,7 +1569,9 @@
             }
           }
         }
-      },
+      }
+    },
+    "/api/tasks/{task_id}": {
       "delete": {
         "tags": [
           "tasks"
@@ -1583,28 +1607,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/tasks/stats": {
-      "get": {
-        "tags": [
-          "tasks"
-        ],
-        "summary": "Get Task Stats",
-        "description": "\u83b7\u53d6\u4efb\u52a1\u7edf\u8ba1\u4fe1\u606f",
-        "operationId": "get_task_stats",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TaskStatsResponse"
                 }
               }
             }

@@ -1390,23 +1390,23 @@
         "operationId": "get_tasks",
         "parameters": [
           {
-            "name": "limit",
+            "name": "page",
             "in": "query",
             "required": false,
             "schema": {
               "type": "integer",
-              "default": 50,
-              "title": "Limit"
+              "default": 1,
+              "title": "Page"
             }
           },
           {
-            "name": "offset",
+            "name": "size",
             "in": "query",
             "required": false,
             "schema": {
               "type": "integer",
-              "default": 0,
-              "title": "Offset"
+              "default": 10,
+              "title": "Size"
             }
           },
           {
@@ -1414,8 +1414,31 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string",
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
               "title": "Status"
+            }
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Keyword"
             }
           }
         ],
@@ -1424,7 +1447,49 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/TaskListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "tasks"
+        ],
+        "summary": "Create Task",
+        "description": "\u521b\u5efa\u65b0\u4efb\u52a1",
+        "operationId": "create_task",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskActionResponse"
+                }
               }
             }
           },
@@ -1465,7 +1530,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/TaskResponse"
+                }
               }
             }
           },
@@ -1504,7 +1571,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/TaskActionResponse"
+                }
               }
             }
           },
@@ -1514,6 +1583,28 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/tasks/stats": {
+      "get": {
+        "tags": [
+          "tasks"
+        ],
+        "summary": "Get Task Stats",
+        "description": "\u83b7\u53d6\u4efb\u52a1\u7edf\u8ba1\u4fe1\u606f",
+        "operationId": "get_task_stats",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskStatsResponse"
                 }
               }
             }
@@ -2006,6 +2097,344 @@
         "title": "NoteStatsResponse",
         "description": "\u7b14\u8bb0\u7edf\u8ba1\u54cd\u5e94"
       },
+      "TaskActionResponse": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "title": "Success"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "task_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Task Id"
+          },
+          "github_run_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Github Run Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "success",
+          "message"
+        ],
+        "title": "TaskActionResponse",
+        "description": "\u4efb\u52a1\u64cd\u4f5c\u54cd\u5e94"
+      },
+      "TaskCreate": {
+        "properties": {
+          "task_name": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Task Name",
+            "description": "\u4efb\u52a1\u540d\u79f0"
+          },
+          "keyword": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Keyword",
+            "description": "\u641c\u7d22\u5173\u952e\u8bcd"
+          },
+          "target_count": {
+            "type": "integer",
+            "maximum": 1000.0,
+            "minimum": 1.0,
+            "title": "Target Count",
+            "description": "\u76ee\u6807\u722c\u53d6\u6570\u91cf",
+            "default": 200
+          },
+          "sort_type": {
+            "type": "integer",
+            "maximum": 2.0,
+            "minimum": 0.0,
+            "title": "Sort Type",
+            "description": "\u6392\u5e8f\u65b9\u5f0f",
+            "default": 1
+          },
+          "cookies": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cookies",
+            "description": "\u81ea\u5b9a\u4e49cookies"
+          },
+          "webhook_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Webhook Url",
+            "description": "webhook\u56de\u8c03URL"
+          }
+        },
+        "type": "object",
+        "required": [
+          "task_name",
+          "keyword"
+        ],
+        "title": "TaskCreate",
+        "description": "\u521b\u5efa\u4efb\u52a1\u8bf7\u6c42"
+      },
+      "TaskListResponse": {
+        "properties": {
+          "tasks": {
+            "items": {
+              "$ref": "#/components/schemas/TaskResponse"
+            },
+            "type": "array",
+            "title": "Tasks"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "size": {
+            "type": "integer",
+            "title": "Size"
+          }
+        },
+        "type": "object",
+        "required": [
+          "tasks",
+          "total",
+          "page",
+          "size"
+        ],
+        "title": "TaskListResponse",
+        "description": "\u4efb\u52a1\u5217\u8868\u54cd\u5e94"
+      },
+      "TaskResponse": {
+        "properties": {
+          "task_name": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Task Name",
+            "description": "\u4efb\u52a1\u540d\u79f0"
+          },
+          "keyword": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Keyword",
+            "description": "\u641c\u7d22\u5173\u952e\u8bcd"
+          },
+          "target_count": {
+            "type": "integer",
+            "maximum": 1000.0,
+            "minimum": 1.0,
+            "title": "Target Count",
+            "description": "\u76ee\u6807\u722c\u53d6\u6570\u91cf",
+            "default": 200
+          },
+          "sort_type": {
+            "type": "integer",
+            "maximum": 2.0,
+            "minimum": 0.0,
+            "title": "Sort Type",
+            "description": "\u6392\u5e8f\u65b9\u5f0f",
+            "default": 1
+          },
+          "cookies": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cookies",
+            "description": "\u81ea\u5b9a\u4e49cookies"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "description": "\u4efb\u52a1ID"
+          },
+          "status": {
+            "$ref": "#/components/schemas/TaskStatusEnum",
+            "description": "\u4efb\u52a1\u72b6\u6001"
+          },
+          "owner_id": {
+            "type": "string",
+            "title": "Owner Id",
+            "description": "\u4efb\u52a1\u521b\u5efa\u8005ID"
+          },
+          "total_crawled": {
+            "type": "integer",
+            "title": "Total Crawled",
+            "description": "\u603b\u722c\u53d6\u6570\u91cf",
+            "default": 0
+          },
+          "new_notes": {
+            "type": "integer",
+            "title": "New Notes",
+            "description": "\u65b0\u7b14\u8bb0\u6570\u91cf",
+            "default": 0
+          },
+          "changed_notes": {
+            "type": "integer",
+            "title": "Changed Notes",
+            "description": "\u53d8\u66f4\u7b14\u8bb0\u6570\u91cf",
+            "default": 0
+          },
+          "important_notes": {
+            "type": "integer",
+            "title": "Important Notes",
+            "description": "\u91cd\u8981\u7b14\u8bb0\u6570\u91cf",
+            "default": 0
+          },
+          "error_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Message",
+            "description": "\u9519\u8bef\u4fe1\u606f"
+          },
+          "scheduled_time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scheduled Time",
+            "description": "\u8ba1\u5212\u6267\u884c\u65f6\u95f4"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At",
+            "description": "\u5f00\u59cb\u6267\u884c\u65f6\u95f4"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At",
+            "description": "\u5b8c\u6210\u65f6\u95f4"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "\u521b\u5efa\u65f6\u95f4"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At",
+            "description": "\u66f4\u65b0\u65f6\u95f4"
+          }
+        },
+        "type": "object",
+        "required": [
+          "task_name",
+          "keyword",
+          "id",
+          "status",
+          "owner_id",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "TaskResponse",
+        "description": "\u4efb\u52a1\u54cd\u5e94"
+      },
+      "TaskStatsResponse": {
+        "properties": {
+          "total_tasks": {
+            "type": "integer",
+            "title": "Total Tasks"
+          },
+          "pending_tasks": {
+            "type": "integer",
+            "title": "Pending Tasks"
+          },
+          "running_tasks": {
+            "type": "integer",
+            "title": "Running Tasks"
+          },
+          "completed_tasks": {
+            "type": "integer",
+            "title": "Completed Tasks"
+          },
+          "failed_tasks": {
+            "type": "integer",
+            "title": "Failed Tasks"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total_tasks",
+          "pending_tasks",
+          "running_tasks",
+          "completed_tasks",
+          "failed_tasks"
+        ],
+        "title": "TaskStatsResponse",
+        "description": "\u4efb\u52a1\u7edf\u8ba1\u54cd\u5e94"
+      },
+      "TaskStatusEnum": {
+        "type": "string",
+        "enum": [
+          "pending",
+          "running",
+          "completed",
+          "failed"
+        ],
+        "title": "TaskStatusEnum",
+        "description": "\u4efb\u52a1\u72b6\u6001\u679a\u4e3e"
+      },
       "TaskTriggerResponse": {
         "properties": {
           "success": {
@@ -2237,13 +2666,13 @@
           "data": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/XhsSearchResult"
-              },
-              {
                 "$ref": "#/components/schemas/XhsNoteData"
               },
               {
-                "$ref": "#/components/schemas/XhsUserResult"
+                "items": {
+                  "$ref": "#/components/schemas/XhsNoteData"
+                },
+                "type": "array"
               },
               {
                 "type": "object"
@@ -2371,73 +2800,6 @@
         "title": "WebhookStatus",
         "description": "Webhook\u72b6\u6001\u679a\u4e3e"
       },
-      "XhsAuthorInfo": {
-        "properties": {
-          "user_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "User Id"
-          },
-          "nickname": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Nickname"
-          },
-          "avatar": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Avatar"
-          }
-        },
-        "type": "object",
-        "title": "XhsAuthorInfo",
-        "description": "\u5c0f\u7ea2\u4e66\u4f5c\u8005\u4fe1\u606f"
-      },
-      "XhsInteractInfo": {
-        "properties": {
-          "liked_count": {
-            "type": "integer",
-            "title": "Liked Count",
-            "default": 0
-          },
-          "collected_count": {
-            "type": "integer",
-            "title": "Collected Count",
-            "default": 0
-          },
-          "comment_count": {
-            "type": "integer",
-            "title": "Comment Count",
-            "default": 0
-          },
-          "share_count": {
-            "type": "integer",
-            "title": "Share Count",
-            "default": 0
-          }
-        },
-        "type": "object",
-        "title": "XhsInteractInfo",
-        "description": "\u5c0f\u7ea2\u4e66\u4e92\u52a8\u4fe1\u606f"
-      },
       "XhsNoteData": {
         "properties": {
           "note_id": {
@@ -2466,15 +2828,38 @@
             ],
             "title": "Note Type"
           },
-          "author": {
+          "author_user_id": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/XhsAuthorInfo"
+                "type": "string"
               },
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Author User Id"
+          },
+          "author_nickname": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Author Nickname"
+          },
+          "author_avatar": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Author Avatar"
           },
           "title": {
             "anyOf": [
@@ -2535,15 +2920,25 @@
             ],
             "title": "Ip Location"
           },
-          "interact_info": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/XhsInteractInfo"
-              },
-              {
-                "type": "null"
-              }
-            ]
+          "liked_count": {
+            "type": "integer",
+            "title": "Liked Count",
+            "default": 0
+          },
+          "collected_count": {
+            "type": "integer",
+            "title": "Collected Count",
+            "default": 0
+          },
+          "comment_count": {
+            "type": "integer",
+            "title": "Comment Count",
+            "default": 0
+          },
+          "share_count": {
+            "type": "integer",
+            "title": "Share Count",
+            "default": 0
           },
           "video_cover": {
             "anyOf": [
@@ -2598,7 +2993,7 @@
           "note_id"
         ],
         "title": "XhsNoteData",
-        "description": "\u5c0f\u7ea2\u4e66\u7b14\u8bb0\u6570\u636e"
+        "description": "\u5c0f\u7ea2\u4e66\u7b14\u8bb0\u6570\u636e - \u722c\u53d6\u539f\u59cb\u6570\u636e"
       },
       "XhsNoteResponse": {
         "properties": {
@@ -2730,60 +3125,6 @@
         ],
         "title": "XhsNoteResponse",
         "description": "\u7b14\u8bb0\u54cd\u5e94\u6a21\u5f0f"
-      },
-      "XhsSearchResult": {
-        "properties": {
-          "query": {
-            "type": "string",
-            "title": "Query"
-          },
-          "total_found": {
-            "type": "integer",
-            "title": "Total Found"
-          },
-          "notes": {
-            "items": {
-              "$ref": "#/components/schemas/XhsNoteData"
-            },
-            "type": "array",
-            "title": "Notes"
-          }
-        },
-        "type": "object",
-        "required": [
-          "query",
-          "total_found",
-          "notes"
-        ],
-        "title": "XhsSearchResult",
-        "description": "\u641c\u7d22\u7ed3\u679c\u6570\u636e"
-      },
-      "XhsUserResult": {
-        "properties": {
-          "user_url": {
-            "type": "string",
-            "title": "User Url"
-          },
-          "notes_count": {
-            "type": "integer",
-            "title": "Notes Count"
-          },
-          "notes": {
-            "items": {
-              "type": "object"
-            },
-            "type": "array",
-            "title": "Notes"
-          }
-        },
-        "type": "object",
-        "required": [
-          "user_url",
-          "notes_count",
-          "notes"
-        ],
-        "title": "XhsUserResult",
-        "description": "\u7528\u6237\u7ed3\u679c\u6570\u636e"
       },
       "login": {
         "properties": {

@@ -56,3 +56,20 @@ export const keywordSchema = z.object({
   is_active: z.boolean().optional().default(true),
   description: z.string().optional(),
 });
+
+export const noteSchema = z.object({
+  title: z.string().optional(),
+  desc: z.string().optional(),
+  is_important: z.boolean().optional(),
+  tags: z.array(z.string()).optional(),
+});
+
+export const noteQuerySchema = z.object({
+  keyword: z.string().optional(),
+  is_new: z.boolean().optional(),
+  is_changed: z.boolean().optional(),
+  is_important: z.boolean().optional(),
+  author_user_id: z.string().optional(),
+  limit: z.number().min(1).max(1000).optional().default(50),
+  offset: z.number().min(0).optional().default(0),
+});

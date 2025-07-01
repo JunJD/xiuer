@@ -5,7 +5,7 @@ Webhook API 端点
 
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Request
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Dict, Any
+from typing import Dict, Any, List
 import json
 import hmac
 import hashlib
@@ -14,11 +14,11 @@ from app.database import get_async_session
 from app.schemas.webhook import (
     WebhookRequest,
     WebhookResponse,
-    WebhookStatus,
-    XhsSearchResult,
+    WebhookStatus
+)
+from app.schemas.notes import (
     XhsNoteData,
-    XhsUserResult,
-    BatchProcessResult
+    ProcessResult
 )
 from app.services.xhs_async_service import XhsDataService
 from app.models import CrawlTask, TaskStatus
@@ -31,7 +31,7 @@ router = APIRouter()
 
 
 async def update_task_status(db: AsyncSession, task_id: str, status: TaskStatus, 
-                           result: BatchProcessResult = None, error_message: str = None):
+                           result: ProcessResult = None, error_message: str = None):
     """
     更新爬取任务状态
     """
@@ -58,9 +58,9 @@ async def update_task_status(db: AsyncSession, task_id: str, status: TaskStatus,
         # 更新结果统计
         if result:
             task.total_crawled = result.total_processed
-            task.new_notes = result.new_notes
-            task.changed_notes = result.changed_notes
-            task.important_notes = result.important_notes
+            task.new_notes = result.new_count
+            task.changed_notes = result.changed_count
+            task.important_notes = result.important_count
             
         # 更新错误信息
         if error_message:
@@ -167,106 +167,72 @@ async def receive_xhs_webhook(
         raise HTTPException(status_code=500, detail=f"处理webhook失败: {str(e)}")
 
 
-async def process_webhook_data_background(data: Dict[Any, Any], db: AsyncSession, task_id: str = None):
+async def process_webhook_data_background(data: Any, db: AsyncSession, task_id: str = None):
     """
-    后台处理webhook数据
+    后台处理webhook数据 - 简化版
     """
     try:
         xhs_service = XhsDataService(db)
         result = None
         
-        # 判断数据类型并处理
+        # 处理数据
         if isinstance(data, dict):
-            # 检查是否是搜索结果
-            if "query" in data and "notes" in data:
-                # 转换为搜索结果对象
-                search_result = XhsSearchResult(**data)
-                result = await xhs_service.process_search_result(search_result)
-                logger.info(f"处理搜索结果完成: 新增{result.new_notes}个笔记，变更{result.changed_notes}个笔记")
-                
             # 检查是否是单个笔记
-            elif "note_id" in data:
+            if "note_id" in data:
                 note_data = XhsNoteData(**data)
-                single_result = await xhs_service.process_single_note(note_data)
-                logger.info(f"处理单个笔记完成: {single_result.note_id}")
-                # 为单个笔记创建批量结果
-                result = BatchProcessResult(
+                is_new, is_changed, is_important = await xhs_service.process_single_note(note_data)
+                logger.info(f"处理单个笔记完成: {note_data.note_id}")
+                # 为单个笔记创建处理结果
+                result = ProcessResult(
                     total_processed=1,
-                    new_notes=1 if single_result.is_new else 0,
-                    changed_notes=1 if single_result.is_changed else 0,
-                    important_notes=1 if single_result.is_important else 0,
-                    errors=[],
-                    details=[single_result]
+                    new_count=1 if is_new else 0,
+                    changed_count=1 if is_changed else 0,
+                    important_count=1 if is_important else 0,
+                    errors=[]
                 )
-                
-            # 检查是否是用户结果
-            elif "user_url" in data and "notes" in data:
-                user_result = XhsUserResult(**data)
-                # 处理用户的笔记数据
-                notes = []
-                for note_info in user_result.notes:
-                    if "note_id" in note_info:
-                        try:
-                            note_data = XhsNoteData(**note_info)
-                            notes.append(note_data)
-                        except Exception as e:
-                            logger.warning(f"转换笔记数据失败: {str(e)}")
-                
-                if notes:
-                    # 创建假的搜索结果来处理
-                    fake_search = XhsSearchResult(
-                        query=f"用户:{user_result.user_url}",
-                        total_found=len(notes),
-                        notes=notes
-                    )
-                    result = await xhs_service.process_search_result(fake_search)
-                    logger.info(f"处理用户笔记完成: 新增{result.new_notes}个笔记")
-            
             else:
                 logger.warning(f"未知的数据格式: {data}")
                 
-        # 更新任务状态为完成
+        elif isinstance(data, list):
+            # 处理笔记列表
+            notes_data = []
+            for item in data:
+                if isinstance(item, dict) and "note_id" in item:
+                    notes_data.append(XhsNoteData(**item))
+            
+            if notes_data:
+                result = await xhs_service.process_notes_batch(notes_data)
+                logger.info(f"处理笔记批量数据完成: 新增{result.new_count}个笔记，变更{result.changed_count}个笔记")
+        
+        # 更新任务状态
         if task_id and result:
             await update_task_status(db, task_id, TaskStatus.COMPLETED, result)
-        elif task_id:
-            await update_task_status(db, task_id, TaskStatus.COMPLETED)
-                
+        
     except Exception as e:
         logger.error(f"后台处理webhook数据失败: {str(e)}")
-        # 更新任务状态为失败
         if task_id:
             await update_task_status(db, task_id, TaskStatus.FAILED, None, str(e))
-        # 这里可以添加更多的错误处理，比如重试机制
 
 
 @router.post("/test")
 async def test_webhook():
-    """
-    测试webhook端点
-    """
-    return {"status": "ok", "message": "webhook端点正常工作"}
+    """测试webhook端点"""
+    return {"message": "Webhook测试成功", "timestamp": datetime.utcnow()}
 
 
-# 可选：webhook签名验证
 def verify_webhook_signature(request: Request, secret: str) -> bool:
-    """
-    验证webhook签名（可选的安全措施）
-    """
+    """验证webhook签名"""
     try:
-        signature_header = request.headers.get("X-Hub-Signature-256")
-        if not signature_header:
+        signature = request.headers.get("X-Hub-Signature-256")
+        if not signature:
             return False
         
         body = request.body()
         expected_signature = hmac.new(
-            secret.encode(),
-            body,
-            hashlib.sha256
+            secret.encode(), body, hashlib.sha256
         ).hexdigest()
+        expected_signature = f"sha256={expected_signature}"
         
-        return hmac.compare_digest(
-            signature_header,
-            f"sha256={expected_signature}"
-        )
+        return hmac.compare_digest(signature, expected_signature)
     except Exception:
         return False 

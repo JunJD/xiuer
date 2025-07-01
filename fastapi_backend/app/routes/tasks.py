@@ -16,7 +16,18 @@ from app.schemas.webhook import (
     CrawlTaskRequest,
     TaskTriggerResponse,
 )
+from app.schemas.tasks import (
+    TaskCreate,
+    TaskUpdate,
+    TaskResponse,
+    TaskListResponse,
+    TaskStatsResponse,
+    TaskActionResponse,
+    TaskQueryParams,
+    TaskStatusEnum
+)
 from app.models import CrawlTask, TaskStatus, User
+from sqlalchemy import select, func, and_
 from app.core.logger import app_logger as logger
 
 router = APIRouter()
@@ -132,26 +143,87 @@ async def trigger_crawl_task(
         raise HTTPException(status_code=500, detail=f"触发任务失败: {str(e)}")
 
 
-@router.get("/")
+@router.get("/", response_model=TaskListResponse)
 async def get_tasks(
-    limit: int = 50,
-    offset: int = 0,
-    status: str = None,
+    page: int = 1,
+    size: int = 10,
+    status: Optional[str] = None,
+    keyword: Optional[str] = None,
     db: AsyncSession = Depends(get_async_session)
 ):
     """
     获取任务列表
     """
     try:
-        # 这里可以添加任务列表查询逻辑
-        return {"message": "任务列表功能待实现"}
+        # 构建查询条件
+        conditions = []
+        if status:
+            try:
+                status_enum = TaskStatus(status)
+                conditions.append(CrawlTask.status == status_enum)
+            except ValueError:
+                raise HTTPException(status_code=400, detail=f"无效的状态值: {status}")
+        
+        if keyword:
+            conditions.append(CrawlTask.keyword.contains(keyword))
+        
+        # 分页计算
+        offset = (page - 1) * size
+        
+        # 查询总数
+        count_query = select(func.count(CrawlTask.id))
+        if conditions:
+            count_query = count_query.where(and_(*conditions))
+        
+        total_result = await db.execute(count_query)
+        total = total_result.scalar()
+        
+        # 查询任务列表
+        query = select(CrawlTask).order_by(CrawlTask.created_at.desc())
+        if conditions:
+            query = query.where(and_(*conditions))
+        query = query.offset(offset).limit(size)
+        
+        result = await db.execute(query)
+        tasks = result.scalars().all()
+        
+        # 转换为响应模型
+        task_responses = []
+        for task in tasks:
+            task_responses.append(TaskResponse(
+                id=str(task.id),
+                task_name=task.task_name,
+                keyword=task.keyword,
+                target_count=task.target_count,
+                sort_type=task.sort_type,
+                cookies=task.cookies,
+                status=TaskStatusEnum(task.status.value),
+                owner_id=str(task.owner_id),
+                total_crawled=task.total_crawled,
+                new_notes=task.new_notes,
+                changed_notes=task.changed_notes,
+                important_notes=task.important_notes,
+                error_message=task.error_message,
+                scheduled_time=task.scheduled_time,
+                started_at=task.started_at,
+                finished_at=task.finished_at,
+                created_at=task.created_at,
+                updated_at=task.updated_at
+            ))
+        
+        return TaskListResponse(
+            tasks=task_responses,
+            total=total,
+            page=page,
+            size=size
+        )
         
     except Exception as e:
         logger.error(f"获取任务列表失败: {str(e)}")
         raise HTTPException(status_code=500, detail=f"获取任务失败: {str(e)}")
 
 
-@router.get("/{task_id}")
+@router.get("/{task_id}", response_model=TaskResponse)
 async def get_task_detail(
     task_id: str,
     db: AsyncSession = Depends(get_async_session)
@@ -160,15 +232,41 @@ async def get_task_detail(
     获取任务详情
     """
     try:
-        # 这里可以添加任务详情查询逻辑
-        return {"message": f"任务 {task_id} 详情功能待实现"}
+        # 查询任务
+        query = select(CrawlTask).where(CrawlTask.id == task_id)
+        result = await db.execute(query)
+        task = result.scalar_one_or_none()
+        
+        if not task:
+            raise HTTPException(status_code=404, detail="任务不存在")
+        
+        return TaskResponse(
+            id=str(task.id),
+            task_name=task.task_name,
+            keyword=task.keyword,
+            target_count=task.target_count,
+            sort_type=task.sort_type,
+            cookies=task.cookies,
+            status=TaskStatusEnum(task.status.value),
+            owner_id=str(task.owner_id),
+            total_crawled=task.total_crawled,
+            new_notes=task.new_notes,
+            changed_notes=task.changed_notes,
+            important_notes=task.important_notes,
+            error_message=task.error_message,
+            scheduled_time=task.scheduled_time,
+            started_at=task.started_at,
+            finished_at=task.finished_at,
+            created_at=task.created_at,
+            updated_at=task.updated_at
+        )
         
     except Exception as e:
         logger.error(f"获取任务详情失败: {str(e)}")
         raise HTTPException(status_code=500, detail=f"获取任务详情失败: {str(e)}")
 
 
-@router.delete("/{task_id}")
+@router.delete("/{task_id}", response_model=TaskActionResponse)
 async def cancel_task(
     task_id: str,
     db: AsyncSession = Depends(get_async_session)
@@ -177,9 +275,134 @@ async def cancel_task(
     取消任务
     """
     try:
-        # 这里可以添加任务取消逻辑
-        return {"message": f"任务 {task_id} 取消功能待实现"}
+        # 查询任务
+        query = select(CrawlTask).where(CrawlTask.id == task_id)
+        result = await db.execute(query)
+        task = result.scalar_one_or_none()
+        
+        if not task:
+            raise HTTPException(status_code=404, detail="任务不存在")
+        
+        # 检查任务状态
+        if task.status == TaskStatus.COMPLETED:
+            raise HTTPException(status_code=400, detail="任务已完成，无法取消")
+        
+        if task.status == TaskStatus.FAILED:
+            raise HTTPException(status_code=400, detail="任务已失败，无法取消")
+        
+        # 更新任务状态
+        task.status = TaskStatus.FAILED
+        task.error_message = "任务被用户取消"
+        task.finished_at = datetime.utcnow()
+        await db.commit()
+        
+        return TaskActionResponse(
+            success=True,
+            message=f"任务 {task.task_name} 已取消",
+            task_id=str(task.id)
+        )
         
     except Exception as e:
         logger.error(f"取消任务失败: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"取消任务失败: {str(e)}") 
+        raise HTTPException(status_code=500, detail=f"取消任务失败: {str(e)}")
+
+
+@router.get("/stats", response_model=TaskStatsResponse)
+async def get_task_stats(
+    db: AsyncSession = Depends(get_async_session)
+):
+    """
+    获取任务统计信息
+    """
+    try:
+        # 查询各状态任务数量
+        stats_query = select(
+            func.count(CrawlTask.id).label("total"),
+            func.sum(func.case(
+                (CrawlTask.status == TaskStatus.PENDING, 1),
+                else_=0
+            )).label("pending"),
+            func.sum(func.case(
+                (CrawlTask.status == TaskStatus.RUNNING, 1),
+                else_=0
+            )).label("running"),
+            func.sum(func.case(
+                (CrawlTask.status == TaskStatus.COMPLETED, 1),
+                else_=0
+            )).label("completed"),
+            func.sum(func.case(
+                (CrawlTask.status == TaskStatus.FAILED, 1),
+                else_=0
+            )).label("failed")
+        )
+        
+        result = await db.execute(stats_query)
+        stats = result.first()
+        
+        return TaskStatsResponse(
+            total_tasks=stats.total or 0,
+            pending_tasks=stats.pending or 0,
+            running_tasks=stats.running or 0,
+            completed_tasks=stats.completed or 0,
+            failed_tasks=stats.failed or 0
+        )
+        
+    except Exception as e:
+        logger.error(f"获取任务统计失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"获取任务统计失败: {str(e)}")
+
+
+@router.post("/", response_model=TaskActionResponse)
+async def create_task(
+    task_data: TaskCreate,
+    db: AsyncSession = Depends(get_async_session)
+):
+    """
+    创建新任务
+    """
+    try:
+        # 创建系统用户或使用现有用户（简化处理）
+        from sqlalchemy import select
+        system_user_email = "system@webhook.local"
+        
+        result = await db.execute(select(User).where(User.email == system_user_email))
+        system_user = result.scalar_one_or_none()
+        
+        if not system_user:
+            import uuid
+            system_user = User(
+                id=uuid.uuid4(),
+                email=system_user_email,
+                hashed_password="$argon2id$v=19$m=65536,t=3,p=4$dummy$dummyhash",
+                is_active=True,
+                is_superuser=False,
+                is_verified=True
+            )
+            db.add(system_user)
+            await db.commit()
+            await db.refresh(system_user)
+        
+        # 创建任务
+        task = CrawlTask(
+            task_name=task_data.task_name,
+            keyword=task_data.keyword,
+            target_count=task_data.target_count,
+            sort_type=task_data.sort_type,
+            cookies=task_data.cookies,
+            status=TaskStatus.PENDING,
+            owner_id=system_user.id
+        )
+        
+        db.add(task)
+        await db.commit()
+        await db.refresh(task)
+        
+        return TaskActionResponse(
+            success=True,
+            message=f"任务 {task.task_name} 创建成功",
+            task_id=str(task.id)
+        )
+        
+    except Exception as e:
+        logger.error(f"创建任务失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"创建任务失败: {str(e)}") 

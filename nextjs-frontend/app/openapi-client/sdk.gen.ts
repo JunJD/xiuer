@@ -87,12 +87,17 @@ import type {
   GetTasksData,
   GetTasksError,
   GetTasksResponse,
+  CreateTaskData,
+  CreateTaskError,
+  CreateTaskResponse,
   GetTaskDetailData,
   GetTaskDetailError,
   GetTaskDetailResponse,
   CancelTaskData,
   CancelTaskError,
   CancelTaskResponse,
+  GetTaskStatsError,
+  GetTaskStatsResponse,
 } from "./types.gen";
 
 export const client = createClient(createConfig());
@@ -581,6 +586,23 @@ export const getTasks = <ThrowOnError extends boolean = false>(
 };
 
 /**
+ * Create Task
+ * 创建新任务
+ */
+export const createTask = <ThrowOnError extends boolean = false>(
+  options: OptionsLegacyParser<CreateTaskData, ThrowOnError>,
+) => {
+  return (options?.client ?? client).post<
+    CreateTaskResponse,
+    CreateTaskError,
+    ThrowOnError
+  >({
+    ...options,
+    url: "/api/tasks/",
+  });
+};
+
+/**
  * Get Task Detail
  * 获取任务详情
  */
@@ -611,5 +633,22 @@ export const cancelTask = <ThrowOnError extends boolean = false>(
   >({
     ...options,
     url: "/api/tasks/{task_id}",
+  });
+};
+
+/**
+ * Get Task Stats
+ * 获取任务统计信息
+ */
+export const getTaskStats = <ThrowOnError extends boolean = false>(
+  options?: OptionsLegacyParser<unknown, ThrowOnError>,
+) => {
+  return (options?.client ?? client).get<
+    GetTaskStatsResponse,
+    GetTaskStatsError,
+    ThrowOnError
+  >({
+    ...options,
+    url: "/api/tasks/stats",
   });
 };

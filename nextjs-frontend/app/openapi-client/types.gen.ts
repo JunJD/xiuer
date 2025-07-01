@@ -132,6 +132,150 @@ export type NoteStatsResponse = {
 };
 
 /**
+ * 任务操作响应
+ */
+export type TaskActionResponse = {
+  success: boolean;
+  message: string;
+  task_id?: string | null;
+  github_run_url?: string | null;
+};
+
+/**
+ * 创建任务请求
+ */
+export type TaskCreate = {
+  /**
+   * 任务名称
+   */
+  task_name: string;
+  /**
+   * 搜索关键词
+   */
+  keyword: string;
+  /**
+   * 目标爬取数量
+   */
+  target_count?: number;
+  /**
+   * 排序方式
+   */
+  sort_type?: number;
+  /**
+   * 自定义cookies
+   */
+  cookies?: string | null;
+  /**
+   * webhook回调URL
+   */
+  webhook_url?: string | null;
+};
+
+/**
+ * 任务列表响应
+ */
+export type TaskListResponse = {
+  tasks: Array<TaskResponse>;
+  total: number;
+  page: number;
+  size: number;
+};
+
+/**
+ * 任务响应
+ */
+export type TaskResponse = {
+  /**
+   * 任务名称
+   */
+  task_name: string;
+  /**
+   * 搜索关键词
+   */
+  keyword: string;
+  /**
+   * 目标爬取数量
+   */
+  target_count?: number;
+  /**
+   * 排序方式
+   */
+  sort_type?: number;
+  /**
+   * 自定义cookies
+   */
+  cookies?: string | null;
+  /**
+   * 任务ID
+   */
+  id: string;
+  /**
+   * 任务状态
+   */
+  status: TaskStatusEnum;
+  /**
+   * 任务创建者ID
+   */
+  owner_id: string;
+  /**
+   * 总爬取数量
+   */
+  total_crawled?: number;
+  /**
+   * 新笔记数量
+   */
+  new_notes?: number;
+  /**
+   * 变更笔记数量
+   */
+  changed_notes?: number;
+  /**
+   * 重要笔记数量
+   */
+  important_notes?: number;
+  /**
+   * 错误信息
+   */
+  error_message?: string | null;
+  /**
+   * 计划执行时间
+   */
+  scheduled_time?: string | null;
+  /**
+   * 开始执行时间
+   */
+  started_at?: string | null;
+  /**
+   * 完成时间
+   */
+  finished_at?: string | null;
+  /**
+   * 创建时间
+   */
+  created_at: string;
+  /**
+   * 更新时间
+   */
+  updated_at: string;
+};
+
+/**
+ * 任务统计响应
+ */
+export type TaskStatsResponse = {
+  total_tasks: number;
+  pending_tasks: number;
+  running_tasks: number;
+  completed_tasks: number;
+  failed_tasks: number;
+};
+
+/**
+ * 任务状态枚举
+ */
+export type TaskStatusEnum = "pending" | "running" | "completed" | "failed";
+
+/**
  * 任务触发响应
  */
 export type TaskTriggerResponse = {
@@ -176,9 +320,8 @@ export type ValidationError = {
  */
 export type WebhookRequest = {
   data?:
-    | XhsSearchResult
     | XhsNoteData
-    | XhsUserResult
+    | Array<XhsNoteData>
     | {
         [key: string]: unknown;
       }
@@ -214,38 +357,24 @@ export type WebhookStatus =
   | "failed";
 
 /**
- * 小红书作者信息
- */
-export type XhsAuthorInfo = {
-  user_id?: string | null;
-  nickname?: string | null;
-  avatar?: string | null;
-};
-
-/**
- * 小红书互动信息
- */
-export type XhsInteractInfo = {
-  liked_count?: number;
-  collected_count?: number;
-  comment_count?: number;
-  share_count?: number;
-};
-
-/**
- * 小红书笔记数据
+ * 小红书笔记数据 - 爬取原始数据
  */
 export type XhsNoteData = {
   note_id: string;
   note_url?: string | null;
   note_type?: string | null;
-  author?: XhsAuthorInfo | null;
+  author_user_id?: string | null;
+  author_nickname?: string | null;
+  author_avatar?: string | null;
   title?: string | null;
   desc?: string | null;
   tags?: Array<string> | null;
   upload_time?: string | null;
   ip_location?: string | null;
-  interact_info?: XhsInteractInfo | null;
+  liked_count?: number;
+  collected_count?: number;
+  comment_count?: number;
+  share_count?: number;
   video_cover?: string | null;
   video_addr?: string | null;
   image_list?: Array<string> | null;
@@ -271,26 +400,6 @@ export type XhsNoteResponse = {
   is_important: boolean;
   first_crawl_time: string;
   last_crawl_time: string;
-};
-
-/**
- * 搜索结果数据
- */
-export type XhsSearchResult = {
-  query: string;
-  total_found: number;
-  notes: Array<XhsNoteData>;
-};
-
-/**
- * 用户结果数据
- */
-export type XhsUserResult = {
-  user_url: string;
-  notes_count: number;
-  notes: Array<{
-    [key: string]: unknown;
-  }>;
 };
 
 export type AuthJwtLoginData = {
@@ -526,15 +635,24 @@ export type TriggerCrawlTaskError = HTTPValidationError;
 
 export type GetTasksData = {
   query?: {
-    limit?: number;
-    offset?: number;
-    status?: string;
+    keyword?: string | null;
+    page?: number;
+    size?: number;
+    status?: string | null;
   };
 };
 
-export type GetTasksResponse = unknown;
+export type GetTasksResponse = TaskListResponse;
 
 export type GetTasksError = HTTPValidationError;
+
+export type CreateTaskData = {
+  body: TaskCreate;
+};
+
+export type CreateTaskResponse = TaskActionResponse;
+
+export type CreateTaskError = HTTPValidationError;
 
 export type GetTaskDetailData = {
   path: {
@@ -542,7 +660,7 @@ export type GetTaskDetailData = {
   };
 };
 
-export type GetTaskDetailResponse = unknown;
+export type GetTaskDetailResponse = TaskResponse;
 
 export type GetTaskDetailError = HTTPValidationError;
 
@@ -552,6 +670,10 @@ export type CancelTaskData = {
   };
 };
 
-export type CancelTaskResponse = unknown;
+export type CancelTaskResponse = TaskActionResponse;
 
 export type CancelTaskError = HTTPValidationError;
+
+export type GetTaskStatsResponse = TaskStatsResponse;
+
+export type GetTaskStatsError = unknown;

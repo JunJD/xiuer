@@ -794,6 +794,823 @@
           }
         }
       }
+    },
+    "/api/keywords/": {
+      "get": {
+        "tags": [
+          "keywords"
+        ],
+        "summary": "Get Keywords",
+        "description": "\u83b7\u53d6\u5173\u952e\u8bcd\u5217\u8868",
+        "operationId": "get_keywords",
+        "parameters": [
+          {
+            "name": "skip",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "title": "Skip"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 100,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category"
+            }
+          },
+          {
+            "name": "active_only",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true,
+              "title": "Active Only"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Search"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KeywordListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "keywords"
+        ],
+        "summary": "Create Keyword",
+        "description": "\u521b\u5efa\u65b0\u5173\u952e\u8bcd",
+        "operationId": "create_keyword",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KeywordCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KeywordResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/keywords/{keyword_id}": {
+      "put": {
+        "tags": [
+          "keywords"
+        ],
+        "summary": "Update Keyword",
+        "description": "\u66f4\u65b0\u5173\u952e\u8bcd",
+        "operationId": "update_keyword",
+        "parameters": [
+          {
+            "name": "keyword_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Keyword Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KeywordUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KeywordResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "keywords"
+        ],
+        "summary": "Delete Keyword",
+        "description": "\u5220\u9664\u5173\u952e\u8bcd",
+        "operationId": "delete_keyword",
+        "parameters": [
+          {
+            "name": "keyword_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Keyword Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/keywords/{keyword_id}/toggle": {
+      "patch": {
+        "tags": [
+          "keywords"
+        ],
+        "summary": "Toggle Keyword Status",
+        "description": "\u5207\u6362\u5173\u952e\u8bcd\u542f\u7528/\u7981\u7528\u72b6\u6001",
+        "operationId": "toggle_keyword_status",
+        "parameters": [
+          {
+            "name": "keyword_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Keyword Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/keywords/categories": {
+      "get": {
+        "tags": [
+          "keywords"
+        ],
+        "summary": "Get Categories",
+        "description": "\u83b7\u53d6\u6240\u6709\u5173\u952e\u8bcd\u5206\u7c7b",
+        "operationId": "get_categories",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array",
+                  "title": "Response Keywords-Get Categories"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/keywords/stats": {
+      "get": {
+        "tags": [
+          "keywords"
+        ],
+        "summary": "Get Keyword Stats",
+        "description": "\u83b7\u53d6\u5173\u952e\u8bcd\u7edf\u8ba1\u4fe1\u606f",
+        "operationId": "get_keyword_stats",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/webhook/xhs-result": {
+      "post": {
+        "tags": [
+          "webhook"
+        ],
+        "summary": "Receive Xhs Webhook",
+        "description": "\u63a5\u6536\u5c0f\u7ea2\u4e66\u722c\u866b\u7ed3\u679c\u7684webhook\u7aef\u70b9",
+        "operationId": "receive_xhs_webhook",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/webhook/test": {
+      "post": {
+        "tags": [
+          "webhook"
+        ],
+        "summary": "Test Webhook",
+        "description": "\u6d4b\u8bd5webhook\u7aef\u70b9",
+        "operationId": "test_webhook",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notes/stats": {
+      "get": {
+        "tags": [
+          "notes"
+        ],
+        "summary": "Get Notes Stats",
+        "description": "\u83b7\u53d6\u7b14\u8bb0\u7edf\u8ba1\u4fe1\u606f",
+        "operationId": "get_notes_stats",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NoteStatsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notes/": {
+      "get": {
+        "tags": [
+          "notes"
+        ],
+        "summary": "Search Notes",
+        "description": "\u641c\u7d22\u548c\u7b5b\u9009\u7b14\u8bb0",
+        "operationId": "search_notes",
+        "parameters": [
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Keyword"
+            }
+          },
+          {
+            "name": "is_new",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "title": "Is New"
+            }
+          },
+          {
+            "name": "is_changed",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "title": "Is Changed"
+            }
+          },
+          {
+            "name": "is_important",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "title": "Is Important"
+            }
+          },
+          {
+            "name": "author_user_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Author User Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/XhsNoteResponse"
+                  },
+                  "title": "Response Notes-Search Notes"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notes/{note_id}": {
+      "get": {
+        "tags": [
+          "notes"
+        ],
+        "summary": "Get Note Detail",
+        "description": "\u83b7\u53d6\u5355\u4e2a\u7b14\u8bb0\u8be6\u60c5",
+        "operationId": "get_note_detail",
+        "parameters": [
+          {
+            "name": "note_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Note Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/tasks/trigger-crawl": {
+      "post": {
+        "tags": [
+          "tasks"
+        ],
+        "summary": "Trigger Crawl Task",
+        "description": "\u89e6\u53d1\u722c\u53d6\u4efb\u52a1",
+        "operationId": "trigger_crawl_task",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrawlTaskRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskTriggerResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/tasks/": {
+      "get": {
+        "tags": [
+          "tasks"
+        ],
+        "summary": "Get Tasks",
+        "description": "\u83b7\u53d6\u4efb\u52a1\u5217\u8868",
+        "operationId": "get_tasks",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 10,
+              "title": "Size"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Keyword"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "tasks"
+        ],
+        "summary": "Create Task",
+        "description": "\u521b\u5efa\u65b0\u4efb\u52a1",
+        "operationId": "create_task",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskActionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/tasks/{task_id}": {
+      "get": {
+        "tags": [
+          "tasks"
+        ],
+        "summary": "Get Task Detail",
+        "description": "\u83b7\u53d6\u4efb\u52a1\u8be6\u60c5",
+        "operationId": "get_task_detail",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "tasks"
+        ],
+        "summary": "Cancel Task",
+        "description": "\u53d6\u6d88\u4efb\u52a1",
+        "operationId": "cancel_task",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskActionResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/tasks/stats": {
+      "get": {
+        "tags": [
+          "tasks"
+        ],
+        "summary": "Get Task Stats",
+        "description": "\u83b7\u53d6\u4efb\u52a1\u7edf\u8ba1\u4fe1\u606f",
+        "operationId": "get_task_stats",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskStatsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -874,6 +1691,61 @@
           "token"
         ],
         "title": "Body_auth-verify:verify"
+      },
+      "CrawlTaskRequest": {
+        "properties": {
+          "task_name": {
+            "type": "string",
+            "title": "Task Name",
+            "description": "\u4efb\u52a1\u540d\u79f0"
+          },
+          "keyword": {
+            "type": "string",
+            "title": "Keyword",
+            "description": "\u641c\u7d22\u5173\u952e\u8bcd"
+          },
+          "target_count": {
+            "type": "integer",
+            "maximum": 500.0,
+            "minimum": 1.0,
+            "title": "Target Count",
+            "description": "\u76ee\u6807\u722c\u53d6\u6570\u91cf",
+            "default": 50
+          },
+          "sort_type": {
+            "type": "integer",
+            "maximum": 4.0,
+            "minimum": 0.0,
+            "title": "Sort Type",
+            "description": "\u6392\u5e8f\u65b9\u5f0f",
+            "default": 1
+          },
+          "cookies": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cookies",
+            "description": "\u81ea\u5b9a\u4e49cookies"
+          },
+          "webhook_url": {
+            "type": "string",
+            "title": "Webhook Url",
+            "description": "\u63a5\u6536\u7ed3\u679c\u7684webhook URL"
+          }
+        },
+        "type": "object",
+        "required": [
+          "task_name",
+          "keyword",
+          "webhook_url"
+        ],
+        "title": "CrawlTaskRequest",
+        "description": "\u722c\u53d6\u4efb\u52a1\u8bf7\u6c42"
       },
       "ErrorModel": {
         "properties": {
@@ -992,6 +1864,617 @@
           "user_id"
         ],
         "title": "ItemRead"
+      },
+      "KeywordCreate": {
+        "properties": {
+          "keyword": {
+            "type": "string",
+            "title": "Keyword"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
+          "weight": {
+            "type": "integer",
+            "title": "Weight",
+            "default": 1
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active",
+            "default": true
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          }
+        },
+        "type": "object",
+        "required": [
+          "keyword"
+        ],
+        "title": "KeywordCreate"
+      },
+      "KeywordListResponse": {
+        "properties": {
+          "keywords": {
+            "items": {
+              "$ref": "#/components/schemas/KeywordResponse"
+            },
+            "type": "array",
+            "title": "Keywords"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "categories": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Categories"
+          }
+        },
+        "type": "object",
+        "required": [
+          "keywords",
+          "total",
+          "categories"
+        ],
+        "title": "KeywordListResponse"
+      },
+      "KeywordResponse": {
+        "properties": {
+          "keyword": {
+            "type": "string",
+            "title": "Keyword"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
+          "weight": {
+            "type": "integer",
+            "title": "Weight",
+            "default": 1
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active",
+            "default": true
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "keyword",
+          "id",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "KeywordResponse"
+      },
+      "KeywordUpdate": {
+        "properties": {
+          "keyword": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Keyword"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
+          "weight": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weight"
+          },
+          "is_active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Active"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          }
+        },
+        "type": "object",
+        "title": "KeywordUpdate"
+      },
+      "NoteStatsResponse": {
+        "properties": {
+          "total_notes": {
+            "type": "integer",
+            "title": "Total Notes"
+          },
+          "new_notes": {
+            "type": "integer",
+            "title": "New Notes"
+          },
+          "changed_notes": {
+            "type": "integer",
+            "title": "Changed Notes"
+          },
+          "important_notes": {
+            "type": "integer",
+            "title": "Important Notes"
+          },
+          "today_crawled": {
+            "type": "integer",
+            "title": "Today Crawled"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total_notes",
+          "new_notes",
+          "changed_notes",
+          "important_notes",
+          "today_crawled"
+        ],
+        "title": "NoteStatsResponse",
+        "description": "\u7b14\u8bb0\u7edf\u8ba1\u54cd\u5e94"
+      },
+      "TaskActionResponse": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "title": "Success"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "task_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Task Id"
+          },
+          "github_run_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Github Run Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "success",
+          "message"
+        ],
+        "title": "TaskActionResponse",
+        "description": "\u4efb\u52a1\u64cd\u4f5c\u54cd\u5e94"
+      },
+      "TaskCreate": {
+        "properties": {
+          "task_name": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Task Name",
+            "description": "\u4efb\u52a1\u540d\u79f0"
+          },
+          "keyword": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Keyword",
+            "description": "\u641c\u7d22\u5173\u952e\u8bcd"
+          },
+          "target_count": {
+            "type": "integer",
+            "maximum": 1000.0,
+            "minimum": 1.0,
+            "title": "Target Count",
+            "description": "\u76ee\u6807\u722c\u53d6\u6570\u91cf",
+            "default": 200
+          },
+          "sort_type": {
+            "type": "integer",
+            "maximum": 2.0,
+            "minimum": 0.0,
+            "title": "Sort Type",
+            "description": "\u6392\u5e8f\u65b9\u5f0f",
+            "default": 1
+          },
+          "cookies": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cookies",
+            "description": "\u81ea\u5b9a\u4e49cookies"
+          },
+          "webhook_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Webhook Url",
+            "description": "webhook\u56de\u8c03URL"
+          }
+        },
+        "type": "object",
+        "required": [
+          "task_name",
+          "keyword"
+        ],
+        "title": "TaskCreate",
+        "description": "\u521b\u5efa\u4efb\u52a1\u8bf7\u6c42"
+      },
+      "TaskListResponse": {
+        "properties": {
+          "tasks": {
+            "items": {
+              "$ref": "#/components/schemas/TaskResponse"
+            },
+            "type": "array",
+            "title": "Tasks"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "size": {
+            "type": "integer",
+            "title": "Size"
+          }
+        },
+        "type": "object",
+        "required": [
+          "tasks",
+          "total",
+          "page",
+          "size"
+        ],
+        "title": "TaskListResponse",
+        "description": "\u4efb\u52a1\u5217\u8868\u54cd\u5e94"
+      },
+      "TaskResponse": {
+        "properties": {
+          "task_name": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Task Name",
+            "description": "\u4efb\u52a1\u540d\u79f0"
+          },
+          "keyword": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Keyword",
+            "description": "\u641c\u7d22\u5173\u952e\u8bcd"
+          },
+          "target_count": {
+            "type": "integer",
+            "maximum": 1000.0,
+            "minimum": 1.0,
+            "title": "Target Count",
+            "description": "\u76ee\u6807\u722c\u53d6\u6570\u91cf",
+            "default": 200
+          },
+          "sort_type": {
+            "type": "integer",
+            "maximum": 2.0,
+            "minimum": 0.0,
+            "title": "Sort Type",
+            "description": "\u6392\u5e8f\u65b9\u5f0f",
+            "default": 1
+          },
+          "cookies": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cookies",
+            "description": "\u81ea\u5b9a\u4e49cookies"
+          },
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "description": "\u4efb\u52a1ID"
+          },
+          "status": {
+            "$ref": "#/components/schemas/TaskStatusEnum",
+            "description": "\u4efb\u52a1\u72b6\u6001"
+          },
+          "owner_id": {
+            "type": "string",
+            "title": "Owner Id",
+            "description": "\u4efb\u52a1\u521b\u5efa\u8005ID"
+          },
+          "total_crawled": {
+            "type": "integer",
+            "title": "Total Crawled",
+            "description": "\u603b\u722c\u53d6\u6570\u91cf",
+            "default": 0
+          },
+          "new_notes": {
+            "type": "integer",
+            "title": "New Notes",
+            "description": "\u65b0\u7b14\u8bb0\u6570\u91cf",
+            "default": 0
+          },
+          "changed_notes": {
+            "type": "integer",
+            "title": "Changed Notes",
+            "description": "\u53d8\u66f4\u7b14\u8bb0\u6570\u91cf",
+            "default": 0
+          },
+          "important_notes": {
+            "type": "integer",
+            "title": "Important Notes",
+            "description": "\u91cd\u8981\u7b14\u8bb0\u6570\u91cf",
+            "default": 0
+          },
+          "error_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Message",
+            "description": "\u9519\u8bef\u4fe1\u606f"
+          },
+          "scheduled_time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scheduled Time",
+            "description": "\u8ba1\u5212\u6267\u884c\u65f6\u95f4"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At",
+            "description": "\u5f00\u59cb\u6267\u884c\u65f6\u95f4"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At",
+            "description": "\u5b8c\u6210\u65f6\u95f4"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "\u521b\u5efa\u65f6\u95f4"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At",
+            "description": "\u66f4\u65b0\u65f6\u95f4"
+          }
+        },
+        "type": "object",
+        "required": [
+          "task_name",
+          "keyword",
+          "id",
+          "status",
+          "owner_id",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "TaskResponse",
+        "description": "\u4efb\u52a1\u54cd\u5e94"
+      },
+      "TaskStatsResponse": {
+        "properties": {
+          "total_tasks": {
+            "type": "integer",
+            "title": "Total Tasks"
+          },
+          "pending_tasks": {
+            "type": "integer",
+            "title": "Pending Tasks"
+          },
+          "running_tasks": {
+            "type": "integer",
+            "title": "Running Tasks"
+          },
+          "completed_tasks": {
+            "type": "integer",
+            "title": "Completed Tasks"
+          },
+          "failed_tasks": {
+            "type": "integer",
+            "title": "Failed Tasks"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total_tasks",
+          "pending_tasks",
+          "running_tasks",
+          "completed_tasks",
+          "failed_tasks"
+        ],
+        "title": "TaskStatsResponse",
+        "description": "\u4efb\u52a1\u7edf\u8ba1\u54cd\u5e94"
+      },
+      "TaskStatusEnum": {
+        "type": "string",
+        "enum": [
+          "pending",
+          "running",
+          "completed",
+          "failed"
+        ],
+        "title": "TaskStatusEnum",
+        "description": "\u4efb\u52a1\u72b6\u6001\u679a\u4e3e"
+      },
+      "TaskTriggerResponse": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "title": "Success"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "task_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Task Id"
+          },
+          "github_run_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Github Run Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "success",
+          "message"
+        ],
+        "title": "TaskTriggerResponse",
+        "description": "\u4efb\u52a1\u89e6\u53d1\u54cd\u5e94"
       },
       "UserCreate": {
         "properties": {
@@ -1177,6 +2660,471 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "WebhookRequest": {
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/XhsNoteData"
+              },
+              {
+                "items": {
+                  "$ref": "#/components/schemas/XhsNoteData"
+                },
+                "type": "array"
+              },
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data"
+          },
+          "status": {
+            "$ref": "#/components/schemas/WebhookStatus"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Timestamp"
+          },
+          "run_id": {
+            "type": "string",
+            "title": "Run Id"
+          },
+          "task_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Task Id"
+          },
+          "elapsed_time": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Elapsed Time"
+          },
+          "progress": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 100.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Progress"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "message",
+          "timestamp",
+          "run_id"
+        ],
+        "title": "WebhookRequest",
+        "description": "\u5b8c\u6574\u7684Webhook\u8bf7\u6c42\u6a21\u5f0f"
+      },
+      "WebhookResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "default": "received"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "\u6570\u636e\u5df2\u63a5\u6536"
+          },
+          "processed_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Processed Count"
+          },
+          "errors": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Errors"
+          }
+        },
+        "type": "object",
+        "title": "WebhookResponse",
+        "description": "Webhook\u54cd\u5e94"
+      },
+      "WebhookStatus": {
+        "type": "string",
+        "enum": [
+          "started",
+          "progress",
+          "success",
+          "error",
+          "completed",
+          "failed"
+        ],
+        "title": "WebhookStatus",
+        "description": "Webhook\u72b6\u6001\u679a\u4e3e"
+      },
+      "XhsNoteData": {
+        "properties": {
+          "note_id": {
+            "type": "string",
+            "title": "Note Id"
+          },
+          "note_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note Url"
+          },
+          "note_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note Type"
+          },
+          "author_user_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Author User Id"
+          },
+          "author_nickname": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Author Nickname"
+          },
+          "author_avatar": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Author Avatar"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "desc": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Desc"
+          },
+          "tags": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tags"
+          },
+          "upload_time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Upload Time"
+          },
+          "ip_location": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ip Location"
+          },
+          "liked_count": {
+            "type": "integer",
+            "title": "Liked Count",
+            "default": 0
+          },
+          "collected_count": {
+            "type": "integer",
+            "title": "Collected Count",
+            "default": 0
+          },
+          "comment_count": {
+            "type": "integer",
+            "title": "Comment Count",
+            "default": 0
+          },
+          "share_count": {
+            "type": "integer",
+            "title": "Share Count",
+            "default": 0
+          },
+          "video_cover": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Video Cover"
+          },
+          "video_addr": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Video Addr"
+          },
+          "image_list": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image List"
+          },
+          "xsec_token": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Xsec Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "note_id"
+        ],
+        "title": "XhsNoteData",
+        "description": "\u5c0f\u7ea2\u4e66\u7b14\u8bb0\u6570\u636e - \u722c\u53d6\u539f\u59cb\u6570\u636e"
+      },
+      "XhsNoteResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "note_id": {
+            "type": "string",
+            "title": "Note Id"
+          },
+          "note_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note Url"
+          },
+          "note_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note Type"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "desc": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Desc"
+          },
+          "author_nickname": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Author Nickname"
+          },
+          "liked_count": {
+            "type": "integer",
+            "title": "Liked Count"
+          },
+          "comment_count": {
+            "type": "integer",
+            "title": "Comment Count"
+          },
+          "current_tags": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Tags"
+          },
+          "is_new": {
+            "type": "boolean",
+            "title": "Is New"
+          },
+          "is_changed": {
+            "type": "boolean",
+            "title": "Is Changed"
+          },
+          "is_important": {
+            "type": "boolean",
+            "title": "Is Important"
+          },
+          "first_crawl_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "First Crawl Time"
+          },
+          "last_crawl_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Last Crawl Time"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "note_id",
+          "note_url",
+          "note_type",
+          "title",
+          "desc",
+          "author_nickname",
+          "liked_count",
+          "comment_count",
+          "current_tags",
+          "is_new",
+          "is_changed",
+          "is_important",
+          "first_crawl_time",
+          "last_crawl_time"
+        ],
+        "title": "XhsNoteResponse",
+        "description": "\u7b14\u8bb0\u54cd\u5e94\u6a21\u5f0f"
       },
       "login": {
         "properties": {

@@ -9,7 +9,7 @@ from typing import List
 from datetime import datetime
 
 from app.database import get_async_session
-from app.schemas.webhook import (
+from app.schemas.notes import (
     NoteStatsResponse,
     XhsNoteResponse,
 )

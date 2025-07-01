@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Home, Users2, List } from "lucide-react";
+import { Home, Users2, List, SquarePlay } from "lucide-react";
 import Image from "next/image";
 
 import {
@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { logout } from "@/components/actions/logout-action";
+import { Tooltip } from "@/components/ui/tooltip";
 
 export default function DashboardLayout({
   children,
@@ -45,6 +46,14 @@ export default function DashboardLayout({
           >
             <List className="h-5 w-5" />
           </Link>
+          <Tooltip content="任务">
+          <Link
+            href="/dashboard/tasks"
+            className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
+          >
+            <SquarePlay className="h-5 w-5" />
+          </Link>
+          </Tooltip>
           <Link
             href="/customers"
             className="flex items-center gap-2 text-muted-foreground hover:text-foreground"

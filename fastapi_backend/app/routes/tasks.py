@@ -81,22 +81,22 @@ async def trigger_crawl_task(
         # 不要刷新关系，只获取任务ID
         task_id = task.id
         
-        # 准备GitHub Actions参数 - 根据workflow的repository_dispatch要求
-        # 参考workflow中的client_payload参数要求
+        # 准备GitHub Actions参数 - 根据workflow_dispatch的inputs要求
         github_payload = {
-            "event_type": "search-xhs",  # 匹配workflow中的types: [search-xhs, crawl-task]
-            "client_payload": {
-                # GitHub Actions workflow期望的直接参数
+            "ref": "main",  # 指定分支
+            "inputs": {
                 "query": task_request.keyword,
-                "num": task_request.target_count,
-                "sort_type": task_request.sort_type,
+                "num": str(task_request.target_count),  # 需要转成字符串
+                "sort_type": str(task_request.sort_type),  # 需要转成字符串
                 "cookies": task_request.cookies or "",
-                "webhook_url": task_request.webhook_url,
-                "get_comments": False,  # 默认不获取评论
-                "no_delay": False,      # 默认启用延迟
-                "task_id": str(task_id),  # 重要：添加task_id以便webhook回调时更新对应任务
+                "webhook_url": task_request.webhook_url or "",
+                "get_comments": "false",  # 默认不获取评论
+                "no_delay": "false",      # 默认启用延迟
+                "task_id": str(task_id)   # 转成字符串
             }
         }
+
+        print(github_payload)
         
         # 发送请求到GitHub API
         github_token = os.getenv("GITHUB_TOKEN")
@@ -105,13 +105,17 @@ async def trigger_crawl_task(
         
         repo_owner = os.getenv("GITHUB_REPO_OWNER", "JunJD")
         repo_name = os.getenv("GITHUB_REPO_NAME", "xiuer-spider")
+        workflow_id = os.getenv("GITHUB_WORKFLOW_ID", "170912099")  # 使用实际的数字 ID
         
         headers = {
-            "Authorization": f"token {github_token}",
-            "Accept": "application/vnd.github.v3+json"
+            "Authorization": f"Bearer {github_token}",
+            "Accept": "application/vnd.github+json",
+            "X-GitHub-Api-Version": "2022-11-28"
         }
         
-        url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/dispatches"
+        url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/actions/workflows/{workflow_id}/dispatches"
+        print(github_token)
+        print(url)
         
         response = requests.post(url, json=github_payload, headers=headers)
         

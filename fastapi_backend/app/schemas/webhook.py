@@ -61,7 +61,7 @@ class CrawlTaskRequest(BaseModel):
     target_count: int = Field(default=50, ge=1, le=500, description="目标爬取数量")
     sort_type: int = Field(default=1, ge=0, le=4, description="排序方式")
     cookies: Optional[str] = Field(None, description="自定义cookies")
-    webhook_url: str = Field(..., description="接收结果的webhook URL")
+    webhook_url: Optional[str] = Field(None, description="接收结果的webhook URL")
 
 
 # === 响应模式 ===

@@ -9,7 +9,7 @@ services:
       - MAIL_SERVER=mailhog
       - AUTO_MIGRATE=false  # Set to 'true' to enable automatic migrations on startup
       # GitHub 配置
-      - GITHUB_TOKEN=${GITHUB_TOKEN:-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}  # 从环境变量读取
+      - GITHUB_TOKEN=${GITHUB_TOKEN:-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}  # 从环境变量读取
       - GITHUB_REPO_OWNER=${GITHUB_REPO_OWNER:-JunJD}  # 默认 JunJD
       - GITHUB_REPO_NAME=${GITHUB_REPO_NAME:-xiuer-spider}  # 默认 xiuer-spider
     ports:

@@ -1733,7 +1733,14 @@
             "description": "\u81ea\u5b9a\u4e49cookies"
           },
           "webhook_url": {
-            "type": "string",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Webhook Url",
             "description": "\u63a5\u6536\u7ed3\u679c\u7684webhook URL"
           }
@@ -1741,8 +1748,7 @@
         "type": "object",
         "required": [
           "task_name",
-          "keyword",
-          "webhook_url"
+          "keyword"
         ],
         "title": "CrawlTaskRequest",
         "description": "\u722c\u53d6\u4efb\u52a1\u8bf7\u6c42"

@@ -49,7 +49,7 @@ export type CrawlTaskRequest = {
   /**
    * 接收结果的webhook URL
    */
-  webhook_url: string;
+  webhook_url?: string | null;
 };
 
 export type ErrorModel = {
@@ -654,6 +654,10 @@ export type CreateTaskResponse = TaskActionResponse;
 
 export type CreateTaskError = HTTPValidationError;
 
+export type GetTaskStatsResponse = TaskStatsResponse;
+
+export type GetTaskStatsError = unknown;
+
 export type GetTaskDetailData = {
   path: {
     task_id: string;
@@ -673,7 +677,3 @@ export type CancelTaskData = {
 export type CancelTaskResponse = TaskActionResponse;
 
 export type CancelTaskError = HTTPValidationError;
-
-export type GetTaskStatsResponse = TaskStatsResponse;
-
-export type GetTaskStatsError = unknown;

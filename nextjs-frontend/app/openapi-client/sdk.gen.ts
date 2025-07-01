@@ -90,14 +90,14 @@ import type {
   CreateTaskData,
   CreateTaskError,
   CreateTaskResponse,
+  GetTaskStatsError,
+  GetTaskStatsResponse,
   GetTaskDetailData,
   GetTaskDetailError,
   GetTaskDetailResponse,
   CancelTaskData,
   CancelTaskError,
   CancelTaskResponse,
-  GetTaskStatsError,
-  GetTaskStatsResponse,
 } from "./types.gen";
 
 export const client = createClient(createConfig());
@@ -603,6 +603,23 @@ export const createTask = <ThrowOnError extends boolean = false>(
 };
 
 /**
+ * Get Task Stats
+ * 获取任务统计信息
+ */
+export const getTaskStats = <ThrowOnError extends boolean = false>(
+  options?: OptionsLegacyParser<unknown, ThrowOnError>,
+) => {
+  return (options?.client ?? client).get<
+    GetTaskStatsResponse,
+    GetTaskStatsError,
+    ThrowOnError
+  >({
+    ...options,
+    url: "/api/tasks/stats",
+  });
+};
+
+/**
  * Get Task Detail
  * 获取任务详情
  */
@@ -615,7 +632,7 @@ export const getTaskDetail = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     ...options,
-    url: "/api/tasks/{task_id}",
+    url: "/api/tasks/detail/{task_id}",
   });
 };
 
@@ -633,22 +650,5 @@ export const cancelTask = <ThrowOnError extends boolean = false>(
   >({
     ...options,
     url: "/api/tasks/{task_id}",
-  });
-};
-
-/**
- * Get Task Stats
- * 获取任务统计信息
- */
-export const getTaskStats = <ThrowOnError extends boolean = false>(
-  options?: OptionsLegacyParser<unknown, ThrowOnError>,
-) => {
-  return (options?.client ?? client).get<
-    GetTaskStatsResponse,
-    GetTaskStatsError,
-    ThrowOnError
-  >({
-    ...options,
-    url: "/api/tasks/stats",
   });
 };

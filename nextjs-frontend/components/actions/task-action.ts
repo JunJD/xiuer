@@ -58,7 +58,7 @@ export async function getTasks({
     return { message: error };
   }
 
-  return data;
+  return data ;
 }
 
 /**

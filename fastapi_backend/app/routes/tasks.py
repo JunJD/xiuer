@@ -304,7 +304,7 @@ async def cancel_task(
         
     except Exception as e:
         logger.error(f"取消任务失败: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"取消任务失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"取消任务失败: {str(e)}") 
 
 
 @router.get("/stats", response_model=TaskStatsResponse)

@@ -1,10 +1,7 @@
 "use client";
 
 import type { ColumnSort, SortDirection, Table } from "@tanstack/react-table";
-import {
-  ArrowDownUp,
-  Trash2,
-} from "lucide-react";
+import { ArrowDownUp, Trash2 } from "lucide-react";
 import * as React from "react";
 
 import { Badge } from "@/components/ui/badge";

@@ -1,13 +1,20 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { motion, type Variants } from "motion/react"
-import { Button } from "@/components/ui/button"
-import { ArrowRight, GitBranch, Brain, Target, ArrowUpRight, Star } from "lucide-react"
-import Image from "next/image"
+import { useEffect, useState } from "react";
+import { motion, type Variants } from "motion/react";
+import { Button } from "@/components/ui/button";
+import {
+  ArrowRight,
+  GitBranch,
+  Brain,
+  Target,
+  ArrowUpRight,
+  Star,
+} from "lucide-react";
+import Image from "next/image";
 
 interface XiuerHeroProps {
-  ToDashboard: () => void
+  ToDashboard: () => void;
 }
 
 export default function XiuerHero({ ToDashboard }: XiuerHeroProps) {
@@ -15,29 +22,34 @@ export default function XiuerHero({ ToDashboard }: XiuerHeroProps) {
     posts: 0,
     comments: 0,
     accuracy: 0,
-  })
+  });
 
   useEffect(() => {
     const interval = setInterval(() => {
       setStats((prev) => {
-        const newPosts = prev.posts >= 50000 ? 50000 : prev.posts + 1250
-        const newComments = prev.comments >= 2800000 ? 2800000 : prev.comments + 70000
-        const newAccuracy = prev.accuracy >= 95 ? 95 : prev.accuracy + 2.5
+        const newPosts = prev.posts >= 50000 ? 50000 : prev.posts + 1250;
+        const newComments =
+          prev.comments >= 2800000 ? 2800000 : prev.comments + 70000;
+        const newAccuracy = prev.accuracy >= 95 ? 95 : prev.accuracy + 2.5;
 
-        if (newPosts === 50000 && newComments === 2800000 && newAccuracy === 95) {
-          clearInterval(interval)
+        if (
+          newPosts === 50000 &&
+          newComments === 2800000 &&
+          newAccuracy === 95
+        ) {
+          clearInterval(interval);
         }
 
         return {
           posts: newPosts,
           comments: newComments,
           accuracy: newAccuracy,
-        }
-      })
-    }, 50)
+        };
+      });
+    }, 50);
 
-    return () => clearInterval(interval)
-  }, [])
+    return () => clearInterval(interval);
+  }, []);
 
   const containerVariants: Variants = {
     hidden: { opacity: 0 },
@@ -48,20 +60,20 @@ export default function XiuerHero({ ToDashboard }: XiuerHeroProps) {
         delayChildren: 0.3,
       },
     },
-  }
+  };
 
   const itemVariants: Variants = {
     hidden: { y: 30, opacity: 0 },
     visible: {
       y: 0,
       opacity: 1,
-      transition: { 
-        type: "spring" as const, 
-        stiffness: 80, 
-        damping: 20 
+      transition: {
+        type: "spring" as const,
+        stiffness: 80,
+        damping: 20,
       },
     },
-  }
+  };
 
   const floatingAnimation = {
     y: [0, -15, 0],
@@ -70,7 +82,7 @@ export default function XiuerHero({ ToDashboard }: XiuerHeroProps) {
       repeat: Infinity,
       ease: "easeInOut" as const,
     },
-  }
+  };
 
   const badgePulse = {
     scale: [1, 1.05, 1],
@@ -80,7 +92,7 @@ export default function XiuerHero({ ToDashboard }: XiuerHeroProps) {
       repeat: Infinity,
       ease: "easeInOut" as const,
     },
-  }
+  };
 
   return (
     <section className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-slate-950 via-black to-slate-900 py-28 text-white">
@@ -107,11 +119,16 @@ export default function XiuerHero({ ToDashboard }: XiuerHeroProps) {
             animate={badgePulse}
             className="mb-6 inline-flex items-center rounded-full border border-orange-500/20 bg-orange-500/5 px-5 py-2.5 text-sm text-orange-300"
           >
-            <span className="mr-2.5 rounded-full bg-orange-500 px-2.5 py-1 text-xs font-semibold text-white">Beta</span>
+            <span className="mr-2.5 rounded-full bg-orange-500 px-2.5 py-1 text-xs font-semibold text-white">
+              Beta
+            </span>
             新媒体智能截流工具
           </motion.div>
 
-          <motion.h1 variants={itemVariants} className="mb-10 text-4xl font-bold leading-tight sm:text-5xl lg:text-6xl">
+          <motion.h1
+            variants={itemVariants}
+            className="mb-10 text-4xl font-bold leading-tight sm:text-5xl lg:text-6xl"
+          >
             让数据为你
             <br />
             <span className="bg-gradient-to-r from-orange-400 via-amber-400 to-yellow-400 bg-clip-text text-transparent">
@@ -119,17 +136,28 @@ export default function XiuerHero({ ToDashboard }: XiuerHeroProps) {
             </span>
           </motion.h1>
 
-          <motion.p variants={itemVariants} className="mb-12 max-w-lg text-lg leading-relaxed text-slate-300">
-            通过 GitHub Actions 自动化采集公开帖子和评论，智能分析内容变化，精准识别意向用户。
+          <motion.p
+            variants={itemVariants}
+            className="mb-12 max-w-lg text-lg leading-relaxed text-slate-300"
+          >
+            通过 GitHub Actions
+            自动化采集公开帖子和评论，智能分析内容变化，精准识别意向用户。
           </motion.p>
 
-          <motion.div variants={itemVariants} className="mb-12 flex flex-wrap justify-center gap-10 lg:justify-start">
+          <motion.div
+            variants={itemVariants}
+            className="mb-12 flex flex-wrap justify-center gap-10 lg:justify-start"
+          >
             <div className="text-center">
-              <p className="text-3xl font-bold text-white">{stats.posts.toLocaleString()}+</p>
+              <p className="text-3xl font-bold text-white">
+                {stats.posts.toLocaleString()}+
+              </p>
               <p className="mt-1.5 text-sm text-gray-400">监控帖子</p>
             </div>
             <div className="text-center">
-              <p className="text-3xl font-bold text-white">{stats.comments.toLocaleString()}+</p>
+              <p className="text-3xl font-bold text-white">
+                {stats.comments.toLocaleString()}+
+              </p>
               <p className="mt-1.5 text-sm text-gray-400">分析评论</p>
             </div>
             <div className="text-center">
@@ -138,7 +166,10 @@ export default function XiuerHero({ ToDashboard }: XiuerHeroProps) {
             </div>
           </motion.div>
 
-          <motion.div variants={itemVariants} className="mb-10 flex flex-col gap-4 sm:flex-row">
+          <motion.div
+            variants={itemVariants}
+            className="mb-10 flex flex-col gap-4 sm:flex-row"
+          >
             <Button
               className="group rounded-full bg-gradient-to-r from-orange-600 to-amber-600 px-8 py-6 text-base text-white shadow-lg shadow-orange-600/25 transition-all hover:shadow-orange-600/40"
               size="lg"
@@ -164,26 +195,37 @@ export default function XiuerHero({ ToDashboard }: XiuerHeroProps) {
           >
             <div className="flex -space-x-2">
               {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="h-8 w-8 overflow-hidden rounded-full border-2 border-slate-700 bg-slate-800">
+                <div
+                  key={i}
+                  className="h-8 w-8 overflow-hidden rounded-full border-2 border-slate-700 bg-slate-800"
+                >
                   <div className="h-full w-full bg-gradient-to-br from-orange-500 to-amber-600 opacity-80"></div>
                 </div>
               ))}
             </div>
             <span className="text-sm text-slate-300">
-              <span className="font-semibold text-white">200+</span> 新媒体人员正在使用
+              <span className="font-semibold text-white">200+</span>{" "}
+              新媒体人员正在使用
             </span>
             <ArrowUpRight className="h-4 w-4 text-orange-400" />
           </motion.div>
 
           {/* 用户评价 */}
-          <motion.div variants={itemVariants} className="mb-10 flex items-center justify-center gap-2 lg:justify-start">
+          <motion.div
+            variants={itemVariants}
+            className="mb-10 flex items-center justify-center gap-2 lg:justify-start"
+          >
             <div className="flex items-center gap-1">
               {[1, 2, 3, 4, 5].map((i) => (
-                <Star key={i} className="h-4 w-4 fill-orange-400 text-orange-400" />
+                <Star
+                  key={i}
+                  className="h-4 w-4 fill-orange-400 text-orange-400"
+                />
               ))}
             </div>
             <span className="text-sm text-slate-400">
-              4.9/5 来自 <span className="font-medium text-slate-300">150+ 用户评价</span>
+              4.9/5 来自{" "}
+              <span className="font-medium text-slate-300">150+ 用户评价</span>
             </span>
           </motion.div>
 
@@ -233,7 +275,9 @@ export default function XiuerHero({ ToDashboard }: XiuerHeroProps) {
               >
                 <div className="flex items-center gap-2">
                   <GitBranch className="h-4 w-4 text-orange-400" />
-                  <span className="text-sm font-medium text-orange-200">自动化采集</span>
+                  <span className="text-sm font-medium text-orange-200">
+                    自动化采集
+                  </span>
                 </div>
               </motion.div>
 
@@ -245,7 +289,9 @@ export default function XiuerHero({ ToDashboard }: XiuerHeroProps) {
               >
                 <div className="flex items-center gap-2">
                   <Brain className="h-4 w-4 text-amber-400" />
-                  <span className="text-sm font-medium text-amber-200">智能分析</span>
+                  <span className="text-sm font-medium text-amber-200">
+                    智能分析
+                  </span>
                 </div>
               </motion.div>
 
@@ -257,7 +303,9 @@ export default function XiuerHero({ ToDashboard }: XiuerHeroProps) {
               >
                 <div className="flex items-center gap-2">
                   <Target className="h-4 w-4 text-yellow-400" />
-                  <span className="text-sm font-medium text-yellow-200">精准截流</span>
+                  <span className="text-sm font-medium text-yellow-200">
+                    精准截流
+                  </span>
                 </div>
               </motion.div>
             </div>
@@ -265,5 +313,5 @@ export default function XiuerHero({ ToDashboard }: XiuerHeroProps) {
         </div>
       </motion.main>
     </section>
-  )
+  );
 }

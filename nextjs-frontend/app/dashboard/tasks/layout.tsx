@@ -1,1 +1,1 @@
-export { default } from '@/components/animated-template'
+export { default } from "@/components/animated-template";

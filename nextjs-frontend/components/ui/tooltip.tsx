@@ -25,13 +25,10 @@ export const Tooltip = ({
   const [isHovered, setIsHovered] = useState(false);
   const springConfig = { stiffness: 100, damping: 5 };
   const x = useMotionValue(0);
-  
+
   // rotate the tooltip
-  const rotate = useSpring(
-    useTransform(x, [-100, 100], [-8, 8]),
-    springConfig,
-  );
-  
+  const rotate = useSpring(useTransform(x, [-100, 100], [-8, 8]), springConfig);
+
   // translate the tooltip
   const translateX = useSpring(
     useTransform(x, [-100, 100], [-20, 20]),
@@ -85,7 +82,11 @@ export const Tooltip = ({
       <AnimatePresence mode="wait">
         {isHovered && (
           <motion.div
-            initial={{ opacity: 0, y: position === "bottom" ? -10 : 10, scale: 0.8 }}
+            initial={{
+              opacity: 0,
+              y: position === "bottom" ? -10 : 10,
+              scale: 0.8,
+            }}
             animate={{
               opacity: 1,
               y: 0,
@@ -97,9 +98,14 @@ export const Tooltip = ({
                 delay: delay / 1000,
               },
             }}
-            exit={{ opacity: 0, y: position === "bottom" ? -10 : 10, scale: 0.8 }}
+            exit={{
+              opacity: 0,
+              y: position === "bottom" ? -10 : 10,
+              scale: 0.8,
+            }}
             style={{
-              translateX: position === "top" || position === "bottom" ? translateX : 0,
+              translateX:
+                position === "top" || position === "bottom" ? translateX : 0,
               rotate: position === "top" || position === "bottom" ? rotate : 0,
             }}
             className={`absolute z-50 ${getPositionClasses()}`}
@@ -116,4 +122,4 @@ export const Tooltip = ({
       </AnimatePresence>
     </div>
   );
-}; 
+};

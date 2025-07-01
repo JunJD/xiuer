@@ -4,92 +4,92 @@
 @layer base {
   :root {
     /* 小红书风格 - 浅色主题 */
-    --background: 0 0% 98%;                    /* 温暖的白色背景 */
-    --foreground: 0 0% 15%;                    /* 深灰色文字 */
-    
-    --card: 0 0% 100%;                         /* 纯白卡片 */
-    --card-foreground: 0 0% 15%;               /* 卡片文字 */
-    
-    --popover: 0 0% 100%;                      /* 弹出层背景 */
-    --popover-foreground: 0 0% 15%;            /* 弹出层文字 */
-    
+    --background: 0 0% 98%; /* 温暖的白色背景 */
+    --foreground: 0 0% 15%; /* 深灰色文字 */
+
+    --card: 0 0% 100%; /* 纯白卡片 */
+    --card-foreground: 0 0% 15%; /* 卡片文字 */
+
+    --popover: 0 0% 100%; /* 弹出层背景 */
+    --popover-foreground: 0 0% 15%; /* 弹出层文字 */
+
     /* 小红书经典红色作为主色 */
-    --primary: 350 89% 60%;                    /* 小红书红 #fe2c55 */
-    --primary-foreground: 0 0% 98%;            /* 主色上的白色文字 */
-    
+    --primary: 350 89% 60%; /* 小红书红 #fe2c55 */
+    --primary-foreground: 0 0% 98%; /* 主色上的白色文字 */
+
     /* 柔和的玫瑰色作为次要色 */
-    --secondary: 350 25% 95%;                  /* 浅玫瑰色背景 */
-    --secondary-foreground: 350 15% 25%;       /* 次要色文字 */
-    
+    --secondary: 350 25% 95%; /* 浅玫瑰色背景 */
+    --secondary-foreground: 350 15% 25%; /* 次要色文字 */
+
     /* 温暖的灰色调 */
-    --muted: 20 14% 96%;                       /* 温暖的浅灰 */
-    --muted-foreground: 20 5% 45%;             /* 静音文字颜色 */
-    
+    --muted: 20 14% 96%; /* 温暖的浅灰 */
+    --muted-foreground: 20 5% 45%; /* 静音文字颜色 */
+
     /* 强调色使用橙红色 */
-    --accent: 15 86% 95%;                      /* 浅橙红背景 */
-    --accent-foreground: 15 25% 25%;           /* 强调色文字 */
-    
+    --accent: 15 86% 95%; /* 浅橙红背景 */
+    --accent-foreground: 15 25% 25%; /* 强调色文字 */
+
     /* 警告/错误色 */
-    --destructive: 0 84% 60%;                  /* 标准红色 */
-    --destructive-foreground: 0 0% 98%;        /* 警告色文字 */
-    
+    --destructive: 0 84% 60%; /* 标准红色 */
+    --destructive-foreground: 0 0% 98%; /* 警告色文字 */
+
     /* 边框和输入框 */
-    --border: 20 10% 90%;                      /* 温暖的边框色 */
-    --input: 20 10% 94%;                       /* 输入框背景 */
-    --ring: 350 89% 60%;                       /* 焦点环颜色 */
-    
+    --border: 20 10% 90%; /* 温暖的边框色 */
+    --input: 20 10% 94%; /* 输入框背景 */
+    --ring: 350 89% 60%; /* 焦点环颜色 */
+
     /* 图表颜色 - 小红书风格 */
-    --chart-1: 350 89% 60%;                    /* 主红色 */
-    --chart-2: 25 95% 65%;                     /* 橙色 */
-    --chart-3: 340 75% 70%;                    /* 粉红色 */
-    --chart-4: 15 86% 60%;                     /* 橙红色 */
-    --chart-5: 320 65% 75%;                    /* 紫红色 */
-    
-    --radius: 0.75rem;                         /* 更圆润的圆角 */
+    --chart-1: 350 89% 60%; /* 主红色 */
+    --chart-2: 25 95% 65%; /* 橙色 */
+    --chart-3: 340 75% 70%; /* 粉红色 */
+    --chart-4: 15 86% 60%; /* 橙红色 */
+    --chart-5: 320 65% 75%; /* 紫红色 */
+
+    --radius: 0.75rem; /* 更圆润的圆角 */
   }
 
   .dark {
     /* 小红书风格 - 深色主题 */
-    --background: 0 0% 8%;                     /* 深色背景 */
-    --foreground: 20 14% 92%;                  /* 浅色文字 */
-    
-    --card: 0 0% 12%;                          /* 深色卡片 */
-    --card-foreground: 20 14% 92%;             /* 卡片文字 */
-    
-    --popover: 0 0% 12%;                       /* 深色弹出层 */
-    --popover-foreground: 20 14% 92%;          /* 弹出层文字 */
-    
+    --background: 0 0% 8%; /* 深色背景 */
+    --foreground: 20 14% 92%; /* 浅色文字 */
+
+    --card: 0 0% 12%; /* 深色卡片 */
+    --card-foreground: 20 14% 92%; /* 卡片文字 */
+
+    --popover: 0 0% 12%; /* 深色弹出层 */
+    --popover-foreground: 20 14% 92%; /* 弹出层文字 */
+
     /* 深色模式下的小红书红 */
-    --primary: 350 89% 65%;                    /* 稍亮的红色 */
-    --primary-foreground: 0 0% 98%;            /* 主色文字 */
-    
+    --primary: 350 89% 65%; /* 稍亮的红色 */
+    --primary-foreground: 0 0% 98%; /* 主色文字 */
+
     /* 深色次要色 */
-    --secondary: 350 15% 15%;                  /* 深玫瑰色 */
-    --secondary-foreground: 350 25% 85%;       /* 次要色文字 */
-    
+    --secondary: 350 15% 15%; /* 深玫瑰色 */
+    --secondary-foreground: 350 25% 85%; /* 次要色文字 */
+
     /* 深色静音色 */
-    --muted: 20 10% 15%;                       /* 深灰色 */
-    --muted-foreground: 20 14% 65%;            /* 静音文字 */
-    
+    --muted: 20 10% 15%; /* 深灰色 */
+    --muted-foreground: 20 14% 65%; /* 静音文字 */
+
     /* 深色强调色 */
-    --accent: 15 20% 18%;                      /* 深橙红 */
-    --accent-foreground: 15 60% 85%;           /* 强调色文字 */
-    
+    --accent: 15 20% 18%; /* 深橙红 */
+    --accent-foreground: 15 60% 85%; /* 强调色文字 */
+
     /* 深色警告色 */
-    --destructive: 0 75% 55%;                  /* 深色红 */
-    --destructive-foreground: 0 0% 98%;        /* 警告文字 */
-    
+    --destructive: 0 75% 55%; /* 深色红 */
+    --destructive-foreground: 0 0% 98%; /* 警告文字 */
+
     /* 深色边框 */
-    --border: 20 10% 20%;                      /* 深色边框 */
-    --input: 20 10% 16%;                       /* 深色输入框 */
-    --ring: 350 89% 65%;                       /* 深色焦点环 */
-    
+    --border: 20 10% 20%; /* 深色边框 */
+    --input: 20 10% 16%; /* 深色输入框 */
+    --ring: 350 89% 65%; /* 深色焦点环 */
+
     /* 深色图表颜色 */
-    --chart-1: 350 89% 65%;                    /* 主红色 */
-    --chart-2: 25 85% 70%;                     /* 橙色 */
-    --chart-3: 340 75% 75%;                    /* 粉红色 */
-    --chart-4: 15 76% 65%;                     /* 橙红色 */
-    --chart-5: 320 65% 80%;                    /* 紫红色 */
+    --chart-1: 350 89% 65%; /* 主红色 */
+    --chart-2: 25 85% 70%; /* 橙色 */
+    --chart-3: 340 75% 75%; /* 粉红色 */
+    --chart-4: 15 76% 65%; /* 橙红色 */
+    --chart-5: 320 65% 80%; /* 紫红色 */
   }
 }
 
@@ -100,21 +100,25 @@
 
   body {
     @apply bg-background text-foreground;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-family:
+      -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+      Arial, sans-serif;
   }
 
   /* 小红书风格的自定义样式 */
   .xhs-gradient {
-    background: linear-gradient(135deg, 
-      hsl(var(--primary)) 0%, 
-      hsl(15 86% 60%) 50%, 
+    background: linear-gradient(
+      135deg,
+      hsl(var(--primary)) 0%,
+      hsl(15 86% 60%) 50%,
       hsl(340 75% 70%) 100%
     );
   }
 
   .xhs-text-gradient {
-    background: linear-gradient(135deg, 
-      hsl(var(--primary)) 0%, 
+    background: linear-gradient(
+      135deg,
+      hsl(var(--primary)) 0%,
       hsl(15 86% 60%) 100%
     );
     -webkit-background-clip: text;

@@ -8,11 +8,17 @@ export default async function DashboardPage() {
   // 获取notes数据和统计信息
   const [notesData, statsData] = await Promise.all([
     fetchNotes() as Promise<XhsNoteResponse[]>,
-    fetchNotesStats() as Promise<NoteStatsResponse>
+    fetchNotesStats() as Promise<NoteStatsResponse>,
   ]);
 
   const notes = Array.isArray(notesData) ? notesData : [];
-  const stats = statsData || { total_notes: 0, new_notes: 0, changed_notes: 0, important_notes: 0, today_crawled: 0 };
+  const stats = statsData || {
+    total_notes: 0,
+    new_notes: 0,
+    changed_notes: 0,
+    important_notes: 0,
+    today_crawled: 0,
+  };
 
   return (
     <div>
@@ -25,7 +31,9 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
         <div className="bg-white p-4 rounded-lg shadow">
           <h3 className="text-sm font-medium text-gray-500">总笔记数</h3>
-          <p className="text-2xl font-bold text-blue-600">{stats.total_notes}</p>
+          <p className="text-2xl font-bold text-blue-600">
+            {stats.total_notes}
+          </p>
         </div>
         <div className="bg-white p-4 rounded-lg shadow">
           <h3 className="text-sm font-medium text-gray-500">新笔记</h3>
@@ -33,15 +41,21 @@ export default async function DashboardPage() {
         </div>
         <div className="bg-white p-4 rounded-lg shadow">
           <h3 className="text-sm font-medium text-gray-500">变更笔记</h3>
-          <p className="text-2xl font-bold text-orange-600">{stats.changed_notes}</p>
+          <p className="text-2xl font-bold text-orange-600">
+            {stats.changed_notes}
+          </p>
         </div>
         <div className="bg-white p-4 rounded-lg shadow">
           <h3 className="text-sm font-medium text-gray-500">重要笔记</h3>
-          <p className="text-2xl font-bold text-red-600">{stats.important_notes}</p>
+          <p className="text-2xl font-bold text-red-600">
+            {stats.important_notes}
+          </p>
         </div>
         <div className="bg-white p-4 rounded-lg shadow">
           <h3 className="text-sm font-medium text-gray-500">今日爬取</h3>
-          <p className="text-2xl font-bold text-purple-600">{stats.today_crawled}</p>
+          <p className="text-2xl font-bold text-purple-600">
+            {stats.today_crawled}
+          </p>
         </div>
       </div>
 

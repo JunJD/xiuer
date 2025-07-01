@@ -1,12 +1,7 @@
 "use client";
 
 import type { Column, Table } from "@tanstack/react-table";
-import {
-  BadgeCheck,
-  CalendarIcon,
-  ListFilter,
-  Text
-} from "lucide-react";
+import { BadgeCheck, CalendarIcon, ListFilter, Text } from "lucide-react";
 import { useQueryState } from "nuqs";
 import * as React from "react";
 

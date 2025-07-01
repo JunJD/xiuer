@@ -19,7 +19,13 @@ export interface ActionItem<T = Record<string, unknown>> {
   label: string;
   onClick: (row: T) => void;
   disabled?: boolean;
-  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
+  variant?:
+    | "default"
+    | "destructive"
+    | "outline"
+    | "secondary"
+    | "ghost"
+    | "link";
 }
 
 export interface ColumnDefinition<T = Record<string, unknown>> {
@@ -113,7 +119,7 @@ export default function EasyTable<T = Record<string, unknown>>({
             <TableHead
               key={index}
               className={`${column.width ? `w-[${column.width}]` : ""} ${getAlignmentClass(
-                column.align
+                column.align,
               )}`}
             >
               {column.title}
@@ -145,4 +151,4 @@ export default function EasyTable<T = Record<string, unknown>>({
       </TableBody>
     </Table>
   );
-} 
+}

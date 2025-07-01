@@ -49,7 +49,7 @@ export const keywordSchema = z.object({
   weight: z
     .string()
     .optional()
-    .transform((val) => val ? parseInt(val, 10) : 1) // Convert to integer, default to 1
+    .transform((val) => (val ? parseInt(val, 10) : 1)) // Convert to integer, default to 1
     .refine((val) => Number.isInteger(val) && val >= 1 && val <= 10, {
       message: "Weight must be an integer between 1 and 10",
     }),

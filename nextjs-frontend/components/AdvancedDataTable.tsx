@@ -21,7 +21,13 @@ export interface ActionItem<T = Record<string, unknown>> {
   label: string;
   onClick: (row: T) => void;
   disabled?: boolean;
-  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
+  variant?:
+    | "default"
+    | "destructive"
+    | "outline"
+    | "secondary"
+    | "ghost"
+    | "link";
 }
 
 export interface ColumnDefinition<T = Record<string, unknown>> {
@@ -61,22 +67,30 @@ export default function AdvancedDataTable<T = Record<string, unknown>>({
   // 将EasyTable的ColumnDefinition转换为TanStack Table的ColumnDef
   const tanStackColumns = React.useMemo<ColumnDef<T>[]>(() => {
     return columns.map((column) => {
-      const { key, title, render, align, actions, sortable = true, filterable = false } = column;
+      const {
+        key,
+        title,
+        render,
+        align,
+        actions,
+        sortable = true,
+        filterable = false,
+      } = column;
 
       // 构建基础column定义
       const columnDef: ColumnDef<T> = {
         id: key as string,
         accessorKey: key as string,
         header: ({ column: tanStackColumn }) => (
-          <DataTableColumnHeader 
-            column={tanStackColumn} 
+          <DataTableColumnHeader
+            column={tanStackColumn}
             title={title}
             className={getAlignmentClass(align)}
           />
         ),
         cell: ({ cell, row }) => {
           const value = cell.getValue();
-          
+
           // 如果有actions，渲染下拉菜单
           if (actions && actions.length > 0) {
             return (
@@ -111,15 +125,25 @@ export default function AdvancedDataTable<T = Record<string, unknown>>({
 
           // 如果有自定义渲染函数
           if (render) {
-            return <div className={getAlignmentClass(align)}>{render(value, row.original)}</div>;
+            return (
+              <div className={getAlignmentClass(align)}>
+                {render(value, row.original)}
+              </div>
+            );
           }
 
           // 默认渲染
-          return <div className={getAlignmentClass(align)}>{String(value || "")}</div>;
+          return (
+            <div className={getAlignmentClass(align)}>
+              {String(value || "")}
+            </div>
+          );
         },
         enableSorting: enableSorting && sortable,
         enableColumnFilter: enableFiltering && filterable,
-        size: column.width ? parseInt(column.width.replace(/\D/g, "")) : undefined,
+        size: column.width
+          ? parseInt(column.width.replace(/\D/g, ""))
+          : undefined,
       };
 
       // 如果启用筛选，添加meta信息
@@ -147,7 +171,9 @@ export default function AdvancedDataTable<T = Record<string, unknown>>({
     },
     getRowId: (row: T, index: number) => {
       // 尝试使用id字段，如果没有则使用index
-      return (row as Record<string, unknown>).id?.toString() || index.toString();
+      return (
+        (row as Record<string, unknown>).id?.toString() || index.toString()
+      );
     },
   });
 
@@ -176,12 +202,10 @@ export default function AdvancedDataTable<T = Record<string, unknown>>({
         {showToolbar && <DataTableToolbar table={table} />}
       </DataTable>
       {data.length === 0 && (
-        <div className="text-center py-8 text-gray-500">
-          {emptyMessage}
-        </div>
+        <div className="text-center py-8 text-gray-500">{emptyMessage}</div>
       )}
     </div>
   );
 }
 
-// 注意：类型定义已在组件内部，避免与EasyTable冲突 
+// 注意：类型定义已在组件内部，避免与EasyTable冲突

@@ -47,12 +47,12 @@ export default function DashboardLayout({
             <List className="h-5 w-5" />
           </Link>
           <Tooltip content="任务">
-          <Link
-            href="/dashboard/tasks"
-            className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
-          >
-            <SquarePlay className="h-5 w-5" />
-          </Link>
+            <Link
+              href="/dashboard/tasks"
+              className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
+            >
+              <SquarePlay className="h-5 w-5" />
+            </Link>
           </Tooltip>
           <Link
             href="/customers"

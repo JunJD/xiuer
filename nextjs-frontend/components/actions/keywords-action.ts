@@ -1,7 +1,13 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { getKeywords, deleteKeyword, createKeyword, updateKeyword, toggleKeywordStatus } from "@/app/clientService";
+import {
+  getKeywords,
+  deleteKeyword,
+  createKeyword,
+  updateKeyword,
+  toggleKeywordStatus,
+} from "@/app/clientService";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { keywordSchema } from "@/lib/definitions";
@@ -11,7 +17,7 @@ export async function fetchKeywords(
   limit: number = 100,
   category?: string,
   active_only: boolean = true,
-  search?: string
+  search?: string,
 ) {
   const cookieStore = await cookies();
   const token = cookieStore.get("accessToken")?.value;
@@ -83,7 +89,8 @@ export async function addKeyword(prevState: {}, formData: FormData) {
     return { errors: validatedFields.error.flatten().fieldErrors };
   }
 
-  const { keyword, category, weight, is_active, description } = validatedFields.data;
+  const { keyword, category, weight, is_active, description } =
+    validatedFields.data;
 
   const input = {
     headers: {
@@ -104,7 +111,11 @@ export async function addKeyword(prevState: {}, formData: FormData) {
   redirect(`/keywords`);
 }
 
-export async function editKeyword(id: string, prevState: {}, formData: FormData) {
+export async function editKeyword(
+  id: string,
+  prevState: {},
+  formData: FormData,
+) {
   const cookieStore = await cookies();
   const token = cookieStore.get("accessToken")?.value;
 
@@ -124,7 +135,8 @@ export async function editKeyword(id: string, prevState: {}, formData: FormData)
     return { errors: validatedFields.error.flatten().fieldErrors };
   }
 
-  const { keyword, category, weight, is_active, description } = validatedFields.data;
+  const { keyword, category, weight, is_active, description } =
+    validatedFields.data;
 
   const input = {
     headers: {
@@ -170,4 +182,4 @@ export async function toggleKeyword(id: string) {
     return { message: error };
   }
   revalidatePath("/keywords");
-} 
+}

@@ -26,10 +26,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable}`} cz-shortcut-listen="true">
-        <NuqsAdapter>
-          {children}
-        </NuqsAdapter>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable}`}
+        cz-shortcut-listen="true"
+      >
+        <NuqsAdapter>{children}</NuqsAdapter>
       </body>
     </html>
   );

@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
 
 interface DataTableProps<TData> extends React.ComponentProps<"div"> {
   table: TanstackTable<TData>;
-  actionBar?: React.ReactNode;
+  actionBar?: React.ReactElement | null;
 }
 
 export function DataTable<TData>({

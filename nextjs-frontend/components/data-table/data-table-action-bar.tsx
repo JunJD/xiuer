@@ -1,10 +1,15 @@
 "use client";
 
+import {
+  ComponentProps,
+  useState,
+  useLayoutEffect,
+  useEffect,
+  useCallback,
+} from "react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import {
-  Tooltip,
-} from "@/components/ui/tooltip";
+import { Tooltip } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import type { Table } from "@tanstack/react-table";
 import { Loader } from "lucide-react";
@@ -14,10 +19,10 @@ import * as ReactDOM from "react-dom";
 import { Cross2Icon } from "@radix-ui/react-icons";
 
 interface DataTableActionBarProps<TData>
-  extends React.ComponentProps<typeof motion.div> {
+  extends ComponentProps<typeof motion.div> {
   table: Table<TData>;
   visible?: boolean;
-  container?: Element | DocumentFragment | null;
+  container?: Element | DocumentFragment;
 }
 
 function DataTableActionBar<TData>({
@@ -28,13 +33,13 @@ function DataTableActionBar<TData>({
   className,
   ...props
 }: DataTableActionBarProps<TData>) {
-  const [mounted, setMounted] = React.useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  React.useLayoutEffect(() => {
+  useLayoutEffect(() => {
     setMounted(true);
   }, []);
 
-  React.useEffect(() => {
+  useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
         table.toggleAllRowsSelected(false);
@@ -77,8 +82,7 @@ function DataTableActionBar<TData>({
   );
 }
 
-interface DataTableActionBarActionProps
-  extends React.ComponentProps<typeof Button> {
+interface DataTableActionBarActionProps extends ComponentProps<typeof Button> {
   tooltip?: string;
   isPending?: boolean;
 }
@@ -110,11 +114,7 @@ function DataTableActionBarAction({
 
   if (!tooltip) return trigger;
 
-  return (
-    <Tooltip content={tooltip}>
-      {trigger}
-    </Tooltip>
-  );
+  return <Tooltip content={tooltip}>{trigger}</Tooltip>;
 }
 
 interface DataTableActionBarSelectionProps<TData> {
@@ -124,7 +124,7 @@ interface DataTableActionBarSelectionProps<TData> {
 function DataTableActionBarSelection<TData>({
   table,
 }: DataTableActionBarSelectionProps<TData>) {
-  const onClearSelection = React.useCallback(() => {
+  const onClearSelection = useCallback(() => {
     table.toggleAllRowsSelected(false);
   }, [table]);
 
@@ -138,15 +138,14 @@ function DataTableActionBarSelection<TData>({
         className="mr-1 ml-2 data-[orientation=vertical]:h-4"
       />
       <Tooltip content="Clear selection">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-5"
-            onClick={onClearSelection}
-          >
-            <Cross2Icon className="size-3.5" />
-          </Button>
-      
+        <Button
+          variant="ghost"
+          size="icon"
+          className="size-5"
+          onClick={onClearSelection}
+        >
+          <Cross2Icon className="size-3.5" />
+        </Button>
       </Tooltip>
     </div>
   );

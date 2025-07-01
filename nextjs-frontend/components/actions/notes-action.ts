@@ -32,7 +32,7 @@ export async function fetchNotes(
   is_important?: boolean,
   author_user_id?: string,
   limit: number = 500,
-  offset: number = 0
+  offset: number = 0,
 ) {
   const cookieStore = await cookies();
   const token = cookieStore.get("accessToken")?.value;
@@ -90,10 +90,7 @@ export async function fetchNoteDetail(noteId: string) {
   return data;
 }
 
-export async function searchNotesByQuery(
-  prevState: {},
-  formData: FormData
-) {
+export async function searchNotesByQuery(prevState: {}, formData: FormData) {
   const cookieStore = await cookies();
   const token = cookieStore.get("accessToken")?.value;
 
@@ -103,9 +100,24 @@ export async function searchNotesByQuery(
 
   const validatedFields = noteQuerySchema.safeParse({
     keyword: formData.get("keyword") || undefined,
-    is_new: formData.get("is_new") === "true" ? true : formData.get("is_new") === "false" ? false : undefined,
-    is_changed: formData.get("is_changed") === "true" ? true : formData.get("is_changed") === "false" ? false : undefined,
-    is_important: formData.get("is_important") === "true" ? true : formData.get("is_important") === "false" ? false : undefined,
+    is_new:
+      formData.get("is_new") === "true"
+        ? true
+        : formData.get("is_new") === "false"
+          ? false
+          : undefined,
+    is_changed:
+      formData.get("is_changed") === "true"
+        ? true
+        : formData.get("is_changed") === "false"
+          ? false
+          : undefined,
+    is_important:
+      formData.get("is_important") === "true"
+        ? true
+        : formData.get("is_important") === "false"
+          ? false
+          : undefined,
     author_user_id: formData.get("author_user_id") || undefined,
     limit: parseInt(formData.get("limit")?.toString() || "50"),
     offset: parseInt(formData.get("offset")?.toString() || "0"),
@@ -115,7 +127,15 @@ export async function searchNotesByQuery(
     return { errors: validatedFields.error.flatten().fieldErrors };
   }
 
-  const { keyword, is_new, is_changed, is_important, author_user_id, limit, offset } = validatedFields.data;
+  const {
+    keyword,
+    is_new,
+    is_changed,
+    is_important,
+    author_user_id,
+    limit,
+    offset,
+  } = validatedFields.data;
 
   const queryParams: Record<string, unknown> = {
     limit,

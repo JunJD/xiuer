@@ -1,21 +1,21 @@
-"use client"
+"use client";
 
-import { ReactNode, RefObject, useEffect, useRef } from "react"
-import { Loader } from "lucide-react"
-import { AnimatePresence, motion } from "motion/react"
-import { ChevronUpIcon } from "@radix-ui/react-icons"
+import { ReactNode, RefObject, useEffect, useRef } from "react";
+import { Loader } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { ChevronUpIcon } from "@radix-ui/react-icons";
 
 type PopoverFormProps = {
-  open: boolean
-  setOpen: (open: boolean) => void
-  openChild?: ReactNode
-  successChild?: ReactNode
-  showSuccess: boolean
-  width?: string
-  height?: string
-  showCloseButton?: boolean
-  title: string
-}
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  openChild?: ReactNode;
+  successChild?: ReactNode;
+  showSuccess: boolean;
+  width?: string;
+  height?: string;
+  showCloseButton?: boolean;
+  title: string;
+};
 
 export function PopoverForm({
   open,
@@ -28,8 +28,8 @@ export function PopoverForm({
   title = "Feedback",
   showCloseButton = false,
 }: PopoverFormProps) {
-  const ref = useRef<HTMLDivElement>(null)
-  useClickOutside(ref, () => setOpen(false))
+  const ref = useRef<HTMLDivElement>(null);
+  useClickOutside(ref, () => setOpen(false));
 
   return (
     <div
@@ -102,15 +102,15 @@ export function PopoverForm({
         )}
       </AnimatePresence>
     </div>
-  )
+  );
 }
 
 export function PopoverFormButton({
   loading,
   text = "submit",
 }: {
-  loading: boolean
-  text: string
+  loading: boolean;
+  text: string;
 }) {
   return (
     <button
@@ -138,28 +138,28 @@ export function PopoverFormButton({
         </motion.span>
       </AnimatePresence>
     </button>
-  )
+  );
 }
 
 const useClickOutside = (
   ref: RefObject<HTMLElement>,
-  handleOnClickOutside: (event: MouseEvent | TouchEvent) => void
+  handleOnClickOutside: (event: MouseEvent | TouchEvent) => void,
 ) => {
   useEffect(() => {
     const listener = (event: MouseEvent | TouchEvent) => {
       if (!ref.current || ref.current.contains(event.target as Node)) {
-        return
+        return;
       }
-      handleOnClickOutside(event)
-    }
-    document.addEventListener("mousedown", listener)
-    document.addEventListener("touchstart", listener)
+      handleOnClickOutside(event);
+    };
+    document.addEventListener("mousedown", listener);
+    document.addEventListener("touchstart", listener);
     return () => {
-      document.removeEventListener("mousedown", listener)
-      document.removeEventListener("touchstart", listener)
-    }
-  }, [ref, handleOnClickOutside])
-}
+      document.removeEventListener("mousedown", listener);
+      document.removeEventListener("touchstart", listener);
+    };
+  }, [ref, handleOnClickOutside]);
+};
 
 export function PopoverFormSuccess({
   title = "Success",
@@ -193,15 +193,15 @@ export function PopoverFormSuccess({
         {description}
       </p>
     </>
-  )
+  );
 }
 
 export function PopoverFormSeparator({
   width = 352,
   height = 2,
 }: {
-  width?: number | string
-  height?: number
+  width?: number | string;
+  height?: number;
 }) {
   return (
     <svg
@@ -214,22 +214,22 @@ export function PopoverFormSeparator({
     >
       <path d="M0 1H352" className="stroke-border" strokeDasharray="4 4" />
     </svg>
-  )
+  );
 }
 
 function PopoverFormCutOutTopIcon({
   width = 44,
   height = 30,
 }: {
-  width?: number
-  height?: number
+  width?: number;
+  height?: number;
 }) {
-  const aspectRatio = 6 / 12
-  const calculatedHeight = width * aspectRatio
-  const calculatedWidth = height / aspectRatio
+  const aspectRatio = 6 / 12;
+  const calculatedHeight = width * aspectRatio;
+  const calculatedWidth = height / aspectRatio;
 
-  const finalWidth = Math.min(width, calculatedWidth)
-  const finalHeight = Math.min(height, calculatedHeight)
+  const finalWidth = Math.min(width, calculatedWidth);
+  const finalHeight = Math.min(height, calculatedHeight);
 
   return (
     <svg
@@ -259,7 +259,7 @@ function PopoverFormCutOutTopIcon({
         </clipPath>
       </defs>
     </svg>
-  )
+  );
 }
 
 export function PopoverFormCutOutLeftIcon() {
@@ -289,7 +289,7 @@ export function PopoverFormCutOutLeftIcon() {
         </clipPath>
       </defs>
     </svg>
-  )
+  );
 }
 
 export function PopoverFormCutOutRightIcon() {
@@ -319,7 +319,7 @@ export function PopoverFormCutOutRightIcon() {
         </clipPath>
       </defs>
     </svg>
-  )
+  );
 }
 
-export default PopoverForm
+export default PopoverForm;

@@ -1,13 +1,13 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { 
+import {
   getTasks as getTasksApi,
   getTaskDetail as getTaskDetailApi,
   getTaskStats as getTaskStatsApi,
   createTask as createTaskApi,
   cancelTask as cancelTaskApi,
-  triggerCrawlTask as triggerCrawlTaskApi
+  triggerCrawlTask as triggerCrawlTaskApi,
 } from "@/app/clientService";
 import type { TaskCreate, CrawlTaskRequest } from "@/app/openapi-client";
 
@@ -18,7 +18,7 @@ export type {
   TaskStatsResponse,
   TaskActionResponse,
   TaskCreate,
-  CrawlTaskRequest
+  CrawlTaskRequest,
 } from "@/app/openapi-client";
 
 /**
@@ -58,7 +58,7 @@ export async function getTasks({
     return { message: error };
   }
 
-  return data ;
+  return data;
 }
 
 /**
@@ -187,4 +187,4 @@ export async function triggerCrawlTask(taskData: CrawlTaskRequest) {
   }
 
   return data;
-} 
+}

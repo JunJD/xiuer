@@ -11,14 +11,20 @@
     "test": "jest",
     "coverage": "jest --coverage",
     "prettier": "prettier --write '**/*.{js,jsx,ts,tsx,json,css,html}'",
-    "tsc": "tsc"
+    "tsc": "tsc",
+    "lint:fix": "next lint --fix"
+  },
+  "pnpm": {
+    "overrides": {
+      "@types/react": "18.3.3"
+    }
   },
   "dependencies": {
     "@autoform/react": "^4.0.0",
     "@autoform/zod": "^4.0.0",
-    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/core": "^6.1.0",
     "@dnd-kit/modifiers": "^9.0.0",
-    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/sortable": "^8.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@heroicons/react": "^2.2.0",
     "@hey-api/client-axios": "^0.3.4",
@@ -51,9 +57,9 @@
     "nanoid": "^5.1.5",
     "next": "15.1.0",
     "nuqs": "^2.4.3",
-    "react": "19.0.0",
+    "react": "18.3.1",
     "react-day-picker": "^9.7.0",
-    "react-dom": "19.0.0",
+    "react-dom": "18.3.1",
     "react-hook-form": "^7.59.0",
     "react-icons": "^5.4.0",
     "tailwind-merge": "^2.5.4",
@@ -68,8 +74,8 @@
     "@testing-library/react": "^16.0.1",
     "@types/jest": "^29.5.14",
     "@types/node": "^20",
-    "@types/react": "npm:types-react@19.0.0-rc.1",
-    "@types/react-dom": "npm:types-react-dom@19.0.0-rc.1",
+    "@types/react": "^18.3.1",
+    "@types/react-dom": "^18.3.1",
     "@typescript-eslint/eslint-plugin": "^8.20.0",
     "autoprefixer": "^10.4.20",
     "chokidar": "^4.0.1",
@@ -88,9 +94,5 @@
     "ts-node": "^10.9.2",
     "typescript": "^5",
     "typescript-eslint": "^8.20.0"
-  },
-  "overrides": {
-    "@types/react": "npm:types-react@19.0.0-rc.1",
-    "@types/react-dom": "npm:types-react-dom@19.0.0-rc.1"
   }
 }

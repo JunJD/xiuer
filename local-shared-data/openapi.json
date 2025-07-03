@@ -1442,6 +1442,26 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Filters"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Successful Response",

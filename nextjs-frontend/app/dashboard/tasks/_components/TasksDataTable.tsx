@@ -3,8 +3,6 @@
 import React from "react";
 import { DataTable } from "@/components/data-table/data-table";
 import { DataTableAdvancedToolbar } from "@/components/data-table/data-table-advanced-toolbar";
-import { DataTableFilterMenu } from "@/components/data-table/data-table-filter-menu";
-import { DataTableSortList } from "@/components/data-table/data-table-sort-list";
 import { useDataTable } from "@/hooks/use-data-table";
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal, Eye, Play, Square } from "lucide-react";
@@ -17,23 +15,21 @@ import {
 import type { ColumnDef } from "@tanstack/react-table";
 import {
   TaskResponse,
+  TaskListResponse,
   cancelTask,
   triggerCrawlTask,
 } from "@/components/actions/task-action";
-import {
-  DataTableActionBar,
-  DataTableActionBarAction,
-  DataTableActionBarSelection,
-} from "@/components/data-table/data-table-action-bar";
+import type { HTTPValidationError } from "@/app/openapi-client/types.gen";
 import { Checkbox } from "@/components/ui/checkbox";
 
 interface TasksDataTableProps {
-  tasks: TaskResponse[];
+  tasksPromise: Promise<TaskListResponse | { message: string } | { message: HTTPValidationError }>;
 }
 
-export default function TasksDataTable({ tasks }: TasksDataTableProps) {
+export default function TasksDataTable({ tasksPromise }: TasksDataTableProps) {
+  const tasksData = React.use(tasksPromise);
+  
   const handleViewDetail = React.useCallback(async (row: TaskResponse) => {
-    // TODO: 实现查看详情功能
     console.log("查看详情", row);
   }, []);
 
@@ -42,7 +38,6 @@ export default function TasksDataTable({ tasks }: TasksDataTableProps) {
       const result = await cancelTask(taskId);
       if ("success" in result && result.success) {
         console.log("任务取消成功", result);
-        // TODO: 刷新数据
         window.location.reload();
       }
     } catch (error) {
@@ -52,18 +47,16 @@ export default function TasksDataTable({ tasks }: TasksDataTableProps) {
 
   const handleRetryTask = React.useCallback(async (task: TaskResponse) => {
     try {
-      // 重新触发任务
       const result = await triggerCrawlTask({
         task_name: `重试-${task.task_name}`,
         keyword: task.keyword,
         target_count: task.target_count,
         sort_type: task.sort_type,
         cookies: task.cookies || "",
-        webhook_url: `${window.location.origin}/api/webhook`, // 假设的webhook URL
+        webhook_url: `${window.location.origin}/api/webhook`,
       });
       if ("success" in result && result.success) {
         console.log("任务重试成功", result);
-        // TODO: 刷新数据
         window.location.reload();
       }
     } catch (error) {
@@ -71,7 +64,7 @@ export default function TasksDataTable({ tasks }: TasksDataTableProps) {
     }
   }, []);
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = React.useCallback((status: string) => {
     switch (status) {
       case "pending":
         return "bg-yellow-100 text-yellow-800";
@@ -84,9 +77,9 @@ export default function TasksDataTable({ tasks }: TasksDataTableProps) {
       default:
         return "bg-gray-100 text-gray-600";
     }
-  };
+  }, []);
 
-  const getStatusText = (status: string) => {
+  const getStatusText = React.useCallback((status: string) => {
     switch (status) {
       case "pending":
         return "待执行";
@@ -99,7 +92,7 @@ export default function TasksDataTable({ tasks }: TasksDataTableProps) {
       default:
         return status;
     }
-  };
+  }, []);
 
   const columns: ColumnDef<TaskResponse>[] = React.useMemo(
     () => [
@@ -259,8 +252,8 @@ export default function TasksDataTable({ tasks }: TasksDataTableProps) {
         accessorKey: "created_at",
         header: "创建时间",
         cell: ({ getValue }) => {
-          const value = getValue() as string;
-          return new Date(value).toLocaleDateString("zh-CN", {
+          const date = new Date(getValue() as string);
+          return date.toLocaleString("zh-CN", {
             year: "numeric",
             month: "2-digit",
             day: "2-digit",
@@ -274,16 +267,15 @@ export default function TasksDataTable({ tasks }: TasksDataTableProps) {
         },
         enableColumnFilter: true,
         enableSorting: true,
-        size: 120,
+        size: 150,
       },
       {
         id: "actions",
-        header: "操作",
         cell: ({ row }) => (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">打开菜单</span>
+                <span className="sr-only">Open menu</span>
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -292,63 +284,72 @@ export default function TasksDataTable({ tasks }: TasksDataTableProps) {
                 <Eye className="mr-2 h-4 w-4" />
                 查看详情
               </DropdownMenuItem>
-              {(row.original.status === "pending" ||
-                row.original.status === "running") && (
-                <DropdownMenuItem
-                  onClick={() => handleCancelTask(row.original.id)}
-                  className="text-destructive"
-                >
-                  <Square className="mr-2 h-4 w-4" />
-                  取消任务
-                </DropdownMenuItem>
-              )}
-              {row.original.status === "failed" && (
-                <DropdownMenuItem onClick={() => handleRetryTask(row.original)}>
-                  <Play className="mr-2 h-4 w-4" />
-                  重试任务
-                </DropdownMenuItem>
-              )}
+              <DropdownMenuItem
+                onClick={() => handleRetryTask(row.original)}
+                disabled={!["failed", "completed"].includes(row.original.status)}
+              >
+                <Play className="mr-2 h-4 w-4" />
+                重新执行
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => handleCancelTask(row.original.id)}
+                disabled={!["pending", "running"].includes(row.original.status)}
+              >
+                <Square className="mr-2 h-4 w-4" />
+                取消任务
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         ),
+        size: 64,
         enableSorting: false,
         enableHiding: false,
-        enableColumnFilter: false,
-        size: 100,
       },
     ],
-    [handleViewDetail, handleCancelTask, handleRetryTask],
+    [handleViewDetail, handleCancelTask, handleRetryTask, getStatusColor, getStatusText],
   );
 
-  const { table } = useDataTable({
+  const tasks = tasksData && "tasks" in tasksData ? tasksData.tasks : [];
+  const pageCount = tasksData && "tasks" in tasksData ? Math.ceil(tasksData.total / tasksData.size) : 0;
+  const { table } = useDataTable<TaskResponse>({
     data: tasks,
     columns,
-    pageCount: Math.ceil(tasks.length / 10),
+    pageCount,
     initialState: {
-      pagination: { pageIndex: 0, pageSize: 10 },
       sorting: [{ id: "created_at", desc: true }],
+      columnPinning: { right: ["actions"] },
     },
-    enableAdvancedFilter: true,
-    enableRowSelection: true,
-  });
+    getRowId: (originalRow) => originalRow.id,
+    shallow: false,
+    clearOnDefault: true,
+  }); 
+
+  if (!tasksData || !("tasks" in tasksData)) {
+    let errorMessage = "Unknown error";
+    if (tasksData && "message" in tasksData) {
+      if (typeof tasksData.message === "string") {
+        errorMessage = tasksData.message;
+      } else if (tasksData.message && typeof tasksData.message === "object") {
+        errorMessage = "Validation error";
+      }
+    }
+    
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <h3 className="text-lg font-semibold mb-2">加载失败</h3>
+          <p className="text-muted-foreground">
+            Error: {errorMessage}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-4">
-      <DataTable
-        table={table}
-        actionBar={
-          <DataTableActionBar table={table}>
-            <DataTableActionBarAction isPending={true}>
-              <DataTableActionBarSelection table={table} />
-            </DataTableActionBarAction>
-          </DataTableActionBar>
-        }
-      >
-        <DataTableAdvancedToolbar table={table}>
-          <DataTableFilterMenu table={table} />
-          <DataTableSortList table={table} />
-        </DataTableAdvancedToolbar>
-      </DataTable>
+    <div className="w-full space-y-4 overflow-auto">
+      <DataTableAdvancedToolbar table={table} />
+      <DataTable table={table} />
     </div>
   );
 }

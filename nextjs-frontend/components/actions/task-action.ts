@@ -10,6 +10,7 @@ import {
   triggerCrawlTask as triggerCrawlTaskApi,
 } from "@/app/clientService";
 import type { TaskCreate, CrawlTaskRequest } from "@/app/openapi-client";
+import { ExtendedColumnFilter } from "@/types/data-table";
 
 // 导出生成的类型
 export type {
@@ -27,11 +28,13 @@ export type {
 export async function getTasks({
   page = 1,
   size = 10,
+  filters,
   status,
   keyword,
 }: {
   page?: number;
   size?: number;
+  filters?: ExtendedColumnFilter<unknown>[];
   status?: string;
   keyword?: string;
 } = {}) {
@@ -51,6 +54,7 @@ export async function getTasks({
       size,
       status,
       keyword,
+      filters,
     },
   });
 

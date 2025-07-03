@@ -1,42 +1,32 @@
-import TasksDataTable from "@/components/TasksDataTable";
-import { getTasks, getTaskStats } from "@/components/actions/task-action";
-import { AlertCircle } from "lucide-react";
+import { getTasks } from "@/components/actions/task-action";
 import { Badge } from "@/components/ui/badge";
+import { getValidFilters } from "@/lib/data-table";
+import type { SearchParams } from "@/types";
+import TasksDataTable from "./_components/TasksDataTable";
+import { searchParamsCache } from "./_lib /validations";
+import { Suspense } from "react";
 
-export default async function TasksPage() {
-  // 并行获取任务数据和统计信息
-  const [tasksData, statsData] = await Promise.all([
-    getTasks({ size: 100 }),
-    getTaskStats(),
-  ]);
+interface IndexPageProps {
+  searchParams: Promise<SearchParams>;
+}
 
-  if (!("tasks" in tasksData)) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <AlertCircle className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-          <h3 className="text-lg font-semibold mb-2">加载失败</h3>
-          <p className="text-muted-foreground">
-            Error: {tasksData?.message as string}
-          </p>
-        </div>
-      </div>
-    );
-  }
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
-  // 统计数据（如果获取失败则使用默认值）
-  const stats =
-    statsData && "total_tasks" in statsData
-      ? statsData
-      : {
-          total_tasks: tasksData.total || 0,
-          pending_tasks: 0,
-          running_tasks: 0,
-          completed_tasks: 0,
-          failed_tasks: 0,
-        };
+export default async function TasksPage(props: IndexPageProps)  {
+  const searchParams = await props.searchParams;
+  const search = searchParamsCache.parse(searchParams);
+
+  console.log('search==>',search);
+  
+  const validFilters = getValidFilters(search.filters);
+  
+  // 创建 Promise 但不等待它们完成
+  const tasksPromise = getTasks({  ...search, size: search.perPage, filters: validFilters, status: search.status.join(",")});
 
   return (
+    <Suspense fallback={<div>Loading...</div>}>
+
     <div className="h-full">
       {/* 页面头部 */}
       <div className="flex items-center justify-between mb-6">
@@ -48,12 +38,12 @@ export default async function TasksPage() {
         </div>
       </div>
 
-      {/* 统计卡片 */}
+      {/* 统计卡片 - 这里可以用 Suspense 包装 */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <div className="bg-white p-4 rounded-lg shadow">
           <h3 className="text-sm font-medium text-gray-500">总任务数</h3>
           <p className="text-2xl font-bold text-blue-600">
-            {stats.total_tasks}
+            加载中...
           </p>
           <p className="text-xs text-gray-500">累计创建的任务数量</p>
         </div>
@@ -61,7 +51,7 @@ export default async function TasksPage() {
         <div className="bg-white p-4 rounded-lg shadow">
           <h3 className="text-sm font-medium text-gray-500">正在执行</h3>
           <p className="text-2xl font-bold text-blue-600">
-            {stats.running_tasks}
+            加载中...
           </p>
           <p className="text-xs text-gray-500">正在执行中的任务</p>
         </div>
@@ -69,7 +59,7 @@ export default async function TasksPage() {
         <div className="bg-white p-4 rounded-lg shadow">
           <h3 className="text-sm font-medium text-gray-500">执行成功</h3>
           <p className="text-2xl font-bold text-green-600">
-            {stats.completed_tasks}
+            加载中...
           </p>
           <p className="text-xs text-gray-500">已成功完成的任务</p>
         </div>
@@ -77,7 +67,7 @@ export default async function TasksPage() {
         <div className="bg-white p-4 rounded-lg shadow">
           <h3 className="text-sm font-medium text-gray-500">执行失败</h3>
           <p className="text-2xl font-bold text-red-600">
-            {stats.failed_tasks}
+            加载中...
           </p>
           <p className="text-xs text-gray-500">执行失败的任务</p>
         </div>
@@ -93,11 +83,12 @@ export default async function TasksPage() {
             </p>
           </div>
           <Badge variant="secondary" className="text-sm">
-            共 {tasksData.total} 个任务
+            数据加载中...
           </Badge>
         </div>
-        <TasksDataTable tasks={tasksData.tasks} />
+        <TasksDataTable tasksPromise={tasksPromise} />
       </section>
     </div>
+    </Suspense>
   );
 }

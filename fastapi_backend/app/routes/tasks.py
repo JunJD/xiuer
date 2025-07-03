@@ -6,7 +6,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 import json
 import os
 import requests
@@ -147,6 +147,7 @@ async def trigger_crawl_task(
 async def get_tasks(
     page: int = 1,
     size: int = 10,
+    filters: Optional[List[str]] = None,
     status: Optional[str] = None,
     keyword: Optional[str] = None,
     db: AsyncSession = Depends(get_async_session)
@@ -169,7 +170,7 @@ async def get_tasks(
         
         # 分页计算
         offset = (page - 1) * size
-        
+        print(f"filters: {filters}")
         # 查询总数
         count_query = select(func.count(CrawlTask.id))
         if conditions:

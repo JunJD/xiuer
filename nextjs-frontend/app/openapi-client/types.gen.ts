@@ -634,6 +634,7 @@ export type TriggerCrawlTaskResponse = TaskTriggerResponse;
 export type TriggerCrawlTaskError = HTTPValidationError;
 
 export type GetTasksData = {
+  body?: Array<string> | null;
   query?: {
     keyword?: string | null;
     page?: number;

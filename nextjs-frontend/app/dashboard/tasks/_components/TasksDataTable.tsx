@@ -21,6 +21,9 @@ import {
 } from "@/components/actions/task-action";
 import type { HTTPValidationError } from "@/app/openapi-client/types.gen";
 import { Checkbox } from "@/components/ui/checkbox";
+import { DataTableActionBar, DataTableActionBarAction, DataTableActionBarSelection } from "@/components/data-table/data-table-action-bar";
+import { DataTableFilterMenu } from "@/components/data-table/data-table-filter-menu";
+import { DataTableSortList } from "@/components/data-table/data-table-sort-list";
 
 interface TasksDataTableProps {
   tasksPromise: Promise<TaskListResponse | { message: string } | { message: HTTPValidationError }>;
@@ -347,9 +350,22 @@ export default function TasksDataTable({ tasksPromise }: TasksDataTableProps) {
   }
 
   return (
-    <div className="w-full space-y-4 overflow-auto">
-      <DataTableAdvancedToolbar table={table} />
-      <DataTable table={table} />
-    </div>
+    <div className="space-y-4">
+    <DataTable
+      table={table}
+      actionBar={
+        <DataTableActionBar table={table}>
+          <DataTableActionBarAction isPending={false}>
+            <DataTableActionBarSelection table={table} />
+          </DataTableActionBarAction>
+        </DataTableActionBar>
+      }
+    >
+      <DataTableAdvancedToolbar table={table}>
+        <DataTableFilterMenu table={table} />
+        <DataTableSortList table={table} />
+      </DataTableAdvancedToolbar>
+    </DataTable>
+  </div>
   );
 }

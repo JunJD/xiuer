@@ -177,8 +177,20 @@ async def process_webhook_data_background(data: Any, db: AsyncSession, task_id: 
         
         # 处理数据
         if isinstance(data, dict):
+            # 检查是否是包含notes数组的数据格式
+            if "notes" in data and isinstance(data["notes"], list):
+                notes_data = []
+                for item in data["notes"]:
+                    if isinstance(item, dict) and "note_id" in item:
+                        notes_data.append(XhsNoteData(**item))
+                
+                if notes_data:
+                    result = await xhs_service.process_notes_batch(notes_data)
+                    logger.info(f"处理笔记批量数据完成: 新增{result.new_count}个笔记，变更{result.changed_count}个笔记")
+                else:
+                    logger.warning(f"notes数组为空或格式不正确")
             # 检查是否是单个笔记
-            if "note_id" in data:
+            elif "note_id" in data:
                 note_data = XhsNoteData(**data)
                 is_new, is_changed, is_important = await xhs_service.process_single_note(note_data)
                 logger.info(f"处理单个笔记完成: {note_data.note_id}")

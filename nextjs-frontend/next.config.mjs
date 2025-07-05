@@ -29,6 +29,10 @@ const nextConfig = {
     }
     return config;
   },
+  output: 'standalone',
+  experimental: {
+    //
+  },
 };
 
 export default nextConfig;

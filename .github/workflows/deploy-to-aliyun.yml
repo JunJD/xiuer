@@ -109,6 +109,10 @@ jobs:
             
             echo "✅ Docker 环境检查通过"
             
+            # 确保 docker-compose 是可执行的，修复潜在的权限问题
+            echo "🔧 确保 docker-compose 是可执行的..."
+            sudo chmod +x /usr/local/bin/docker-compose
+            
             # 登录阿里云容器仓库
             echo "🔐 登录阿里云容器仓库..."
             docker login --username ${{ secrets.ALIYUN_REGISTRY_USERNAME }} --password ${{ secrets.ALIYUN_REGISTRY_PASSWORD }} ${{ secrets.ALIYUN_REGISTRY_URL }}

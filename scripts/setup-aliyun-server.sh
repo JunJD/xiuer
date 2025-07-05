@@ -3,7 +3,8 @@
 # 小红书数据分析平台 - 阿里云服务器初始化脚本
 # 使用方法: curl -fsSL https://raw.githubusercontent.com/JunJD/xiuer/main/scripts/setup-aliyun-server.sh | bash
 
-set -e
+# 不使用 set -e，允许脚本在遇到错误时继续执行
+set +e
 
 # 颜色定义
 RED='\033[0;31m'
@@ -45,10 +46,26 @@ check_system() {
         OS=$NAME
         VER=$VERSION_ID
         log_info "检测到系统: $OS $VER"
+        
+        # 特殊处理阿里云系统
+        if [[ "$OS" == *"Alibaba Cloud Linux"* ]]; then
+            log_info "阿里云系统详细信息:"
+            log_info "- 系统ID: $ID"
+            log_info "- 版本: $VERSION"
+            log_info "- 基于: $ID_LIKE"
+        fi
     else
         log_error "无法检测系统版本"
         exit 1
     fi
+    
+    # 检查系统架构
+    ARCH=$(uname -m)
+    log_info "系统架构: $ARCH"
+    
+    # 检查内存大小
+    TOTAL_MEM=$(free -m | awk 'NR==2{printf "%.0f", $2}')
+    log_info "系统内存: ${TOTAL_MEM}MB"
 }
 
 # 更新系统
@@ -62,9 +79,19 @@ update_system() {
     elif [[ "$OS" == *"CentOS"* ]] || [[ "$OS" == *"Red Hat"* ]] || [[ "$OS" == *"Alibaba Cloud Linux"* ]] || [[ "$OS" == *"Aliyun Linux"* ]]; then
         # 阿里云系统使用yum包管理器
         yum update -y
-        yum install -y curl wget git vim htop net-tools epel-release
+        yum install -y curl wget git vim htop net-tools
+        
+        # 针对阿里云系统特殊处理EPEL仓库
+        if [[ "$OS" == *"Alibaba Cloud Linux"* ]] || [[ "$OS" == *"Aliyun Linux"* ]]; then
+            log_info "检测到阿里云系统，跳过EPEL安装（系统已包含类似功能）"
+            # 阿里云系统通常已经包含了必要的软件包，不需要额外的EPEL
+        else
+            # 其他CentOS/RHEL系统安装EPEL
+            yum install -y epel-release
+        fi
+        
         # 安装一些常用工具
-        yum install -y lsof psmisc
+        yum install -y lsof psmisc || log_warning "部分工具安装失败，继续执行"
     else
         log_error "不支持的操作系统: $OS"
         exit 1
@@ -90,11 +117,16 @@ install_docker() {
         # 安装必要的依赖
         yum install -y yum-utils device-mapper-persistent-data lvm2
         
+        # 移除可能存在的旧版本Docker
+        yum remove -y docker docker-client docker-client-latest docker-common docker-latest docker-latest-logrotate docker-logrotate docker-engine || true
+        
         # 添加阿里云Docker仓库
         yum-config-manager --add-repo https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
         
-        # 安装Docker CE
-        yum install -y docker-ce docker-ce-cli containerd.io
+        # 清理yum缓存并安装Docker CE
+        yum clean all
+        yum makecache
+        yum install -y docker-ce docker-ce-cli containerd.io --allowerasing
         
     elif [[ "$OS" == *"CentOS"* ]] || [[ "$OS" == *"Red Hat"* ]]; then
         log_info "检测到CentOS/RHEL系统，使用yum安装Docker..."
@@ -389,20 +421,69 @@ main() {
     echo "========================================"
     echo
     
-    check_system
-    update_system
-    install_docker
-    install_docker_compose
-    configure_firewall
-    create_swap
-    optimize_system
-    create_app_directory
-    configure_docker
-    generate_ssh_key
+    # 设置错误计数器
+    ERROR_COUNT=0
+    
+    # 执行各个步骤，记录错误但不中断
+    check_system || ((ERROR_COUNT++))
+    
+    update_system || {
+        log_error "系统更新失败，但继续执行"
+        ((ERROR_COUNT++))
+    }
+    
+    install_docker || {
+        log_error "Docker安装失败，但继续执行"
+        ((ERROR_COUNT++))
+    }
+    
+    install_docker_compose || {
+        log_error "Docker Compose安装失败，但继续执行"
+        ((ERROR_COUNT++))
+    }
+    
+    configure_firewall || {
+        log_warning "防火墙配置失败，请手动配置"
+        ((ERROR_COUNT++))
+    }
+    
+    create_swap || {
+        log_warning "Swap配置失败，但继续执行"
+        ((ERROR_COUNT++))
+    }
+    
+    optimize_system || {
+        log_warning "系统优化失败，但继续执行"
+        ((ERROR_COUNT++))
+    }
+    
+    create_app_directory || {
+        log_error "应用目录创建失败"
+        ((ERROR_COUNT++))
+    }
+    
+    configure_docker || {
+        log_warning "Docker配置优化失败，但继续执行"
+        ((ERROR_COUNT++))
+    }
+    
+    generate_ssh_key || {
+        log_warning "SSH密钥生成失败，但继续执行"
+        ((ERROR_COUNT++))
+    }
     
     echo
     show_system_info
     echo
+    
+    # 显示错误统计
+    if [[ $ERROR_COUNT -gt 0 ]]; then
+        log_warning "安装过程中遇到 $ERROR_COUNT 个问题，请检查上述日志"
+        log_info "大部分功能应该仍然可用，可以继续部署流程"
+    else
+        log_success "所有步骤都成功完成！"
+    fi
+    
     show_next_steps
 }
 

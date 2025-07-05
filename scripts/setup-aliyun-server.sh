@@ -41,8 +41,13 @@ log_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
-# 检查系统
-check_system() {
+# 定义全局变量
+OS=""
+OS_VERSION=""
+
+# --- 函数定义 ---
+
+check_os() {
     log_info "检查系统环境..."
     
     # 检查是否为root用户
@@ -55,8 +60,8 @@ check_system() {
     if [[ -f /etc/os-release ]]; then
         . /etc/os-release
         OS=$NAME
-        VER=$VERSION_ID
-        log_info "检测到系统: $OS $VER"
+        OS_VERSION=$VERSION_ID
+        log_info "检测到系统: $OS $OS_VERSION"
         
         # 特殊处理阿里云系统
         if [[ "$OS" == *"Alibaba Cloud Linux"* ]]; then
@@ -77,6 +82,25 @@ check_system() {
     # 检查内存大小
     TOTAL_MEM=$(free -m | awk 'NR==2{printf "%.0f", $2}')
     log_info "系统内存: ${TOTAL_MEM}MB"
+}
+
+setup_firewall() {
+    echo "--- 正在配置防火墙 ---"
+    if command -v firewall-cmd &> /dev/null; then
+        echo "🔧 正在为 firewalld 开放端口: 80, 443"
+        sudo firewall-cmd --permanent --add-service=http
+        sudo firewall-cmd --permanent --add-service=https
+        sudo firewall-cmd --reload
+        echo "✅ firewalld 配置完成。"
+    elif command -v ufw &> /dev/null; then
+        echo "🔧 正在为 ufw 开放端口: 80, 443"
+        sudo ufw allow http
+        sudo ufw allow https
+        sudo ufw reload
+        echo "✅ ufw 配置完成。"
+    else
+        echo "⚠️ 未找到 firewalld 或 ufw，跳过防火墙自动配置。"
+    fi
 }
 
 # 更新系统
@@ -407,7 +431,7 @@ generate_ssh_key() {
 show_system_info() {
     log_info "系统信息总结:"
     echo "=================================="
-    echo "操作系统: $OS $VER"
+    echo "操作系统: $OS $OS_VERSION"
     echo "内存使用: $(free -h | awk 'NR==2{printf "%.1f/%.1fGB (%.1f%%)", $3/1024, $2/1024, $3*100/$2}')"
     echo "磁盘使用: $(df -h / | awk 'NR==2{printf "%s/%s (%s)", $3, $2, $5}')"
     echo "Docker版本: $(docker --version 2>/dev/null || echo '未安装')"
@@ -465,7 +489,7 @@ main() {
     # 捕获任何错误
     trap 'echo "❌ 脚本在第 $LINENO 行附近发生错误。"; exit 1' ERR
 
-    check_system
+    check_os
     setup_firewall
     setup_docker
     setup_docker_compose

@@ -79,275 +79,128 @@ jobs:
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
-      - name: Deploy to ECS
+      - name: Deploy to Aliyun ECS
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.ECS_HOST }}
           username: ${{ secrets.ECS_USERNAME }}
           key: ${{ secrets.ECS_SSH_KEY }}
-          port: ${{ secrets.ECS_PORT || 22 }}
-          debug: true
+          port: ${{ secrets.ECS_PORT }}
           script: |
             set -e
-            
-            echo "🚀 开始部署小红书数据分析平台..."
-            
-            # 创建应用目录
-            mkdir -p /app/xiuer
-            cd /app/xiuer
-            
-            # 检查 Docker 和 Docker Compose 是否安装
-            if ! command -v docker &> /dev/null; then
-                echo "❌ Docker 未安装，请先安装 Docker"
-                exit 1
-            fi
-            
-            if ! command -v docker-compose &> /dev/null; then
-                echo "❌ Docker Compose 未安装，请先安装 Docker Compose"
-                exit 1
-            fi
-            
-            echo "✅ Docker 环境检查通过"
-            
-            # 确保 docker-compose 是可执行的，修复潜在的权限问题
-            echo "🔧 确保 docker-compose 是可执行的..."
-            sudo chmod +x /usr/local/bin/docker-compose
-            
-            echo "🔄 重启 Docker 服务以确保环境稳定..."
-            sudo systemctl restart docker
-            
-            # 登录阿里云容器仓库
-            echo "🔐 登录阿里云容器仓库..."
-            docker login --username ${{ secrets.ALIYUN_REGISTRY_USERNAME }} --password ${{ secrets.ALIYUN_REGISTRY_PASSWORD }} ${{ secrets.ALIYUN_REGISTRY_URL }}
-            
-            # 创建生产环境的 docker-compose.yml
+            echo "🚀 开始部署..."
+            APP_DIR="/app/xiuer"
+            mkdir -p $APP_DIR
+            cd $APP_DIR
+
+            # --- 1. 创建 Nginx 配置文件 ---
+            echo "🔧 创建 nginx.conf..."
+            mkdir -p ./nginx
+            cat > ./nginx/default.conf << 'EOL'
+            server {
+                listen 80;
+                server_name ${{ secrets.ECS_HOST }};
+
+                location / {
+                    proxy_pass http://frontend:3000;
+                    proxy_set_header Host $host;
+                    proxy_set_header X-Real-IP $remote_addr;
+                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                    proxy_set_header X-Forwarded-Proto $scheme;
+                }
+
+                location /api/ {
+                    proxy_pass http://backend:8000;
+                    proxy_set_header Host $host;
+                    proxy_set_header X-Real-IP $remote_addr;
+                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                    proxy_set_header X-Forwarded-Proto $scheme;
+                }
+            }
+            EOL
+
+            # --- 2. 创建 docker-compose.prod.yml ---
+            echo "🔧 创建 docker-compose.prod.yml..."
             cat > docker-compose.prod.yml << 'EOL'
             version: '3.8'
-            
+
             services:
+              db:
+                image: postgres:17
+                restart: always
+                volumes:
+                  - postgres_data:/var/lib/postgresql/data
+                environment:
+                  - POSTGRES_USER=${{ secrets.DB_USER }}
+                  - POSTGRES_PASSWORD=${{ secrets.DB_PASSWORD }}
+                  - POSTGRES_DB=${{ secrets.DB_NAME }}
+                networks:
+                  - my_network
+
               backend:
                 image: ${{ secrets.ALIYUN_REGISTRY_URL }}/xiuer_2/backend:${{ github.sha }}
                 restart: always
-                environment:
-                  - DATABASE_URL=${{ secrets.DATABASE_URL }}
-                  - ACCESS_SECRET_KEY=${{ secrets.ACCESS_SECRET_KEY }}
-                  - RESET_PASSWORD_SECRET_KEY=${{ secrets.RESET_PASSWORD_SECRET_KEY }}
-                  - VERIFICATION_SECRET_KEY=${{ secrets.VERIFICATION_SECRET_KEY }}
-                  - GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
-                  - GITHUB_REPO_OWNER=${{ secrets.GITHUB_REPO_OWNER }}
-                  - GITHUB_REPO_NAME=${{ secrets.GITHUB_REPO_NAME }}
-                  - REDIS_URL=${{ secrets.REDIS_URL || 'redis://redis:6379' }}
-                  - AUTO_MIGRATE=true
-                  - LOG_LEVEL=INFO
-                ports:
-                  - "8000:8000"
                 depends_on:
                   - db
-                  - redis
+                environment:
+                  - DATABASE_URL=postgresql+asyncpg://${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@db:5432/${{ secrets.DB_NAME }}
+                  - RESET_PASSWORD_SECRET_KEY=${{ secrets.RESET_PASSWORD_SECRET_KEY }}
+                  - VERIFICATION_SECRET_KEY=${{ secrets.VERIFICATION_SECRET_KEY }}
                 networks:
-                  - xiuer_network
-                deploy:
-                  resources:
-                    limits:
-                      memory: 512M
-                    reservations:
-                      memory: 256M
-              
+                  - my_network
+
               frontend:
                 image: ${{ secrets.ALIYUN_REGISTRY_URL }}/xiuer_2/frontend:${{ github.sha }}
                 restart: always
-                environment:
-                  - NODE_ENV=production
-                  - API_BASE_URL=${{ secrets.API_BASE_URL || 'http://backend:8000' }}
-                  - NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
-                ports:
-                  - "3000:3000"
-                depends_on:
-                  - backend
                 networks:
-                  - xiuer_network
-                deploy:
-                  resources:
-                    limits:
-                      memory: 256M
-                    reservations:
-                      memory: 128M
-              
-              db:
-                image: postgres:17-alpine
-                restart: always
-                environment:
-                  - POSTGRES_USER=${{ secrets.POSTGRES_USER || 'postgres' }}
-                  - POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
-                  - POSTGRES_DB=${{ secrets.POSTGRES_DB || 'xiuer' }}
-                volumes:
-                  - postgres_data:/var/lib/postgresql/data
-                ports:
-                  - "5432:5432"
-                networks:
-                  - xiuer_network
-                deploy:
-                  resources:
-                    limits:
-                      memory: 256M
-                    reservations:
-                      memory: 128M
-              
-              redis:
-                image: redis:7-alpine
-                restart: always
-                command: redis-server --appendonly yes
-                volumes:
-                  - redis_data:/data
-                ports:
-                  - "6379:6379"
-                networks:
-                  - xiuer_network
-                deploy:
-                  resources:
-                    limits:
-                      memory: 128M
-                    reservations:
-                      memory: 64M
-              
-              # Nginx 反向代理 (可选)
+                  - my_network
+
               nginx:
-                image: nginx:alpine
+                image: nginx:latest
                 restart: always
                 ports:
                   - "80:80"
-                  - "443:443"
                 volumes:
-                  - ./nginx.conf:/etc/nginx/nginx.conf:ro
-                  - ./ssl:/etc/nginx/ssl:ro
+                  - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
                 depends_on:
                   - frontend
                   - backend
                 networks:
-                  - xiuer_network
-                deploy:
-                  resources:
-                    limits:
-                      memory: 64M
-                    reservations:
-                      memory: 32M
+                  - my_network
 
             volumes:
               postgres_data:
-              redis_data:
 
             networks:
-              xiuer_network:
+              my_network:
                 driver: bridge
             EOL
-            
-            # 创建 Nginx 配置文件
-            cat > nginx.conf << 'EOL'
-            events {
-                worker_connections 1024;
-            }
-            
-            http {
-                upstream frontend {
-                    server frontend:3000;
-                }
-                
-                upstream backend {
-                    server backend:8000;
-                }
-                
-                server {
-                    listen 80;
-                    server_name _;
-                    
-                    # 前端路由
-                    location / {
-                        proxy_pass http://frontend;
-                        proxy_set_header Host $host;
-                        proxy_set_header X-Real-IP $remote_addr;
-                        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                        proxy_set_header X-Forwarded-Proto $scheme;
-                    }
-                    
-                    # 后端 API 路由
-                    location /api/ {
-                        proxy_pass http://backend;
-                        proxy_set_header Host $host;
-                        proxy_set_header X-Real-IP $remote_addr;
-                        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                        proxy_set_header X-Forwarded-Proto $scheme;
-                    }
-                    
-                    # 后端文档路由
-                    location /docs {
-                        proxy_pass http://backend;
-                        proxy_set_header Host $host;
-                        proxy_set_header X-Real-IP $remote_addr;
-                        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                        proxy_set_header X-Forwarded-Proto $scheme;
-                    }
-                    
-                    location /openapi.json {
-                        proxy_pass http://backend;
-                        proxy_set_header Host $host;
-                        proxy_set_header X-Real-IP $remote_addr;
-                        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                        proxy_set_header X-Forwarded-Proto $scheme;
-                    }
-                }
-            }
-            EOL
-            
-            # 拉取最新镜像
-            echo "📦 拉取最新的 Docker 镜像..."
-            docker-compose -f docker-compose.prod.yml pull
-            
-            # 停止旧容器
-            echo "🛑 停止旧版本容器..."
+
+            # --- 3. 环境准备和登录 ---
+            echo "🔄 重启 Docker 服务以确保环境稳定..."
+            sudo systemctl restart docker
+            echo "🔐 登录阿里云容器仓库..."
+            docker login --username "${{ secrets.ALIYUN_REGISTRY_USERNAME }}" --password "${{ secrets.ALIYUN_REGISTRY_PASSWORD }}" ${{ secrets.ALIYUN_REGISTRY_URL }}
+
+            # --- 4. 串行拉取镜像 (避免内存峰值) ---
+            echo "📦 开始拉取最新的 Docker 镜像 (逐个进行)..."
+            docker pull postgres:17
+            docker pull nginx:latest
+            docker pull ${{ secrets.ALIYUN_REGISTRY_URL }}/xiuer_2/backend:${{ github.sha }}
+            docker pull ${{ secrets.ALIYUN_REGISTRY_URL }}/xiuer_2/frontend:${{ github.sha }}
+            echo "✅ 所有镜像拉取完成！"
+
+            # --- 5. 启动服务 ---
+            echo "🚀 停止旧容器并启动新版本..."
             docker-compose -f docker-compose.prod.yml down --remove-orphans
-            
-            # 启动新容器
-            echo "🚀 启动新版本容器..."
             docker-compose -f docker-compose.prod.yml up -d
-            
-            # 等待服务启动
-            echo "⏳ 等待服务启动..."
-            sleep 30
-            
-            # 检查服务状态
-            echo "🔍 检查服务状态..."
-            docker-compose -f docker-compose.prod.yml ps
-            
-            # 检查后端健康状态
-            echo "🏥 检查后端健康状态..."
-            for i in {1..10}; do
-                if curl -f http://localhost:8000/docs > /dev/null 2>&1; then
-                    echo "✅ 后端服务启动成功"
-                    break
-                fi
-                echo "⏳ 等待后端服务启动... ($i/10)"
-                sleep 10
-            done
-            
-            # 检查前端健康状态
-            echo "🏥 检查前端健康状态..."
-            for i in {1..10}; do
-                if curl -f http://localhost:3000 > /dev/null 2>&1; then
-                    echo "✅ 前端服务启动成功"
-                    break
-                fi
-                echo "⏳ 等待前端服务启动... ($i/10)"
-                sleep 10
-            done
-            
-            # 清理未使用的镜像
+
+            # --- 6. 清理工作 ---
             echo "🧹 清理未使用的 Docker 镜像..."
             docker image prune -f
-            
+
             echo "🎉 部署完成！"
-            echo "📱 前端访问地址: http://${{ secrets.ECS_HOST }}"
-            echo "🔗 后端 API 文档: http://${{ secrets.ECS_HOST }}/docs"
-            
+
       - name: Notify deployment status
         if: always()
         run: |

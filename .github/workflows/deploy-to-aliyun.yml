@@ -113,6 +113,9 @@ jobs:
             echo "🔧 确保 docker-compose 是可执行的..."
             sudo chmod +x /usr/local/bin/docker-compose
             
+            echo "🔄 重启 Docker 服务以确保环境稳定..."
+            sudo systemctl restart docker
+            
             # 登录阿里云容器仓库
             echo "🔐 登录阿里云容器仓库..."
             docker login --username ${{ secrets.ALIYUN_REGISTRY_USERNAME }} --password ${{ secrets.ALIYUN_REGISTRY_PASSWORD }} ${{ secrets.ALIYUN_REGISTRY_URL }}

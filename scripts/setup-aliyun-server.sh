@@ -110,15 +110,16 @@ install_docker() {
         return
     fi
     
+    # 卸载旧版本（如果存在）
+    echo "ℹ️ 正在卸载旧版本的 Docker..."
+    sudo yum remove -y docker docker-client docker-client-latest docker-common docker-latest docker-latest-logrotate docker-logrotate docker-engine >/dev/null 2>&1 || true
+
     # 针对不同系统使用不同的安装方法
-    if [[ "$OS" == *"Alibaba Cloud Linux"* ]] || [[ "$OS" == *"Aliyun Linux"* ]]; then
-        log_info "检测到阿里云系统，使用阿里云Docker安装方法..."
+    if [[ "$OS" == *"Alibaba Cloud Linux"* ]] || [[ "$OS" == *"Aliyun Linux"* ]] || [[ "$OS" == "CentOS"* ]]; then
+        log_info "检测到阿里云系统或CentOS系统，使用阿里云Docker安装方法..."
         
         # 安装必要的依赖
         yum install -y yum-utils device-mapper-persistent-data lvm2
-        
-        # 移除可能存在的旧版本Docker
-        yum remove -y docker docker-client docker-client-latest docker-common docker-latest docker-latest-logrotate docker-logrotate docker-engine || true
         
         # 添加阿里云Docker仓库
         yum-config-manager --add-repo https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
@@ -126,43 +127,26 @@ install_docker() {
         # 清理yum缓存并安装Docker CE
         yum clean all
         yum makecache
-        yum install -y docker-ce docker-ce-cli containerd.io --allowerasing
+        yum install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
         
-    elif [[ "$OS" == *"CentOS"* ]] || [[ "$OS" == *"Red Hat"* ]]; then
-        log_info "检测到CentOS/RHEL系统，使用yum安装Docker..."
-        
-        # 安装必要的依赖
-        yum install -y yum-utils device-mapper-persistent-data lvm2
-        
-        # 添加Docker官方仓库
-        yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-        
-        # 安装Docker CE
-        yum install -y docker-ce docker-ce-cli containerd.io
-        
-    else
-        # Ubuntu/Debian等其他系统使用官方安装脚本
+    elif [[ "$OS" == "Ubuntu"* ]] || [[ "$OS" == "Debian"* ]]; then
         log_info "使用Docker官方安装脚本..."
         curl -fsSL https://get.docker.com -o get-docker.sh
         sh get-docker.sh
         rm -f get-docker.sh
+        sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
     fi
     
-    # 启动Docker服务
-    systemctl start docker
-    systemctl enable docker
-    
-    # 将当前用户添加到docker组（如果不是root）
-    if [[ $EUID -ne 0 ]]; then
-        usermod -aG docker $USER
-        log_info "已将用户添加到docker组，请重新登录以生效"
-    fi
-    
+    # 启动并设置 Docker 开机自启
+    echo "🚀 启动 Docker 并设置为开机自启..."
+    sudo systemctl start docker
+    sudo systemctl enable docker
+
     # 验证安装
-    if docker --version &> /dev/null; then
-        log_success "Docker安装成功: $(docker --version)"
+    if command -v docker &> /dev/null; then
+        echo "✅ Docker 安装成功！版本：$(docker --version)"
     else
-        log_error "Docker安装失败"
+        echo "❌ Docker 安装失败，请检查错误。"
         exit 1
     fi
 }
@@ -177,20 +161,30 @@ install_docker_compose() {
         return
     fi
     
-    # 下载Docker Compose
-    DOCKER_COMPOSE_VERSION="v2.24.0"
-    curl -L "https://github.com/docker/compose/releases/download/$DOCKER_COMPOSE_VERSION/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+    echo "🔧 正在安装 Docker Compose..."
+    # 先移除可能存在的旧版本二进制文件
+    if [ -f "/usr/local/bin/docker-compose" ]; then
+        echo "  -> 发现旧的 docker-compose 二进制文件，正在移除..."
+        sudo rm -f /usr/local/bin/docker-compose
+    fi
     
-    # 添加执行权限
-    chmod +x /usr/local/bin/docker-compose
-    
+    # 安装 pip
+    echo "  -> 安装 pip..."
+    if ! command -v pip3 &> /dev/null; then
+        sudo yum install -y python3-pip
+    fi
+
+    # 使用 pip 安装 docker-compose
+    echo "  -> 使用 pip 安装 docker-compose..."
+    sudo pip3 install docker-compose
+
     # 验证安装
-    if docker-compose --version &> /dev/null; then
-        log_success "Docker Compose安装成功: $(docker-compose --version)"
-    else
-        log_error "Docker Compose安装失败"
+    if ! command -v docker-compose &> /dev/null; then
+        echo "❌ Docker Compose 安装失败，请检查错误。"
         exit 1
     fi
+    echo "✅ Docker Compose 安装成功！当前版本："
+    docker-compose --version
 }
 
 # 配置防火墙
@@ -318,6 +312,24 @@ EOF
     # 应用配置
     sysctl -p
     
+    echo "💾 正在检查并创建 Swap 交换空间..."
+
+    # 检查是否已有 swap
+    if [ "$(sudo swapon --show | wc -l)" -lt 2 ]; then
+        echo "  -> 未发现活动的 Swap，正在创建 2GB 的 Swap 文件..."
+        sudo fallocate -l 2G /swapfile
+        sudo chmod 600 /swapfile
+        sudo mkswap /swapfile
+        sudo swapon /swapfile
+        # 添加到 fstab 使其永久生效
+        if ! grep -q "/swapfile" /etc/fstab; then
+            echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+        fi
+        echo "  -> Swap 创建并激活成功。"
+    else
+        echo "  -> 已存在 Swap，跳过创建。"
+    fi
+
     log_success "系统优化完成"
 }
 

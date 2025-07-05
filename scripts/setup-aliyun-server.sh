@@ -3,8 +3,19 @@
 # 小红书数据分析平台 - 阿里云服务器初始化脚本
 # 使用方法: curl -fsSL https://raw.githubusercontent.com/JunJD/xiuer/main/scripts/setup-aliyun-server.sh | bash
 
-# 不使用 set -e，允许脚本在遇到错误时继续执行
-set +e
+# --- 安全设置 ---
+# 如果任何命令失败，立即退出
+set -e
+# 如果在未设置的变量上执行参数扩展，则将其视为错误
+# set -u # 暂时禁用，因为某些环境检查可能依赖未设置的变量
+
+# --- 0. 权限检查 ---
+# 确保脚本是以 root 用户权限运行的
+if [ "$(id -u)" -ne 0 ]; then
+    echo "❌ 错误：此脚本必须以 root 用户或使用 sudo 运行。"
+    echo "请尝试使用: curl ... | sudo bash"
+    exit 1
+fi
 
 # 颜色定义
 RED='\033[0;31m'
@@ -455,7 +466,6 @@ main() {
     trap 'echo "❌ 脚本在第 $LINENO 行附近发生错误。"; exit 1' ERR
 
     check_system
-    check_root
     setup_firewall
     setup_docker
     setup_docker_compose

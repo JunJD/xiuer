@@ -426,78 +426,44 @@ show_next_steps() {
     echo "• 后端API: http://$(curl -s ifconfig.me)/docs"
 }
 
-# 主函数
-main() {
-    echo "========================================"
-    echo "小红书数据分析平台 - 阿里云服务器初始化"
-    echo "========================================"
-    echo
+setup_docker_mirror() {
+    echo "--- 正在配置 Docker Hub 加速镜像 ---"
     
-    # 设置错误计数器
-    ERROR_COUNT=0
+    # 创建或修改 Docker 配置文件
+    # 使用用户专属的阿里云镜像服务作为加速器
+    DOCKER_DAEMON_JSON_FILE="/etc/docker/daemon.json"
+    MIRROR_URL="https://hylq3tyc.mirror.aliyuncs.com" 
+
+    echo "🔧 正在配置 Docker Hub 加速器: $MIRROR_URL"
+
+    # 使用一个简单直接的方法来创建或更新配置文件
+    cat <<EOF | sudo tee $DOCKER_DAEMON_JSON_FILE
+{
+  "registry-mirrors": ["$MIRROR_URL"]
+}
+EOF
     
-    # 执行各个步骤，记录错误但不中断
-    check_system || ((ERROR_COUNT++))
-    
-    update_system || {
-        log_error "系统更新失败，但继续执行"
-        ((ERROR_COUNT++))
-    }
-    
-    install_docker || {
-        log_error "Docker安装失败，但继续执行"
-        ((ERROR_COUNT++))
-    }
-    
-    install_docker_compose || {
-        log_error "Docker Compose安装失败，但继续执行"
-        ((ERROR_COUNT++))
-    }
-    
-    configure_firewall || {
-        log_warning "防火墙配置失败，请手动配置"
-        ((ERROR_COUNT++))
-    }
-    
-    create_swap || {
-        log_warning "Swap配置失败，但继续执行"
-        ((ERROR_COUNT++))
-    }
-    
-    optimize_system || {
-        log_warning "系统优化失败，但继续执行"
-        ((ERROR_COUNT++))
-    }
-    
-    create_app_directory || {
-        log_error "应用目录创建失败"
-        ((ERROR_COUNT++))
-    }
-    
-    configure_docker || {
-        log_warning "Docker配置优化失败，但继续执行"
-        ((ERROR_COUNT++))
-    }
-    
-    generate_ssh_key || {
-        log_warning "SSH密钥生成失败，但继续执行"
-        ((ERROR_COUNT++))
-    }
-    
-    echo
-    show_system_info
-    echo
-    
-    # 显示错误统计
-    if [[ $ERROR_COUNT -gt 0 ]]; then
-        log_warning "安装过程中遇到 $ERROR_COUNT 个问题，请检查上述日志"
-        log_info "大部分功能应该仍然可用，可以继续部署流程"
-    else
-        log_success "所有步骤都成功完成！"
-    fi
-    
-    show_next_steps
+    echo "✅ Docker Hub 加速器配置完成。"
+    echo "🔄 正在重启 Docker 服务以应用新配置..."
+    sudo systemctl restart docker
+    echo "✅ Docker 服务已重启。"
 }
 
-# 运行主函数
+# 主函数
+main() {
+    # 捕获任何错误
+    trap 'echo "❌ 脚本在第 $LINENO 行附近发生错误。"; exit 1' ERR
+
+    check_system
+    check_root
+    setup_firewall
+    setup_docker
+    setup_docker_compose
+    setup_docker_mirror
+    optimize_system
+    
+    print_success_message
+}
+
+# 脚本入口
 main "$@" 

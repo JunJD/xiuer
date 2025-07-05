@@ -59,9 +59,12 @@ update_system() {
         apt update -y
         apt upgrade -y
         apt install -y curl wget git vim htop net-tools
-    elif [[ "$OS" == *"CentOS"* ]] || [[ "$OS" == *"Red Hat"* ]]; then
+    elif [[ "$OS" == *"CentOS"* ]] || [[ "$OS" == *"Red Hat"* ]] || [[ "$OS" == *"Alibaba Cloud Linux"* ]] || [[ "$OS" == *"Aliyun Linux"* ]]; then
+        # 阿里云系统使用yum包管理器
         yum update -y
-        yum install -y curl wget git vim htop net-tools
+        yum install -y curl wget git vim htop net-tools epel-release
+        # 安装一些常用工具
+        yum install -y lsof psmisc
     else
         log_error "不支持的操作系统: $OS"
         exit 1
@@ -80,13 +83,48 @@ install_docker() {
         return
     fi
     
-    # 使用官方安装脚本
-    curl -fsSL https://get.docker.com -o get-docker.sh
-    sh get-docker.sh
+    # 针对不同系统使用不同的安装方法
+    if [[ "$OS" == *"Alibaba Cloud Linux"* ]] || [[ "$OS" == *"Aliyun Linux"* ]]; then
+        log_info "检测到阿里云系统，使用阿里云Docker安装方法..."
+        
+        # 安装必要的依赖
+        yum install -y yum-utils device-mapper-persistent-data lvm2
+        
+        # 添加阿里云Docker仓库
+        yum-config-manager --add-repo https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+        
+        # 安装Docker CE
+        yum install -y docker-ce docker-ce-cli containerd.io
+        
+    elif [[ "$OS" == *"CentOS"* ]] || [[ "$OS" == *"Red Hat"* ]]; then
+        log_info "检测到CentOS/RHEL系统，使用yum安装Docker..."
+        
+        # 安装必要的依赖
+        yum install -y yum-utils device-mapper-persistent-data lvm2
+        
+        # 添加Docker官方仓库
+        yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+        
+        # 安装Docker CE
+        yum install -y docker-ce docker-ce-cli containerd.io
+        
+    else
+        # Ubuntu/Debian等其他系统使用官方安装脚本
+        log_info "使用Docker官方安装脚本..."
+        curl -fsSL https://get.docker.com -o get-docker.sh
+        sh get-docker.sh
+        rm -f get-docker.sh
+    fi
     
     # 启动Docker服务
     systemctl start docker
     systemctl enable docker
+    
+    # 将当前用户添加到docker组（如果不是root）
+    if [[ $EUID -ne 0 ]]; then
+        usermod -aG docker $USER
+        log_info "已将用户添加到docker组，请重新登录以生效"
+    fi
     
     # 验证安装
     if docker --version &> /dev/null; then
@@ -95,9 +133,6 @@ install_docker() {
         log_error "Docker安装失败"
         exit 1
     fi
-    
-    # 清理安装文件
-    rm -f get-docker.sh
 }
 
 # 安装Docker Compose
@@ -147,8 +182,8 @@ configure_firewall() {
         else
             log_warning "UFW未安装，跳过防火墙配置"
         fi
-    elif [[ "$OS" == *"CentOS"* ]] || [[ "$OS" == *"Red Hat"* ]]; then
-        # CentOS/RHEL使用firewalld
+    elif [[ "$OS" == *"CentOS"* ]] || [[ "$OS" == *"Red Hat"* ]] || [[ "$OS" == *"Alibaba Cloud Linux"* ]] || [[ "$OS" == *"Aliyun Linux"* ]]; then
+        # CentOS/RHEL/阿里云系统使用firewalld
         if command -v firewall-cmd &> /dev/null; then
             systemctl start firewalld
             systemctl enable firewalld
@@ -160,7 +195,28 @@ configure_firewall() {
             firewall-cmd --reload
             log_success "Firewalld防火墙配置完成"
         else
-            log_warning "Firewalld未安装，跳过防火墙配置"
+            # 如果没有firewalld，尝试使用iptables
+            log_warning "Firewalld未安装，尝试配置iptables..."
+            if command -v iptables &> /dev/null; then
+                # 基本的iptables配置
+                iptables -F
+                iptables -A INPUT -i lo -j ACCEPT
+                iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+                iptables -A INPUT -p tcp --dport 22 -j ACCEPT
+                iptables -A INPUT -p tcp --dport 80 -j ACCEPT
+                iptables -A INPUT -p tcp --dport 443 -j ACCEPT
+                iptables -A INPUT -p tcp --dport 3000 -j ACCEPT
+                iptables -A INPUT -p tcp --dport 8000 -j ACCEPT
+                iptables -P INPUT DROP
+                
+                # 保存iptables规则
+                if command -v iptables-save &> /dev/null; then
+                    iptables-save > /etc/sysconfig/iptables 2>/dev/null || true
+                fi
+                log_success "Iptables防火墙配置完成"
+            else
+                log_warning "未找到防火墙工具，请手动配置安全组"
+            fi
         fi
     fi
 }

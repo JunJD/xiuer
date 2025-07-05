@@ -1,61 +1,93 @@
-name: Deploy to Aliyun ECS
+name: Deploy Xiuer to Aliyun
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
-  build-and-push:
+  deploy:
     runs-on: ubuntu-latest
+    
     steps:
-      - name:  checkout
+      - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Check required secrets
+        run: |
+          echo "🔍 检查必要的密钥配置..."
+          [[ -z "${{ secrets.ALIYUN_REGISTRY_USERNAME }}" ]] && echo "❌ Missing ALIYUN_REGISTRY_USERNAME" && exit 1
+          [[ -z "${{ secrets.ALIYUN_REGISTRY_PASSWORD }}" ]] && echo "❌ Missing ALIYUN_REGISTRY_PASSWORD" && exit 1
+          [[ -z "${{ secrets.ECS_HOST }}" ]] && echo "❌ Missing ECS_HOST" && exit 1
+          [[ -z "${{ secrets.ECS_USERNAME }}" ]] && echo "❌ Missing ECS_USERNAME" && exit 1
+          [[ -z "${{ secrets.ECS_SSH_KEY }}" ]] && echo "❌ Missing ECS_SSH_KEY" && exit 1
+          [[ -z "${{ secrets.DATABASE_URL }}" ]] && echo "❌ Missing DATABASE_URL" && exit 1
+          [[ -z "${{ secrets.ACCESS_SECRET_KEY }}" ]] && echo "❌ Missing ACCESS_SECRET_KEY" && exit 1
+          [[ -z "${{ secrets.RESET_PASSWORD_SECRET_KEY }}" ]] && echo "❌ Missing RESET_PASSWORD_SECRET_KEY" && exit 1
+          [[ -z "${{ secrets.VERIFICATION_SECRET_KEY }}" ]] && echo "❌ Missing VERIFICATION_SECRET_KEY" && exit 1
+          echo "✅ 所有必要的密钥都已配置"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Log in to Aliyun Container Registry
+      - name: Cache Docker layers
+        uses: actions/cache@v3
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      - name: Login to Aliyun Container Registry
         uses: docker/login-action@v3
         with:
-          registry: ${{ secrets.ACR_REGISTRY_URL }}
-          username: ${{ secrets.ACR_USERNAME }}
-          password: ${{ secrets.ACR_PASSWORD }}
+          registry: ${{ secrets.ALIYUN_REGISTRY_URL }}
+          username: ${{ secrets.ALIYUN_REGISTRY_USERNAME }}
+          password: ${{ secrets.ALIYUN_REGISTRY_PASSWORD }}
 
-      - name: Build and push backend
+      - name: Build and push backend image
         uses: docker/build-push-action@v5
         with:
           context: ./fastapi_backend
-          file: ./fastapi_backend/Dockerfile
           push: true
-          tags: ${{ secrets.ACR_REGISTRY_URL }}/${{ secrets.ACR_NAMESPACE }}/backend:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          platforms: linux/amd64
+          tags: |
+            ${{ secrets.ALIYUN_REGISTRY_URL }}/xiuer_2/backend:${{ github.sha }}
+            ${{ secrets.ALIYUN_REGISTRY_URL }}/xiuer_2/backend:latest
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
+          build-args: |
+            BUILDKIT_INLINE_CACHE=1
 
-      - name: Build and push frontend
+      - name: Build and push frontend image
         uses: docker/build-push-action@v5
         with:
           context: ./nextjs-frontend
-          file: ./nextjs-frontend/Dockerfile
           push: true
-          tags: ${{ secrets.ACR_REGISTRY_URL }}/${{ secrets.ACR_NAMESPACE }}/frontend:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          platforms: linux/amd64
+          tags: |
+            ${{ secrets.ALIYUN_REGISTRY_URL }}/xiuer_2/frontend:${{ github.sha }}
+            ${{ secrets.ALIYUN_REGISTRY_URL }}/xiuer_2/frontend:latest
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
+          build-args: |
+            BUILDKIT_INLINE_CACHE=1
+            API_BASE_URL=${{ secrets.API_BASE_URL }}
 
-  deploy:
-    needs: build-and-push
-    runs-on: ubuntu-latest
-    steps:
-      - name: 🚀 Deploy to ECS
+      - name: Move cache
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+
+      - name: Deploy to Aliyun ECS
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.ECS_HOST }}
           username: ${{ secrets.ECS_USERNAME }}
           key: ${{ secrets.ECS_SSH_KEY }}
+          port: ${{ secrets.ECS_PORT }}
           script: |
             set -e
-
             echo "🚀 开始部署..."
             APP_DIR="/app/xiuer"
             mkdir -p $APP_DIR
@@ -68,6 +100,7 @@ jobs:
             server {
                 listen 80;
                 server_name ${{ secrets.ECS_HOST }};
+
                 location / {
                     proxy_pass http://frontend:3000;
                     proxy_set_header Host $host;
@@ -75,6 +108,7 @@ jobs:
                     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
                     proxy_set_header X-Forwarded-Proto $scheme;
                 }
+
                 location /api/ {
                     proxy_pass http://backend:8000;
                     proxy_set_header Host $host;
@@ -89,6 +123,7 @@ jobs:
             echo "🔧 创建 docker-compose.prod.yml..."
             cat > docker-compose.prod.yml << 'EOL'
             version: '3.8'
+
             services:
               db:
                 image: postgres:17
@@ -101,8 +136,9 @@ jobs:
                   - POSTGRES_DB=${{ secrets.DB_NAME }}
                 networks:
                   - my_network
+
               backend:
-                image: ${{ secrets.ACR_REGISTRY_URL }}/${{ secrets.ACR_NAMESPACE }}/backend:${{ github.sha }}
+                image: ${{ secrets.ALIYUN_REGISTRY_URL }}/xiuer_2/backend:${{ github.sha }}
                 restart: always
                 depends_on:
                   - db
@@ -112,11 +148,13 @@ jobs:
                   - VERIFICATION_SECRET_KEY=${{ secrets.VERIFICATION_SECRET_KEY }}
                 networks:
                   - my_network
+
               frontend:
-                image: ${{ secrets.ACR_REGISTRY_URL }}/${{ secrets.ACR_NAMESPACE }}/frontend:${{ github.sha }}
+                image: ${{ secrets.ALIYUN_REGISTRY_URL }}/xiuer_2/frontend:${{ github.sha }}
                 restart: always
                 networks:
                   - my_network
+
               nginx:
                 image: nginx:latest
                 restart: always
@@ -129,38 +167,27 @@ jobs:
                   - backend
                 networks:
                   - my_network
+
             volumes:
               postgres_data:
+
             networks:
               my_network:
                 driver: bridge
             EOL
 
-            # --- 3. 配置 Docker DNS 并准备环境 ---
-            echo "🔧 配置 Docker DNS 以提高网络稳定性..."
-            sudo mkdir -p /etc/docker
-            sudo bash -c 'cat > /etc/docker/daemon.json <<EOL
-{
-  "dns": ["223.5.5.5", "8.8.8.8"]
-}
-EOL'
-
-            echo "🔄 重启 Docker 服务以应用新配置..."
+            # --- 3. 环境准备和登录 ---
+            echo "🔄 重启 Docker 服务以确保环境稳定..."
             sudo systemctl restart docker
-            sleep 5 # 给 Docker 守护进程一点时间来完全重启
-
-            echo "🌐 测试到 Docker Hub 的网络连接..."
-            ping -c 3 registry-1.docker.io || echo "Ping 失败，但部署将继续..."
-
             echo "🔐 登录阿里云容器仓库..."
-            docker login --username "${{ secrets.ACR_USERNAME }}" --password "${{ secrets.ACR_PASSWORD }}" ${{ secrets.ACR_REGISTRY_URL }}
+            docker login --username "${{ secrets.ALIYUN_REGISTRY_USERNAME }}" --password "${{ secrets.ALIYUN_REGISTRY_PASSWORD }}" ${{ secrets.ALIYUN_REGISTRY_URL }}
 
             # --- 4. 串行拉取镜像 (避免内存峰值) ---
             echo "📦 开始拉取最新的 Docker 镜像 (逐个进行)..."
             docker pull postgres:17
             docker pull nginx:latest
-            docker pull ${{ secrets.ACR_REGISTRY_URL }}/${{ secrets.ACR_NAMESPACE }}/backend:${{ github.sha }}
-            docker pull ${{ secrets.ACR_REGISTRY_URL }}/${{ secrets.ACR_NAMESPACE }}/frontend:${{ github.sha }}
+            docker pull ${{ secrets.ALIYUN_REGISTRY_URL }}/xiuer_2/backend:${{ github.sha }}
+            docker pull ${{ secrets.ALIYUN_REGISTRY_URL }}/xiuer_2/frontend:${{ github.sha }}
             echo "✅ 所有镜像拉取完成！"
 
             # --- 5. 启动服务 ---
@@ -176,4 +203,11 @@ EOL'
 
       - name: Notify deployment status
         if: always()
-        run: echo "Deployment status: ${{ job.status }}"
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "🎉 部署成功！"
+            echo "📱 前端访问地址: http://${{ secrets.ECS_HOST }}"
+            echo "🔗 后端 API 文档: http://${{ secrets.ECS_HOST }}/docs"
+          else
+            echo "❌ 部署失败，请检查日志"
+          fi 

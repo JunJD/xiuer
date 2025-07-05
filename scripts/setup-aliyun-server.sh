@@ -3,19 +3,8 @@
 # 小红书数据分析平台 - 阿里云服务器初始化脚本
 # 使用方法: curl -fsSL https://raw.githubusercontent.com/JunJD/xiuer/main/scripts/setup-aliyun-server.sh | bash
 
-# --- 安全设置 ---
-# 如果任何命令失败，立即退出
-set -e
-# 如果在未设置的变量上执行参数扩展，则将其视为错误
-# set -u # 暂时禁用，因为某些环境检查可能依赖未设置的变量
-
-# --- 0. 权限检查 ---
-# 确保脚本是以 root 用户权限运行的
-if [ "$(id -u)" -ne 0 ]; then
-    echo "❌ 错误：此脚本必须以 root 用户或使用 sudo 运行。"
-    echo "请尝试使用: curl ... | sudo bash"
-    exit 1
-fi
+# 不使用 set -e，允许脚本在遇到错误时继续执行
+set +e
 
 # 颜色定义
 RED='\033[0;31m'
@@ -41,13 +30,8 @@ log_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
-# 定义全局变量
-OS=""
-OS_VERSION=""
-
-# --- 函数定义 ---
-
-check_os() {
+# 检查系统
+check_system() {
     log_info "检查系统环境..."
     
     # 检查是否为root用户
@@ -60,8 +44,8 @@ check_os() {
     if [[ -f /etc/os-release ]]; then
         . /etc/os-release
         OS=$NAME
-        OS_VERSION=$VERSION_ID
-        log_info "检测到系统: $OS $OS_VERSION"
+        VER=$VERSION_ID
+        log_info "检测到系统: $OS $VER"
         
         # 特殊处理阿里云系统
         if [[ "$OS" == *"Alibaba Cloud Linux"* ]]; then
@@ -82,25 +66,6 @@ check_os() {
     # 检查内存大小
     TOTAL_MEM=$(free -m | awk 'NR==2{printf "%.0f", $2}')
     log_info "系统内存: ${TOTAL_MEM}MB"
-}
-
-setup_firewall() {
-    echo "--- 正在配置防火墙 ---"
-    if command -v firewall-cmd &> /dev/null; then
-        echo "🔧 正在为 firewalld 开放端口: 80, 443"
-        sudo firewall-cmd --permanent --add-service=http
-        sudo firewall-cmd --permanent --add-service=https
-        sudo firewall-cmd --reload
-        echo "✅ firewalld 配置完成。"
-    elif command -v ufw &> /dev/null; then
-        echo "🔧 正在为 ufw 开放端口: 80, 443"
-        sudo ufw allow http
-        sudo ufw allow https
-        sudo ufw reload
-        echo "✅ ufw 配置完成。"
-    else
-        echo "⚠️ 未找到 firewalld 或 ufw，跳过防火墙自动配置。"
-    fi
 }
 
 # 更新系统
@@ -386,6 +351,7 @@ configure_docker() {
     mkdir -p /etc/docker
     cat > /etc/docker/daemon.json << EOF
 {
+  "registry-mirrors": ["https://hylq3tyc.mirror.aliyuncs.com"],
   "log-driver": "json-file",
   "log-opts": {
     "max-size": "10m",
@@ -431,7 +397,7 @@ generate_ssh_key() {
 show_system_info() {
     log_info "系统信息总结:"
     echo "=================================="
-    echo "操作系统: $OS $OS_VERSION"
+    echo "操作系统: $OS $VER"
     echo "内存使用: $(free -h | awk 'NR==2{printf "%.1f/%.1fGB (%.1f%%)", $3/1024, $2/1024, $3*100/$2}')"
     echo "磁盘使用: $(df -h / | awk 'NR==2{printf "%s/%s (%s)", $3, $2, $5}')"
     echo "Docker版本: $(docker --version 2>/dev/null || echo '未安装')"
@@ -461,43 +427,78 @@ show_next_steps() {
     echo "• 后端API: http://$(curl -s ifconfig.me)/docs"
 }
 
-setup_docker_mirror() {
-    echo "--- 正在配置 Docker Hub 加速镜像 ---"
-    
-    # 创建或修改 Docker 配置文件
-    # 使用用户专属的阿里云镜像服务作为加速器
-    DOCKER_DAEMON_JSON_FILE="/etc/docker/daemon.json"
-    MIRROR_URL="https://hylq3tyc.mirror.aliyuncs.com" 
-
-    echo "🔧 正在配置 Docker Hub 加速器: $MIRROR_URL"
-
-    # 使用一个简单直接的方法来创建或更新配置文件
-    cat <<EOF | sudo tee $DOCKER_DAEMON_JSON_FILE
-{
-  "registry-mirrors": ["$MIRROR_URL"]
-}
-EOF
-    
-    echo "✅ Docker Hub 加速器配置完成。"
-    echo "🔄 正在重启 Docker 服务以应用新配置..."
-    sudo systemctl restart docker
-    echo "✅ Docker 服务已重启。"
-}
-
 # 主函数
 main() {
-    # 捕获任何错误
-    trap 'echo "❌ 脚本在第 $LINENO 行附近发生错误。"; exit 1' ERR
-
-    check_os
-    setup_firewall
-    setup_docker
-    setup_docker_compose
-    setup_docker_mirror
-    optimize_system
+    echo "========================================"
+    echo "小红书数据分析平台 - 阿里云服务器初始化"
+    echo "========================================"
+    echo
     
-    print_success_message
+    # 设置错误计数器
+    ERROR_COUNT=0
+    
+    # 执行各个步骤，记录错误但不中断
+    check_system || ((ERROR_COUNT++))
+    
+    update_system || {
+        log_error "系统更新失败，但继续执行"
+        ((ERROR_COUNT++))
+    }
+    
+    install_docker || {
+        log_error "Docker安装失败，但继续执行"
+        ((ERROR_COUNT++))
+    }
+    
+    install_docker_compose || {
+        log_error "Docker Compose安装失败，但继续执行"
+        ((ERROR_COUNT++))
+    }
+    
+    configure_firewall || {
+        log_warning "防火墙配置失败，请手动配置"
+        ((ERROR_COUNT++))
+    }
+    
+    create_swap || {
+        log_warning "Swap配置失败，但继续执行"
+        ((ERROR_COUNT++))
+    }
+    
+    optimize_system || {
+        log_warning "系统优化失败，但继续执行"
+        ((ERROR_COUNT++))
+    }
+    
+    create_app_directory || {
+        log_error "应用目录创建失败"
+        ((ERROR_COUNT++))
+    }
+    
+    configure_docker || {
+        log_warning "Docker配置优化失败，但继续执行"
+        ((ERROR_COUNT++))
+    }
+    
+    generate_ssh_key || {
+        log_warning "SSH密钥生成失败，但继续执行"
+        ((ERROR_COUNT++))
+    }
+    
+    echo
+    show_system_info
+    echo
+    
+    # 显示错误统计
+    if [[ $ERROR_COUNT -gt 0 ]]; then
+        log_warning "安装过程中遇到 $ERROR_COUNT 个问题，请检查上述日志"
+        log_info "大部分功能应该仍然可用，可以继续部署流程"
+    else
+        log_success "所有步骤都成功完成！"
+    fi
+    
+    show_next_steps
 }
 
-# 脚本入口
+# 运行主函数
 main "$@" 

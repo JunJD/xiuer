@@ -196,15 +196,13 @@ jobs:
             docker login --username "${{ secrets.ALIYUN_REGISTRY_USERNAME }}" --password "${{ secrets.ALIYUN_REGISTRY_PASSWORD }}" ${{ secrets.ALIYUN_REGISTRY_URL }}
 
             # --- 4. 只拉取自定义镜像，让 docker compose 自动处理基础镜像 ---
-            echo "📦 拉取自定义应用镜像..."
-            docker pull ${{ secrets.ALIYUN_REGISTRY_URL }}/xiuer_2/backend:${{ github.sha }}
-            docker pull ${{ secrets.ALIYUN_REGISTRY_URL }}/xiuer_2/frontend:${{ github.sha }}
-            echo "✅ 自定义镜像拉取完成！"
+            echo "📦 拉取所有最新镜像..."
+            docker compose -f docker-compose.prod.yml pull
 
             # --- 5. 启动服务 (docker compose 会自动拉取基础镜像) ---
             echo "🚀 停止旧容器并启动新版本..."
             docker compose -f docker-compose.prod.yml down --remove-orphans
-            docker compose -f docker-compose.prod.yml up -d
+            docker compose -f docker-compose.prod.yml up -d --pull=always
             echo "✅ 服务启动完成！"
 
             # --- 6. 清理工作 ---

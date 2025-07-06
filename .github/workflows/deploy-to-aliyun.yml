@@ -184,8 +184,8 @@ jobs:
 
             # --- 4. 串行拉取镜像 (避免内存峰值) ---
             echo "📦 开始拉取最新的 Docker 镜像 (逐个进行)..."
-            docker pull postgres:17
-            docker pull nginx:latest
+            docker pull registry.aliyuncs.com/library/postgres:17
+            docker pull registry.aliyuncs.com/library/nginx:latest
             docker pull ${{ secrets.ALIYUN_REGISTRY_URL }}/xiuer_2/backend:${{ github.sha }}
             docker pull ${{ secrets.ALIYUN_REGISTRY_URL }}/xiuer_2/frontend:${{ github.sha }}
             echo "✅ 所有镜像拉取完成！"

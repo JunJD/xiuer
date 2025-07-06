@@ -185,32 +185,11 @@ jobs:
             EOL
 
             # --- 3. 环境准备和登录 ---
-            echo "🔧 配置 Docker 镜像加速器..."
-            sudo mkdir -p /etc/docker
-            sudo tee /etc/docker/daemon.json <<-'EOF'
-            {
-              "registry-mirrors": ["https://hylq3tyc.mirror.aliyuncs.com"],
-              "log-driver": "json-file",
-              "log-opts": {
-                "max-size": "10m",
-                "max-file": "3"
-              },
-              "default-ulimits": {
-                "nofile": {
-                  "Name": "nofile",
-                  "Hard": 65536,
-                  "Soft": 65536
-                }
-              },
-              "storage-driver": "overlay2"
-            }
-            EOF
-            
             echo "🔄 重启 Docker 服务以确保环境稳定..."
             sudo systemctl daemon-reload
             sudo systemctl restart docker
             echo "⏳ 等待 Docker 服务完全启动..."
-            sleep 5
+            sleep 3
             
             echo "🔐 登录阿里云容器仓库..."
             docker login --username "${{ secrets.ALIYUN_REGISTRY_USERNAME }}" --password "${{ secrets.ALIYUN_REGISTRY_PASSWORD }}" ${{ secrets.ALIYUN_REGISTRY_URL }}

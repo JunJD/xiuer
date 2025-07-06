@@ -130,11 +130,9 @@ jobs:
             # --- 2. 创建 docker-compose.prod.yml ---
             echo "🔧 创建 docker-compose.prod.yml..."
             cat > docker-compose.prod.yml << 'EOL'
-            version: '3.8'
-
             services:
               db:
-                image: postgres:17
+                image: postgres:latest
                 restart: always
                 volumes:
                   - postgres_data:/var/lib/postgresql/data
@@ -194,18 +192,17 @@ jobs:
             echo "🔐 登录阿里云容器仓库..."
             docker login --username "${{ secrets.ALIYUN_REGISTRY_USERNAME }}" --password "${{ secrets.ALIYUN_REGISTRY_PASSWORD }}" ${{ secrets.ALIYUN_REGISTRY_URL }}
 
-            # --- 4. 串行拉取镜像 (避免内存峰值) ---
-            echo "📦 开始拉取最新的 Docker 镜像 (逐个进行)..."
-            docker pull postgres:17
-            docker pull nginx:latest
+            # --- 4. 只拉取自定义镜像，让 docker compose 自动处理基础镜像 ---
+            echo "📦 拉取自定义应用镜像..."
             docker pull ${{ secrets.ALIYUN_REGISTRY_URL }}/xiuer_2/backend:${{ github.sha }}
             docker pull ${{ secrets.ALIYUN_REGISTRY_URL }}/xiuer_2/frontend:${{ github.sha }}
-            echo "✅ 所有镜像拉取完成！"
+            echo "✅ 自定义镜像拉取完成！"
 
-            # --- 5. 启动服务 ---
+            # --- 5. 启动服务 (docker compose 会自动拉取基础镜像) ---
             echo "🚀 停止旧容器并启动新版本..."
-            docker-compose -f docker-compose.prod.yml down --remove-orphans
-            docker-compose -f docker-compose.prod.yml up -d
+            docker compose -f docker-compose.prod.yml down --remove-orphans
+            docker compose -f docker-compose.prod.yml up -d
+            echo "✅ 服务启动完成！"
 
             # --- 6. 清理工作 ---
             echo "🧹 清理未使用的 Docker 镜像..."

@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str
     TEST_DATABASE_URL: str | None = None
     EXPIRE_ON_COMMIT: bool = False
+    AUTO_MIGRATE: bool = False  # Default to False
 
     # User
     ACCESS_SECRET_KEY: str
@@ -37,7 +38,7 @@ class Settings(BaseSettings):
     FRONTEND_URL: str = "http://localhost:3000"
 
     # CORS
-    CORS_ORIGINS: Set[str]
+    CORS_ORIGINS: str = "http://localhost:3000,http://127.0.0.1:3000"
 
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod

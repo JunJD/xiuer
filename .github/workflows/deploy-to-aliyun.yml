@@ -150,8 +150,10 @@ jobs:
                   - db
                 environment:
                   - DATABASE_URL=postgresql+asyncpg://${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@db:5432/${{ secrets.DB_NAME }}
+                  - ACCESS_SECRET_KEY=${{ secrets.ACCESS_SECRET_KEY }}
                   - RESET_PASSWORD_SECRET_KEY=${{ secrets.RESET_PASSWORD_SECRET_KEY }}
                   - VERIFICATION_SECRET_KEY=${{ secrets.VERIFICATION_SECRET_KEY }}
+                  - CORS_ORIGINS=${{ secrets.CORS_ORIGINS }}
                 networks:
                   - my_network
 

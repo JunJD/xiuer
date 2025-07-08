@@ -1,52 +1,56 @@
-# Dockerfile for nextjs-frontend
+# Use a specific version of Node.js for reproducibility
+FROM node:20-alpine AS base
 
-# 阶段 1: 构建器 (Builder)
-# 使用包含完整 Node.js 和 pnpm 的镜像来构建应用
-FROM node:20-slim AS builder
-
-# 设置工作目录
+# Set the working directory
 WORKDIR /app
 
-# 安装 pnpm
+# Install pnpm
 RUN npm install -g pnpm
 
-# 复制依赖定义文件
+# --- Builder Stage ---
+FROM base AS builder
+
+# Copy dependency definitions
 COPY package.json pnpm-lock.yaml ./
 
-# Clean pnpm cache and reinstall all dependencies
-RUN pnpm store prune && pnpm install
+# Install dependencies
+RUN pnpm install --frozen-lockfile
 
-# 复制所有源代码
+# Copy the rest of the application source code
 COPY . .
 
-# 执行构建
-# Next.js 会根据 next.config.mjs 中的 'standalone' 配置
-# 自动将必要的依赖和文件输出到 .next/standalone/
+# Copy the OpenAPI specification from the shared volume location
+# This assumes openapi.json is present in shared-data
+COPY ./shared-data/openapi.json ./shared-data/openapi.json
+
+# Generate the API client
+RUN pnpm run generate-client
+
+# Build the Next.js application for production
 RUN pnpm build
 
+# --- Production Stage ---
+FROM base AS production
 
-# 阶段 2: 运行器 (Runner)
-# 使用一个非常轻量的 Node.js 镜像来运行应用
-FROM node:20-slim AS runner
-
-# 设置工作目录
-WORKDIR /app
-
-# 设置生产环境变量
+# Set environment variable for production
 ENV NODE_ENV=production
 
-# 从构建器阶段复制 'standalone' 输出
-# 这是运行应用所需的一切
-COPY --from=builder /app/.next/standalone ./
-
-# 从构建器阶段复制 'public' 和 '.next/static' 文件夹
-# 'standalone' 模式下需要手动复制这些静态资源
+# Copy built assets from the builder stage
+COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/pnpm-lock.yaml ./pnpm-lock.yaml
+COPY --from=builder /app/next.config.mjs ./next.config.mjs
 
-# 暴露端口
+# Install only production dependencies
+RUN pnpm install --prod
+
+# Copy and set permissions for the production startup script
+COPY ./start.prod.sh /start.prod.sh
+RUN chmod +x /start.prod.sh
+
+# Expose the application port
 EXPOSE 3000
 
-# 运行应用的命令
-# 'standalone' 模式会生成一个 server.js 入口文件
-CMD ["node", "server.js"]
+# The command to run the application
+CMD ["/start.prod.sh"]

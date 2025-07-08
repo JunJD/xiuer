@@ -15,17 +15,24 @@ RUN sh /uv-installer.sh && rm /uv-installer.sh
 # Ensure the installed binary is on the `PATH`
 ENV PATH="/root/.local/bin/:$PATH"
 
+# This is important for networking in Docker
+ENV HOST=0.0.0.0
+
 # Copy dependency files first to leverage Docker caching
 COPY pyproject.toml uv.lock ./
 
 # Remove any existing virtual environment and install dependencies (production)
 RUN rm -rf .venv && uv sync --frozen
 
-# Copy the rest of the application code
+# Copy application code
 COPY . .
+
+# Copy and set permissions for the production startup script
+COPY ./start.prod.sh /start.prod.sh
+RUN chmod +x /start.prod.sh
 
 # Expose the application port
 EXPOSE 8000
 
-# Command to run the application
-CMD ["./start.sh"]
+# The command to run the application
+CMD ["/start.prod.sh"]

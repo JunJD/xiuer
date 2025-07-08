@@ -46,7 +46,7 @@ COPY --from=builder /app/nextjs-frontend/next.config.mjs ./next.config.mjs
 RUN pnpm install --prod
 
 # Copy and set permissions for the production startup script
-COPY ./nextjs-frontend/start.prod.sh /start.prod.sh
+COPY ./start.prod.sh /start.prod.sh
 RUN chmod +x /start.prod.sh
 
 # Expose the application port

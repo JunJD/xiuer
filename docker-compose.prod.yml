@@ -1,0 +1,20 @@
+# This file is for production deployment
+# It should be used with the base docker-compose.yml:
+# docker-compose -f docker-compose.yml -f docker-compose.prod.yml up
+
+services:
+  frontend:
+    build:
+      context: ./nextjs-frontend
+      dockerfile: Dockerfile # Explicitly use the production Dockerfile
+  nginx:
+    image: nginx:1.25-alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - my_network 

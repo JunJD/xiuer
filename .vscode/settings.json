@@ -3,8 +3,11 @@
         "autoform",
         "cmdk",
         "dummyhash",
+        "fastapi",
+        "makemigrations",
         "Nuqs",
         "onupdate",
+        "testdatabase",
         "xiuer"
     ]
 }

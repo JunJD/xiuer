@@ -13,8 +13,8 @@ RUN npm install -g pnpm
 # 复制依赖定义文件
 COPY package.json pnpm-lock.yaml ./
 
-# 安装所有依赖 (包括 devDependencies 用于构建)
-RUN pnpm install
+# Clean pnpm cache and reinstall all dependencies
+RUN pnpm store prune && pnpm install
 
 # 复制所有源代码
 COPY . .

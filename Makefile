@@ -1,74 +1,54 @@
-# Makefile
-
-# Variables
-BACKEND_DIR=fastapi_backend
-FRONTEND_DIR=nextjs-frontend
-DOCKER_COMPOSE=docker compose
-
-# Help
 .PHONY: help
-help:
-	@echo "Available commands:"
-	@awk '/^[a-zA-Z_-]+:/{split($$1, target, ":"); print "  " target[1] "\t" substr($$0, index($$0,$$2))}' $(MAKEFILE_LIST)
 
-# Backend commands
-.PHONY: start-backend test-backend
+# ==============================================================================
+# VARIABLES
+# ==============================================================================
 
-start-backend: ## Start the backend server with FastAPI and hot reload
-	cd $(BACKEND_DIR) && ./start.sh
+DOCKER_COMPOSE := docker compose
+PROD_COMPOSE_FILES := -f docker-compose.yml -f docker-compose.prod.yml
 
-test-backend: ## Run backend tests using pytest
-	cd $(BACKEND_DIR) && uv run pytest
+# ==============================================================================
+# COMMANDS
+# ==============================================================================
 
+help: ## Show this help message.
+	@echo "Usage: make [target]"
+	@echo ""
+	@echo "Targets:"
+	@awk '/^[a-zA-Z\._-]+:.*?##/ { printf "  %-20s %s\n", $$1, $$2 }' $(MAKEFILE_LIST) | sed 's/://'
 
-# Frontend commands
-.PHONY: start-frontend test-frontend
+# --- Local Development ---
+up: ## Start local services in the background. Uses docker-compose.override.yml.
+	$(DOCKER_COMPOSE) up --build -d
 
-start-frontend: ## Start the frontend server with pnpm and hot reload
-	cd $(FRONTEND_DIR) && ./start.sh
+down: ## Stop local services.
+	$(DOCKER_COMPOSE) down
 
-test-frontend: ## Run frontend tests using npm
-	cd $(FRONTEND_DIR) && pnpm run test
+logs: ## Follow logs for local services.
+	$(DOCKER_COMPOSE) logs -f
 
+shell: ## Access the backend container shell (local).
+	$(DOCKER_COMPOSE) exec backend sh
 
-# Docker commands
-.PHONY: docker-backend-shell docker-frontend-shell docker-build docker-build-backend \
-        docker-build-frontend docker-start-backend docker-start-frontend docker-up-test-db \
-        docker-migrate-db docker-db-schema docker-test-backend docker-test-frontend
+# --- Production Deployment (to be run on server) ---
+deploy: ## Deploy the application stack for production.
+	$(DOCKER_COMPOSE) $(PROD_COMPOSE_FILES) pull
+	$(DOCKER_COMPOSE) $(PROD_COMPOSE_FILES) up --build -d
+	@echo "Waiting for backend to be ready for migration..."
+	@sleep 10
+	make migrate-prod
 
+migrate: ## Run database migrations (local).
+	$(DOCKER_COMPOSE) exec backend alembic upgrade head
 
-docker-backend-shell: ## Access the backend container shell
-	$(DOCKER_COMPOSE) run --rm backend sh
+migrate-prod: ## Run database migrations (production).
+	$(DOCKER_COMPOSE) $(PROD_COMPOSE_FILES) exec backend alembic upgrade head
 
-docker-frontend-shell: ## Access the frontend container shell
-	$(DOCKER_COMPOSE) run --rm frontend sh
+makemigrations: ## Create a new database migration. Usage: make makemigrations name="my migration"
+	$(DOCKER_COMPOSE) exec backend alembic revision --autogenerate -m "$(name)"
 
-docker-build: ## Build all the services
-	$(DOCKER_COMPOSE) build --no-cache
+test-backend: ## Run tests for the backend (local).
+	$(DOCKER_COMPOSE) exec backend pytest
 
-docker-build-backend: ## Build the backend container with no cache
-	$(DOCKER_COMPOSE) build backend --no-cache
-
-docker-build-frontend: ## Build the frontend container with no cache
-	$(DOCKER_COMPOSE) build frontend --no-cache
-
-docker-start-backend: ## Start the backend container
-	$(DOCKER_COMPOSE) up backend
-
-docker-start-frontend: ## Start the frontend container
-	$(DOCKER_COMPOSE) up frontend
-
-docker-up-test-db: ## Start the test database container
-	$(DOCKER_COMPOSE) up db_test
-
-docker-migrate-db: ## Run database migrations using Alembic
-	$(DOCKER_COMPOSE) run --rm backend uv run alembic upgrade head
-
-docker-db-schema: ## Generate a new migration schema. Usage: make docker-db-schema migration_name="add users"
-	$(DOCKER_COMPOSE) run --rm backend uv run alembic revision --autogenerate -m "$(migration_name)"
-
-docker-test-backend: ## Run tests for the backend
-	$(DOCKER_COMPOSE) run --rm backend pytest
-
-docker-test-frontend: ## Run tests for the frontend
-	$(DOCKER_COMPOSE) run --rm frontend pnpm run test
+test-frontend: ## Run tests for the frontend (local).
+	$(DOCKER_COMPOSE) exec frontend pnpm test

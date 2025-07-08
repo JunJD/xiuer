@@ -4,16 +4,15 @@ services:
       context: fastapi_backend
     environment:
       - OPENAPI_OUTPUT_FILE=./shared-data/openapi.json
-      - DATABASE_URL=postgresql+asyncpg://postgres:password@db:5432/mydatabase
-      - TEST_DATABASE_URL=postgresql+asyncpg://postgres:password@db:5433/testdatabase
-      - MAIL_SERVER=mailhog
-      - AUTO_MIGRATE=false  # Set to 'true' to enable automatic migrations on startup
-      # GitHub 配置
-      - GITHUB_TOKEN=${GITHUB_TOKEN:-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}  # 从环境变量读取
-      - GITHUB_REPO_OWNER=${GITHUB_REPO_OWNER:-JunJD}  # 默认 JunJD
-      - GITHUB_REPO_NAME=${GITHUB_REPO_NAME:-xiuer-spider}  # 默认 xiuer-spider
-    ports:
-      - "8000:8000"
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      - TEST_DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5433/testdatabase
+      - MAIL_SERVER=localhost
+      - AUTO_MIGRATE=false
+      - ACCESS_SECRET_KEY=${ACCESS_SECRET_KEY}
+      - RESET_PASSWORD_SECRET_KEY=${RESET_PASSWORD_SECRET_KEY}
+      - VERIFICATION_SECRET_KEY=${VERIFICATION_SECRET_KEY}
+      - CORS_ORIGINS=${CORS_ORIGINS}
+      - FRONTEND_URL=${FRONTEND_URL}
     networks:
       - my_network
     volumes:
@@ -22,18 +21,20 @@ services:
       - ./local-shared-data:/app/shared-data
     depends_on:
       - db
+
   db:
     image: postgres:17
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: mydatabase
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - "5432:5432"
     networks:
       - my_network
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
   db_test:
     image: postgres:17
     environment:
@@ -45,9 +46,12 @@ services:
     networks:
       - my_network
     restart: always
+
   frontend:
     build:
       context: ./nextjs-frontend
+      dockerfile: Dockerfile.dev
+    command: sh start.sh
     user: node
     ports:
       - "3000:3000"
@@ -55,19 +59,12 @@ services:
       - my_network
     environment:
       NODE_ENV: development
-      API_BASE_URL: http://backend:8000
       OPENAPI_OUTPUT_FILE: ./shared-data/openapi.json
+      API_BASE_URL: http://backend:8000
     volumes:
       - ./nextjs-frontend:/app
       - nextjs-node-modules:/app/node_modules
       - ./local-shared-data:/app/shared-data
-  mailhog:
-    image: mailhog/mailhog
-    ports:
-      - "1025:1025" # SMTP server
-      - "8025:8025" # Web UI
-    networks:
-      - my_network
 
 volumes:
   postgres_data:
@@ -76,4 +73,4 @@ volumes:
 
 networks:
   my_network:
-    driver: bridge
+    driver: bridge 

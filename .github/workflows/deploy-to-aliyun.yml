@@ -1,223 +1,51 @@
-name: Deploy Xiuer to Aliyun
+name: Deploy to Aliyun Server
 
 on:
   push:
-    branches: [ main ]
-  workflow_dispatch:
+    branches:
+      - main
+  workflow_dispatch: # Allow manual trigger
 
 jobs:
   deploy:
+    name: Deploy
     runs-on: ubuntu-latest
-    
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      - name: Check required secrets
-        run: |
-          echo "🔍 检查必要的密钥配置..."
-          [[ -z "${{ secrets.ALIYUN_REGISTRY_USERNAME }}" ]] && echo "❌ Missing ALIYUN_REGISTRY_USERNAME" && exit 1
-          [[ -z "${{ secrets.ALIYUN_REGISTRY_PASSWORD }}" ]] && echo "❌ Missing ALIYUN_REGISTRY_PASSWORD" && exit 1
-          [[ -z "${{ secrets.ECS_HOST }}" ]] && echo "❌ Missing ECS_HOST" && exit 1
-          [[ -z "${{ secrets.ECS_USERNAME }}" ]] && echo "❌ Missing ECS_USERNAME" && exit 1
-          [[ -z "${{ secrets.ECS_SSH_KEY }}" ]] && echo "❌ Missing ECS_SSH_KEY" && exit 1
-          [[ -z "${{ secrets.DATABASE_URL }}" ]] && echo "❌ Missing DATABASE_URL" && exit 1
-          [[ -z "${{ secrets.ACCESS_SECRET_KEY }}" ]] && echo "❌ Missing ACCESS_SECRET_KEY" && exit 1
-          [[ -z "${{ secrets.RESET_PASSWORD_SECRET_KEY }}" ]] && echo "❌ Missing RESET_PASSWORD_SECRET_KEY" && exit 1
-          [[ -z "${{ secrets.VERIFICATION_SECRET_KEY }}" ]] && echo "❌ Missing VERIFICATION_SECRET_KEY" && exit 1
-          echo "✅ 所有必要的密钥都已配置"
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Configure Docker to use Aliyun mirror
-        run: |
-          echo "🔧 Configuring Docker mirror for the runner..."
-          sudo mkdir -p /etc/docker
-          echo '{"registry-mirrors": ["https://hylq3tyc.mirror.aliyuncs.com"]}' | sudo tee /etc/docker/daemon.json
-          sudo systemctl restart docker
-          echo "✅ Docker mirror configured."
-
-      - name: Cache Docker layers
-        uses: actions/cache@v3
+      - name: Create .env file on server
+        uses: appleboy/ssh-action@master
         with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-
-
-      - name: Login to Aliyun Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ secrets.ALIYUN_REGISTRY_URL }}
-          username: ${{ secrets.ALIYUN_REGISTRY_USERNAME }}
-          password: ${{ secrets.ALIYUN_REGISTRY_PASSWORD }}
-
-      - name: Build and push backend image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./fastapi_backend
-          push: true
-          platforms: linux/amd64
-          tags: |
-            ${{ secrets.ALIYUN_REGISTRY_URL }}/xiuer_2/backend:${{ github.sha }}
-            ${{ secrets.ALIYUN_REGISTRY_URL }}/xiuer_2/backend:latest
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
-          build-args: |
-            BUILDKIT_INLINE_CACHE=1
-
-      - name: Build and push frontend image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./nextjs-frontend
-          push: true
-          platforms: linux/amd64
-          tags: |
-            ${{ secrets.ALIYUN_REGISTRY_URL }}/xiuer_2/frontend:${{ github.sha }}
-            ${{ secrets.ALIYUN_REGISTRY_URL }}/xiuer_2/frontend:latest
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
-          build-args: |
-            BUILDKIT_INLINE_CACHE=1
-            API_BASE_URL=${{ secrets.API_BASE_URL }}
-
-      - name: Move cache
-        run: |
-          rm -rf /tmp/.buildx-cache
-          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
-
-      - name: Deploy to Aliyun ECS
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.ECS_HOST }}
-          username: ${{ secrets.ECS_USERNAME }}
-          key: ${{ secrets.ECS_SSH_KEY }}
-          port: ${{ secrets.ECS_PORT }}
+          host: ${{ secrets.ALIYUN_HOST }}
+          username: ${{ secrets.ALIYUN_USERNAME }}
+          key: ${{ secrets.ALIYUN_SSH_PRIVATE_KEY }}
           script: |
-            set -e
-            echo "🚀 开始部署..."
-            APP_DIR="/app/xiuer"
-            mkdir -p $APP_DIR
-            cd $APP_DIR
+            echo "Creating .env file..."
+            cd /root/xiuer
+            cat <<EOF > .env
+            # Database credentials
+            POSTGRES_USER=${{ secrets.POSTGRES_USER }}
+            POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+            POSTGRES_DB=${{ secrets.POSTGRES_DB }}
 
-            # --- 1. 创建 Nginx 配置文件 ---
-            echo "🔧 创建 nginx.conf..."
-            mkdir -p ./nginx
-            cat > ./nginx/default.conf << 'EOL'
-            server {
-                listen 80;
-                server_name ${{ secrets.ECS_HOST }};
+            # JWT Secret
+            ACCESS_SECRET_KEY=${{ secrets.ACCESS_SECRET_KEY }}
+            EOF
+            echo ".env file created successfully."
 
-                location / {
-                    proxy_pass http://frontend:3000;
-                    proxy_set_header Host $host;
-                    proxy_set_header X-Real-IP $remote_addr;
-                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                    proxy_set_header X-Forwarded-Proto $scheme;
-                }
-
-                location /api/ {
-                    proxy_pass http://backend:8000;
-                    proxy_set_header Host $host;
-                    proxy_set_header X-Real-IP $remote_addr;
-                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                    proxy_set_header X-Forwarded-Proto $scheme;
-                }
-            }
-            EOL
-
-            # --- 2. 创建 docker-compose.prod.yml ---
-            echo "🔧 创建 docker-compose.prod.yml..."
-            cat > docker-compose.prod.yml << 'EOL'
-            services:
-              db:
-                image: postgres:latest
-                restart: always
-                volumes:
-                  - postgres_data:/var/lib/postgresql/data
-                environment:
-                  - POSTGRES_USER=${{ secrets.DB_USER }}
-                  - POSTGRES_PASSWORD=${{ secrets.DB_PASSWORD }}
-                  - POSTGRES_DB=${{ secrets.DB_NAME }}
-                networks:
-                  - my_network
-
-              backend:
-                image: ${{ secrets.ALIYUN_REGISTRY_URL }}/xiuer_2/backend:${{ github.sha }}
-                restart: always
-                depends_on:
-                  - db
-                environment:
-                  - DATABASE_URL=postgresql+asyncpg://${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@db:5432/${{ secrets.DB_NAME }}
-                  - ACCESS_SECRET_KEY=${{ secrets.ACCESS_SECRET_KEY }}
-                  - RESET_PASSWORD_SECRET_KEY=${{ secrets.RESET_PASSWORD_SECRET_KEY }}
-                  - VERIFICATION_SECRET_KEY=${{ secrets.VERIFICATION_SECRET_KEY }}
-                  - CORS_ORIGINS=${{ secrets.CORS_ORIGINS }}
-                  - AUTO_MIGRATE=true
-                networks:
-                  - my_network
-
-              frontend:
-                image: ${{ secrets.ALIYUN_REGISTRY_URL }}/xiuer_2/frontend:${{ github.sha }}
-                restart: always
-                networks:
-                  - my_network
-
-              nginx:
-                image: nginx:latest
-                restart: always
-                ports:
-                  - "80:80"
-                volumes:
-                  - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
-                depends_on:
-                  - frontend
-                  - backend
-                networks:
-                  - my_network
-
-            volumes:
-              postgres_data:
-
-            networks:
-              my_network:
-                driver: bridge
-            EOL
-
-            # --- 3. 环境准备和登录 ---
-            echo "🔄 重启 Docker 服务以确保环境稳定..."
-            sudo systemctl daemon-reload
-            sudo systemctl restart docker
-            echo "⏳ 等待 Docker 服务完全启动..."
-            sleep 3
-            
-            echo "🔐 登录阿里云容器仓库..."
-            docker login --username "${{ secrets.ALIYUN_REGISTRY_USERNAME }}" --password "${{ secrets.ALIYUN_REGISTRY_PASSWORD }}" ${{ secrets.ALIYUN_REGISTRY_URL }}
-
-            # --- 4. 只拉取自定义镜像，让 docker compose 自动处理基础镜像 ---
-            echo "📦 拉取所有最新镜像..."
-            docker compose -f docker-compose.prod.yml pull
-
-            # --- 5. 启动服务 (docker compose 会自动拉取基础镜像) ---
-            echo "🚀 停止旧容器并启动新版本..."
-            docker compose -f docker-compose.prod.yml down --remove-orphans
-            docker compose -f docker-compose.prod.yml up -d --pull=always
-            echo "✅ 服务启动完成！"
-
-            # --- 6. 清理工作 ---
-            echo "🧹 清理未使用的 Docker 镜像..."
-            docker image prune -f
-
-            echo "🎉 部署完成！"
-
-      - name: Notify deployment status
-        if: always()
-        run: |
-          if [ "${{ job.status }}" == "success" ]; then
-            echo "🎉 部署成功！"
-            echo "📱 前端访问地址: http://${{ secrets.ECS_HOST }}"
-            echo "🔗 后端 API 文档: http://${{ secrets.ECS_HOST }}/docs"
-          else
-            echo "❌ 部署失败，请检查日志"
-          fi 
+      - name: Deploy to server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.ALIYUN_HOST }}
+          username: ${{ secrets.ALIYUN_USERNAME }}
+          key: ${{ secrets.ALIYUN_SSH_PRIVATE_KEY }}
+          script: |
+            echo "Starting deployment..."
+            cd /root/xiuer
+            echo "Pulling latest code from main branch..."
+            git pull origin main
+            echo "Deploying application using Makefile..."
+            make deploy
+            echo "Deployment finished!" 

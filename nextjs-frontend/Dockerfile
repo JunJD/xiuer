@@ -1,35 +1,28 @@
 # Use a specific version of Node.js for reproducibility
 FROM node:20-alpine AS base
 
-# Set the working directory
-WORKDIR /app
-
 # Install pnpm
 RUN npm install -g pnpm
 
 # --- Builder Stage ---
 FROM base AS builder
 
-# Declare build-time argument
-ARG OPENAPI_OUTPUT_FILE
+# Set the working directory to the root of the application
+WORKDIR /app
 
-# Set the environment variable from the build argument
-ENV OPENAPI_OUTPUT_FILE=$OPENAPI_OUTPUT_FILE
-
-# Copy dependency definitions
-COPY package.json pnpm-lock.yaml ./
-
-# Install dependencies
-RUN pnpm install --frozen-lockfile
-
-# Copy the rest of the application source code
+# Copy the entire project source code into the builder
 COPY . .
 
-# Copy the OpenAPI specification from the shared volume location
-# This assumes openapi.json is present in shared-data
-COPY ./shared-data/openapi.json ./shared-data/openapi.json
+# Change the working directory to the frontend folder
+WORKDIR /app/nextjs-frontend
 
-# Generate the API client
+# Install dependencies for the frontend
+RUN pnpm install --frozen-lockfile
+
+# Generate the API client.
+# The source path is relative to the build context root.
+# The destination path is relative to the current WORKDIR.
+COPY ../local-shared-data/openapi.json ./shared-data/
 RUN pnpm run generate-client
 
 # Build the Next.js application for production
@@ -38,21 +31,22 @@ RUN pnpm build
 # --- Production Stage ---
 FROM base AS production
 
-# Set environment variable for production
+# Set environment variable for production and the working directory
 ENV NODE_ENV=production
+WORKDIR /app
 
-# Copy built assets from the builder stage
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/pnpm-lock.yaml ./pnpm-lock.yaml
-COPY --from=builder /app/next.config.mjs ./next.config.mjs
+# Selectively copy necessary files from the builder stage
+COPY --from=builder /app/nextjs-frontend/.next ./.next
+COPY --from=builder /app/nextjs-frontend/public ./public
+COPY --from=builder /app/nextjs-frontend/package.json ./package.json
+COPY --from=builder /app/nextjs-frontend/pnpm-lock.yaml ./pnpm-lock.yaml
+COPY --from=builder /app/nextjs-frontend/next.config.mjs ./next.config.mjs
 
 # Install only production dependencies
 RUN pnpm install --prod
 
 # Copy and set permissions for the production startup script
-COPY ./start.prod.sh /start.prod.sh
+COPY ./nextjs-frontend/start.prod.sh /start.prod.sh
 RUN chmod +x /start.prod.sh
 
 # Expose the application port

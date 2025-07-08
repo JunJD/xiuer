@@ -1,5 +1,6 @@
 services:
   backend:
+    image: ${ALIYUN_REGISTRY_URL}/xiuer-backend:latest
     build:
       context: fastapi_backend
     environment:
@@ -21,6 +22,7 @@ services:
       - ./local-shared-data:/app/shared-data
     depends_on:
       - db
+    restart: always
 
   db:
     image: postgres:17
@@ -48,6 +50,7 @@ services:
     restart: always
 
   frontend:
+    image: ${ALIYUN_REGISTRY_URL}/xiuer-frontend:latest
     build:
       context: ./nextjs-frontend
       dockerfile: Dockerfile.dev

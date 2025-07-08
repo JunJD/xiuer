@@ -3,10 +3,12 @@
 # docker-compose -f docker-compose.yml -f docker-compose.prod.yml up
 
 services:
+  backend:
+    restart: always
+
   frontend:
-    build:
-      context: ./nextjs-frontend
-      dockerfile: Dockerfile # Explicitly use the production Dockerfile
+    restart: always
+
   nginx:
     image: nginx:1.25-alpine
     ports:

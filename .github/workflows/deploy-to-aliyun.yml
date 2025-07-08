@@ -4,48 +4,72 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch: # Allow manual trigger
+  workflow_dispatch:
 
 jobs:
-  deploy:
-    name: Deploy
+  build-and-deploy:
+    name: Build and Deploy
     runs-on: ubuntu-latest
-
+    
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Create .env file on server
-        uses: appleboy/ssh-action@master
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Aliyun Container Registry
+        uses: docker/login-action@v3
         with:
-          host: ${{ secrets.ALIYUN_HOST }}
-          username: ${{ secrets.ALIYUN_USERNAME }}
-          key: ${{ secrets.ALIYUN_SSH_PRIVATE_KEY }}
-          script: |
-            echo "Creating .env file..."
-            cd /root/xiuer
-            cat <<EOF > .env
-            # Database credentials
-            POSTGRES_USER=${{ secrets.POSTGRES_USER }}
-            POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
-            POSTGRES_DB=${{ secrets.POSTGRES_DB }}
+          registry: ${{ secrets.ALIYUN_REGISTRY_URL }}
+          username: ${{ secrets.ALIYUN_REGISTRY_USERNAME }}
+          password: ${{ secrets.ALIYUN_REGISTRY_PASSWORD }}
 
-            # JWT Secret
-            ACCESS_SECRET_KEY=${{ secrets.ACCESS_SECRET_KEY }}
-            EOF
-            echo ".env file created successfully."
+      - name: Build and push backend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./fastapi_backend
+          file: ./fastapi_backend/Dockerfile
+          push: true
+          tags: ${{ secrets.ALIYUN_REGISTRY_URL }}/xiuer-backend:${{ github.sha }}, ${{ secrets.ALIYUN_REGISTRY_URL }}/xiuer-backend:latest
+
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./nextjs-frontend
+          file: ./nextjs-frontend/Dockerfile
+          push: true
+          tags: ${{ secrets.ALIYUN_REGISTRY_URL }}/xiuer-frontend:${{ github.sha }}, ${{ secrets.ALIYUN_REGISTRY_URL }}/xiuer-frontend:latest
 
       - name: Deploy to server
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.ALIYUN_HOST }}
-          username: ${{ secrets.ALIYUN_USERNAME }}
-          key: ${{ secrets.ALIYUN_SSH_PRIVATE_KEY }}
+          host: ${{ secrets.ECS_HOST }}
+          username: ${{ secrets.ECS_USERNAME }}
+          key: ${{ secrets.ECS_SSH_KEY }}
           script: |
-            echo "Starting deployment..."
+            echo "Creating .env file..."
             cd /root/xiuer
-            echo "Pulling latest code from main branch..."
-            git pull origin main
-            echo "Deploying application using Makefile..."
-            make deploy
+            cat <<EOF > .env
+            # General
+            COMPOSE_PROFILES=prod
+            ALIYUN_REGISTRY_URL=${{ secrets.ALIYUN_REGISTRY_URL }}
+            # Database credentials
+            POSTGRES_USER=${{ secrets.DB_USER }}
+            POSTGRES_PASSWORD=${{ secrets.DB_PASSWORD }}
+            POSTGRES_DB=${{ secrets.DB_NAME }}
+            # JWT Secret
+            ACCESS_SECRET_KEY=${{ secrets.ACCESS_SECRET_KEY }}
+            RESET_PASSWORD_SECRET_KEY=${{ secrets.RESET_PASSWORD_SECRET_KEY }}
+            VERIFICATION_SECRET_KEY=${{ secrets.VERIFICATION_SECRET_KEY }}
+            # App settings
+            CORS_ORIGINS=${{ secrets.CORS_ORIGINS }}
+            EOF
+            
+            echo "Pulling latest images..."
+            docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
+            
+            echo "Starting application..."
+            docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+            
             echo "Deployment finished!" 

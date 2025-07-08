@@ -5,6 +5,7 @@
 services:
   backend:
     image: ${ALIYUN_REGISTRY_URL}/${ALIYUN_NAMESPACE}/backend:latest
+    command: sh /start.prod.sh
     restart: always
 
   frontend:

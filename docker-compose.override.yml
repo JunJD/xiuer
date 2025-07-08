@@ -1,9 +1,11 @@
 # This file is for local development overrides
 services:
   backend:
+    command: sh start.sh
     ports:
       - "8000:8000"
 
   frontend:
+    command: sh start.sh
     ports:
       - "3000:3000" 

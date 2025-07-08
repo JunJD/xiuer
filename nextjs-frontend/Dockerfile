@@ -22,7 +22,6 @@ RUN pnpm install --frozen-lockfile
 # Generate the API client.
 # The source path is relative to the build context root.
 # The destination path is relative to the current WORKDIR.
-COPY ../local-shared-data/openapi.json ./shared-data/
 RUN pnpm run generate-client
 
 # Build the Next.js application for production
@@ -45,12 +44,9 @@ COPY --from=builder /app/nextjs-frontend/next.config.mjs ./next.config.mjs
 # Install only production dependencies
 RUN pnpm install --prod
 
-# Copy and set permissions for the production startup script
-COPY ./start.prod.sh /start.prod.sh
-RUN chmod +x /start.prod.sh
 
 # Expose the application port
 EXPOSE 3000
 
 # The command to run the application
-CMD ["/start.prod.sh"]
+CMD ["pnpm", "start"]

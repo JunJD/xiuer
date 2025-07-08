@@ -31,7 +31,7 @@ jobs:
           context: ./fastapi_backend
           file: ./fastapi_backend/Dockerfile
           push: true
-          tags: ${{ secrets.ALIYUN_REGISTRY_URL }}/xiuer-backend:${{ github.sha }}, ${{ secrets.ALIYUN_REGISTRY_URL }}/xiuer-backend:latest
+          tags: ${{ secrets.ALIYUN_REGISTRY_URL }}/xiuer_2/backend:${{ github.sha }}, ${{ secrets.ALIYUN_REGISTRY_URL }}/xiuer_2/backend:latest
 
       - name: Build and push frontend image
         uses: docker/build-push-action@v5
@@ -39,7 +39,7 @@ jobs:
           context: ./nextjs-frontend
           file: ./nextjs-frontend/Dockerfile
           push: true
-          tags: ${{ secrets.ALIYUN_REGISTRY_URL }}/xiuer-frontend:${{ github.sha }}, ${{ secrets.ALIYUN_REGISTRY_URL }}/xiuer-frontend:latest
+          tags: ${{ secrets.ALIYUN_REGISTRY_URL }}/xiuer_2/frontend:${{ github.sha }}, ${{ secrets.ALIYUN_REGISTRY_URL }}/xiuer_2/frontend:latest
 
       - name: Deploy to server
         uses: appleboy/ssh-action@master
@@ -54,6 +54,7 @@ jobs:
             # General
             COMPOSE_PROFILES=prod
             ALIYUN_REGISTRY_URL=${{ secrets.ALIYUN_REGISTRY_URL }}
+            ALIYUN_NAMESPACE=xiuer_2
             # Database credentials
             POSTGRES_USER=${{ secrets.DB_USER }}
             POSTGRES_PASSWORD=${{ secrets.DB_PASSWORD }}

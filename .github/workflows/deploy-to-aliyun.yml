@@ -30,6 +30,7 @@ jobs:
         run: uv run python -m commands.generate_openapi_schema
         working-directory: ./fastapi_backend
         env:
+          OPENAPI_OUTPUT_FILE: ../local-shared-data/openapi.json
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           ACCESS_SECRET_KEY: ${{ secrets.ACCESS_SECRET_KEY }}
           RESET_PASSWORD_SECRET_KEY: ${{ secrets.RESET_PASSWORD_SECRET_KEY }}

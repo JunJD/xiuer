@@ -72,7 +72,7 @@ jobs:
             echo "Pulling latest images..."
             docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
             
-            echo "Starting application..."
-            docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+            echo "Starting application with force recreate..."
+            docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --force-recreate
             
             echo "Deployment finished!" 

@@ -29,6 +29,11 @@ jobs:
       - name: Generate OpenAPI schema
         run: uv run python -m commands.generate_openapi_schema
         working-directory: ./fastapi_backend
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          ACCESS_SECRET_KEY: ${{ secrets.ACCESS_SECRET_KEY }}
+          RESET_PASSWORD_SECRET_KEY: ${{ secrets.RESET_PASSWORD_SECRET_KEY }}
+          VERIFICATION_SECRET_KEY: ${{ secrets.VERIFICATION_SECRET_KEY }}
 
       - name: Upload OpenAPI schema
         uses: actions/upload-artifact@v4

@@ -3,6 +3,12 @@
 FROM node:20-slim
 WORKDIR /app
 
+# Declare build-time argument
+ARG OPENAPI_OUTPUT_FILE
+
+# Set the environment variable from the build argument
+ENV OPENAPI_OUTPUT_FILE=$OPENAPI_OUTPUT_FILE
+
 # Install pnpm
 RUN npm install -g pnpm
 

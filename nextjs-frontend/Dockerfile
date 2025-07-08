@@ -10,6 +10,12 @@ RUN npm install -g pnpm
 # --- Builder Stage ---
 FROM base AS builder
 
+# Declare build-time argument
+ARG OPENAPI_OUTPUT_FILE
+
+# Set the environment variable from the build argument
+ENV OPENAPI_OUTPUT_FILE=$OPENAPI_OUTPUT_FILE
+
 # Copy dependency definitions
 COPY package.json pnpm-lock.yaml ./
 

@@ -40,6 +40,8 @@ jobs:
           file: ./nextjs-frontend/Dockerfile
           push: true
           tags: ${{ secrets.ALIYUN_REGISTRY_URL }}/xiuer_2/frontend:${{ github.sha }}, ${{ secrets.ALIYUN_REGISTRY_URL }}/xiuer_2/frontend:latest
+          build-args: |
+            OPENAPI_OUTPUT_FILE=./shared-data/openapi.json
 
       - name: Deploy to server
         uses: appleboy/ssh-action@master

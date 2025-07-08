@@ -54,6 +54,8 @@ services:
     build:
       context: ./nextjs-frontend
       dockerfile: Dockerfile.dev
+      args:
+        - OPENAPI_OUTPUT_FILE=./shared-data/openapi.json
     command: sh start.sh
     user: node
     ports:

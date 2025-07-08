@@ -13,9 +13,6 @@ WORKDIR /app
 # Copy the entire project source code into the builder
 COPY . .
 
-# Change the working directory to the frontend folder
-WORKDIR /app/nextjs-frontend
-
 # Install dependencies for the frontend
 RUN pnpm install --frozen-lockfile
 
@@ -35,11 +32,11 @@ ENV NODE_ENV=production
 WORKDIR /app
 
 # Selectively copy necessary files from the builder stage
-COPY --from=builder /app/nextjs-frontend/.next ./.next
-COPY --from=builder /app/nextjs-frontend/public ./public
-COPY --from=builder /app/nextjs-frontend/package.json ./package.json
-COPY --from=builder /app/nextjs-frontend/pnpm-lock.yaml ./pnpm-lock.yaml
-COPY --from=builder /app/nextjs-frontend/next.config.mjs ./next.config.mjs
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/pnpm-lock.yaml ./pnpm-lock.yaml
+COPY --from=builder /app/next.config.mjs ./next.config.mjs
 
 # Install only production dependencies
 RUN pnpm install --prod

@@ -21,7 +21,7 @@ COPY . .
 
 # Copy the OpenAPI specification from the shared volume location
 # This assumes openapi.json is present in shared-data
-COPY ../local-shared-data/openapi.json ../local-shared-data/openapi.json
+COPY ./shared-data/openapi.json ./shared-data/openapi.json
 
 # Generate the API client
 RUN pnpm run generate-client

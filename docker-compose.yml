@@ -1,6 +1,6 @@
 services:
   backend:
-    image: ${ALIYUN_REGISTRY_URL}/xiuer-backend:latest
+    image: xiuer-backend:local
     build:
       context: fastapi_backend
     environment:
@@ -50,7 +50,7 @@ services:
     restart: always
 
   frontend:
-    image: ${ALIYUN_REGISTRY_URL}/xiuer-frontend:latest
+    image: xiuer-frontend:local
     build:
       context: ./nextjs-frontend
       dockerfile: Dockerfile.dev

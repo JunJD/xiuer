@@ -41,9 +41,9 @@ services:
   db_test:
     image: postgres:17
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: testdatabase
+      POSTGRES_USER: xiuer_user
+      POSTGRES_PASSWORD: Dingjunjie123
+      POSTGRES_DB: xiuer_db
     ports:
       - "5433:5432"
     networks:

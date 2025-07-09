@@ -43,6 +43,10 @@ jobs:
           build-args: |
             API_BASE_URL=http://backend:8000
 
+      - name: Read Nginx configuration
+        id: nginx_config
+        run: echo "NGINX_CONFIG=$(cat config/nginx/nginx.conf)" >> $GITHUB_ENV
+
       - name: Deploy to server
         uses: appleboy/ssh-action@master
         with:
@@ -72,6 +76,12 @@ jobs:
             CORS_ORIGINS=${{ secrets.CORS_ORIGINS }}
             EOF
             
+            echo "Copying Nginx configuration..."
+            mkdir -p ./nginx
+            cat <<'EOF' > ./nginx/default.conf
+            ${{ env.NGINX_CONFIG }}
+            EOF
+
             echo "Creating docker-compose.prod.yml..."
             cat <<EOF > docker-compose.prod.yml
             services:

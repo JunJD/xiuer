@@ -31,19 +31,18 @@ FROM base AS production
 ENV NODE_ENV=production
 WORKDIR /app
 
-# Selectively copy necessary files from the builder stage
-COPY --from=builder /app/.next ./.next
+# Copy the standalone output from the builder stage.
+# This contains everything needed to run the application.
+COPY --from=builder /app/.next/standalone .
+
+# Copy the static assets from the builder stage.
+# These are not included in the standalone output and must be copied separately.
+COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/pnpm-lock.yaml ./pnpm-lock.yaml
-COPY --from=builder /app/next.config.mjs ./next.config.mjs
-
-# Install only production dependencies
-RUN pnpm install --prod
-
 
 # Expose the application port
 EXPOSE 3000
 
-# The command to run the application
-CMD ["pnpm", "start"]
+# Start the application using the standalone server
+# The command is now defined in start.prod.sh, which should run `node server.js`
+CMD ["node", "server.js"]

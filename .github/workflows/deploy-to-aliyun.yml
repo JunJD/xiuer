@@ -50,8 +50,11 @@ jobs:
           username: ${{ secrets.ECS_USERNAME }}
           key: ${{ secrets.ECS_SSH_KEY }}
           script: |
-            echo "Creating .env file..."
+            echo "Creating project directory..."
+            mkdir -p /root/xiuer
             cd /root/xiuer
+            
+            echo "Creating .env file..."
             cat <<EOF > .env
             # General
             COMPOSE_PROFILES=prod
@@ -69,10 +72,70 @@ jobs:
             CORS_ORIGINS=${{ secrets.CORS_ORIGINS }}
             EOF
             
+            echo "Creating docker-compose.prod.yml..."
+            cat <<EOF > docker-compose.prod.yml
+            services:
+              db:
+                image: postgres:latest
+                restart: always
+                volumes:
+                  - postgres_data:/var/lib/postgresql/data
+                environment:
+                  - POSTGRES_USER=\${POSTGRES_USER}
+                  - POSTGRES_PASSWORD=\${POSTGRES_PASSWORD}
+                  - POSTGRES_DB=\${POSTGRES_DB}
+                networks:
+                  - my_network
+
+              backend:
+                image: \${ALIYUN_REGISTRY_URL}/\${ALIYUN_NAMESPACE}/backend:latest
+                restart: always
+                depends_on:
+                  - db
+                environment:
+                  - DATABASE_URL=postgresql+asyncpg://\${POSTGRES_USER}:\${POSTGRES_PASSWORD}@db:5432/\${POSTGRES_DB}
+                  - ACCESS_SECRET_KEY=\${ACCESS_SECRET_KEY}
+                  - RESET_PASSWORD_SECRET_KEY=\${RESET_PASSWORD_SECRET_KEY}
+                  - VERIFICATION_SECRET_KEY=\${VERIFICATION_SECRET_KEY}
+                  - CORS_ORIGINS=\${CORS_ORIGINS}
+                  - AUTO_MIGRATE=true
+                networks:
+                  - my_network
+
+              frontend:
+                image: \${ALIYUN_REGISTRY_URL}/\${ALIYUN_NAMESPACE}/frontend:latest
+                restart: always
+                environment:
+                  - API_BASE_URL=http://backend:8000
+                  - NODE_ENV=production
+                networks:
+                  - my_network
+
+              nginx:
+                image: nginx:latest
+                restart: always
+                ports:
+                  - "80:80"
+                volumes:
+                  - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+                depends_on:
+                  - frontend
+                  - backend
+                networks:
+                  - my_network
+
+            volumes:
+              postgres_data:
+
+            networks:
+              my_network:
+                driver: bridge
+            EOF
+            
             echo "Pulling latest images..."
-            docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.prod.yml pull
             
             echo "Starting application with force recreate..."
-            docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --force-recreate
+            docker compose -f docker-compose.prod.yml up -d --force-recreate
             
             echo "Deployment finished!" 

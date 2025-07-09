@@ -45,7 +45,10 @@ jobs:
 
       - name: Read Nginx configuration
         id: nginx_config
-        run: echo "NGINX_CONFIG=$(cat config/nginx/nginx.conf)" >> $GITHUB_ENV
+        run: |
+          echo 'NGINX_CONFIG<<EOF' >> $GITHUB_ENV
+          cat config/nginx/nginx.conf >> $GITHUB_ENV
+          echo 'EOF' >> $GITHUB_ENV
 
       - name: Deploy to server
         uses: appleboy/ssh-action@master

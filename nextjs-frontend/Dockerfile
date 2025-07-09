@@ -7,6 +7,12 @@ RUN npm install -g pnpm
 # --- Builder Stage ---
 FROM base AS builder
 
+# Declare the build-time argument
+ARG API_BASE_URL
+
+# Set it as an environment variable so it can be used by the build process
+ENV API_BASE_URL=$API_BASE_URL
+
 # Set the working directory to the root of the application
 WORKDIR /app
 

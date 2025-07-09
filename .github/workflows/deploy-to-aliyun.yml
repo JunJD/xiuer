@@ -51,8 +51,8 @@ jobs:
           key: ${{ secrets.ECS_SSH_KEY }}
           script: |
             echo "Creating project directory..."
-            mkdir -p /root/xiuer
-            cd /root/xiuer
+            mkdir -p /app/xiuer
+            cd /app/xiuer
             
             echo "Creating .env file..."
             cat <<EOF > .env

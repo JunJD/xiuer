@@ -49,12 +49,12 @@ app.include_router(
 )
 app.include_router(
     fastapi_users.get_users_router(UserRead, UserUpdate),
-    prefix="/users",
+    prefix="/api/users",
     tags=["users"],
 )
 
 # Include items routes
-app.include_router(items_router, prefix="/items")
+app.include_router(items_router, prefix="/api/items", tags=["items"])
 
 # Include keywords management routes
 app.include_router(keywords_router, prefix="/api/keywords", tags=["keywords"])

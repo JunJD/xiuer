@@ -119,7 +119,7 @@ export const authJwtLogin = <ThrowOnError extends boolean = false>(
       "Content-Type": "application/x-www-form-urlencoded",
       ...options?.headers,
     },
-    url: "/auth/jwt/login",
+    url: "/api/auth/jwt/login",
   });
 };
 
@@ -135,7 +135,7 @@ export const authJwtLogout = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     ...options,
-    url: "/auth/jwt/logout",
+    url: "/api/auth/jwt/logout",
   });
 };
 
@@ -151,7 +151,7 @@ export const registerRegister = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     ...options,
-    url: "/auth/register",
+    url: "/api/auth/register",
   });
 };
 
@@ -167,7 +167,7 @@ export const resetForgotPassword = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     ...options,
-    url: "/auth/forgot-password",
+    url: "/api/auth/forgot-password",
   });
 };
 
@@ -183,7 +183,7 @@ export const resetResetPassword = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     ...options,
-    url: "/auth/reset-password",
+    url: "/api/auth/reset-password",
   });
 };
 
@@ -199,7 +199,7 @@ export const verifyRequestToken = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     ...options,
-    url: "/auth/request-verify-token",
+    url: "/api/auth/request-verify-token",
   });
 };
 
@@ -215,7 +215,7 @@ export const verifyVerify = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     ...options,
-    url: "/auth/verify",
+    url: "/api/auth/verify",
   });
 };
 
@@ -231,7 +231,7 @@ export const usersCurrentUser = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     ...options,
-    url: "/users/me",
+    url: "/api/users/me",
   });
 };
 
@@ -247,7 +247,7 @@ export const usersPatchCurrentUser = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     ...options,
-    url: "/users/me",
+    url: "/api/users/me",
   });
 };
 
@@ -263,7 +263,7 @@ export const usersUser = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     ...options,
-    url: "/users/{id}",
+    url: "/api/users/{id}",
   });
 };
 
@@ -279,7 +279,7 @@ export const usersPatchUser = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     ...options,
-    url: "/users/{id}",
+    url: "/api/users/{id}",
   });
 };
 
@@ -295,7 +295,7 @@ export const usersDeleteUser = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     ...options,
-    url: "/users/{id}",
+    url: "/api/users/{id}",
   });
 };
 
@@ -311,7 +311,7 @@ export const readItem = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     ...options,
-    url: "/items/",
+    url: "/api/items/",
   });
 };
 
@@ -327,7 +327,7 @@ export const createItem = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     ...options,
-    url: "/items/",
+    url: "/api/items/",
   });
 };
 
@@ -343,7 +343,7 @@ export const deleteItem = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({
     ...options,
-    url: "/items/{item_id}",
+    url: "/api/items/{item_id}",
   });
 };
 

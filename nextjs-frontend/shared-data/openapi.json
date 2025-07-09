@@ -5,7 +5,7 @@
     "version": "0.1.0"
   },
   "paths": {
-    "/auth/jwt/login": {
+    "/api/auth/jwt/login": {
       "post": {
         "tags": [
           "auth"
@@ -74,7 +74,7 @@
         }
       }
     },
-    "/auth/jwt/logout": {
+    "/api/auth/jwt/logout": {
       "post": {
         "tags": [
           "auth"
@@ -101,7 +101,7 @@
         ]
       }
     },
-    "/auth/register": {
+    "/api/auth/register": {
       "post": {
         "tags": [
           "auth"
@@ -169,7 +169,7 @@
         }
       }
     },
-    "/auth/forgot-password": {
+    "/api/auth/forgot-password": {
       "post": {
         "tags": [
           "auth"
@@ -208,7 +208,7 @@
         }
       }
     },
-    "/auth/reset-password": {
+    "/api/auth/reset-password": {
       "post": {
         "tags": [
           "auth"
@@ -274,7 +274,7 @@
         }
       }
     },
-    "/auth/request-verify-token": {
+    "/api/auth/request-verify-token": {
       "post": {
         "tags": [
           "auth"
@@ -313,7 +313,7 @@
         }
       }
     },
-    "/auth/verify": {
+    "/api/auth/verify": {
       "post": {
         "tags": [
           "auth"
@@ -378,7 +378,7 @@
         }
       }
     },
-    "/users/me": {
+    "/api/users/me": {
       "get": {
         "tags": [
           "users"
@@ -481,7 +481,7 @@
         ]
       }
     },
-    "/users/{id}": {
+    "/api/users/{id}": {
       "get": {
         "tags": [
           "users"
@@ -675,9 +675,10 @@
         }
       }
     },
-    "/items/": {
+    "/api/items/": {
       "get": {
         "tags": [
+          "items",
           "item"
         ],
         "summary": "Read Item",
@@ -692,7 +693,7 @@
                     "$ref": "#/components/schemas/ItemRead"
                   },
                   "type": "array",
-                  "title": "Response Item-Read Item"
+                  "title": "Response Items-Read Item"
                 }
               }
             }
@@ -706,6 +707,7 @@
       },
       "post": {
         "tags": [
+          "items",
           "item"
         ],
         "summary": "Create Item",
@@ -749,9 +751,10 @@
         ]
       }
     },
-    "/items/{item_id}": {
+    "/api/items/{item_id}": {
       "delete": {
         "tags": [
+          "items",
           "item"
         ],
         "summary": "Delete Item",
@@ -3218,7 +3221,7 @@
         "flows": {
           "password": {
             "scopes": {},
-            "tokenUrl": "auth/jwt/login"
+            "tokenUrl": "api/auth/jwt/login"
           }
         }
       }

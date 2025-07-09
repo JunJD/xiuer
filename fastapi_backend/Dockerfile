@@ -33,3 +33,6 @@ RUN chmod +x /start.prod.sh
 
 # Expose the application port
 EXPOSE 8000
+
+# Command to run the application
+CMD ["/start.prod.sh"]

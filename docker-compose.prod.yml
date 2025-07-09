@@ -11,6 +11,9 @@ services:
   frontend:
     image: ${ALIYUN_REGISTRY_URL}/${ALIYUN_NAMESPACE}/frontend:latest
     restart: always
+    environment:
+      - API_BASE_URL=http://backend:8000
+      - NODE_ENV=production
 
   nginx:
     image: nginx:1.25-alpine

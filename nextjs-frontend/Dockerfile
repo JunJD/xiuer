@@ -33,8 +33,12 @@ RUN pnpm build
 # --- Production Stage ---
 FROM base AS production
 
-# Set environment variable for production and the working directory
+# Declare the runtime argument
+ARG API_BASE_URL
+
+# Set environment variables for production and runtime
 ENV NODE_ENV=production
+ENV API_BASE_URL=$API_BASE_URL
 WORKDIR /app
 
 # Copy the standalone output from the builder stage.

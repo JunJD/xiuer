@@ -112,10 +112,6 @@ async def trigger_crawl_task(
         }
         
         url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/actions/workflows/{workflow_id}/dispatches"
-
-        print(f"url===>: {url}")
-        print(f"github_payload===>: {github_payload}")
-        print(f"headers===>: {headers}")
         
         response = requests.post(url, json=github_payload, headers=headers)
         
@@ -193,8 +189,29 @@ async def get_tasks(
         tasks = result.scalars().all()
         
         # 转换为响应模型
-        task_responses = [TaskResponse.from_orm(task) for task in tasks]
-
+        task_responses = []
+        for task in tasks:
+            task_responses.append(TaskResponse(
+                id=str(task.id),
+                task_name=task.task_name,
+                keyword=task.keyword,
+                target_count=task.target_count,
+                sort_type=task.sort_type,
+                cookies=task.cookies,
+                status=TaskStatusEnum(task.status.value),
+                owner_id=str(task.owner_id),
+                total_crawled=task.total_crawled,
+                new_notes=task.new_notes,
+                changed_notes=task.changed_notes,
+                important_notes=task.important_notes,
+                error_message=task.error_message,
+                scheduled_time=task.scheduled_time,
+                started_at=task.started_at,
+                finished_at=task.finished_at,
+                created_at=task.created_at,
+                updated_at=task.updated_at
+            ))
+        
         return TaskListResponse(
             tasks=task_responses,
             total=total,

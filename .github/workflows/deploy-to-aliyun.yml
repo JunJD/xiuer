@@ -110,7 +110,7 @@ jobs:
                   - RESET_PASSWORD_SECRET_KEY=\${RESET_PASSWORD_SECRET_KEY}
                   - VERIFICATION_SECRET_KEY=\${VERIFICATION_SECRET_KEY}
                   - CORS_ORIGINS=\${CORS_ORIGINS}
-                  - GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
+                  - GITHUB_TOKEN=\${GITHUB_TOKEN}
                   - GITHUB_REPO_OWNER=JunJD
                   - GITHUB_REPO_NAME=xiuer-spider
                   - GITHUB_WORKFLOW_ID=170912099

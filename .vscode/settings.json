@@ -1,13 +1,21 @@
 {
     "cSpell.words": [
+        "asyncpg",
         "autoform",
         "cmdk",
+        "datefmt",
         "dummyhash",
         "fastapi",
+        "levelname",
         "makemigrations",
+        "mydatabase",
+        "NOTSET",
         "Nuqs",
         "onupdate",
+        "qualname",
+        "sqlalchemy",
         "testdatabase",
+        "venv",
         "xiuer"
     ]
 }

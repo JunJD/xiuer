@@ -74,6 +74,11 @@ jobs:
             VERIFICATION_SECRET_KEY=${{ secrets.VERIFICATION_SECRET_KEY }}
             # App settings
             CORS_ORIGINS=${{ secrets.CORS_ORIGINS }}
+            # Github
+            GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
+            GITHUB_REPO_OWNER=JunJD
+            GITHUB_REPO_NAME=xiuer-spider
+            GITHUB_WORKFLOW_ID=170912099
             EOF
             
             echo "Copying Nginx configuration..."

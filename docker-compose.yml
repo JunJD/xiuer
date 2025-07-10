@@ -13,6 +13,7 @@ services:
       - VERIFICATION_SECRET_KEY=${VERIFICATION_SECRET_KEY}
       - CORS_ORIGINS=${CORS_ORIGINS}
       - FRONTEND_URL=${FRONTEND_URL}
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
     networks:
       - my_network
     volumes:

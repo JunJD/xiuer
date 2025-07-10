@@ -114,6 +114,8 @@ async def trigger_crawl_task(
         url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/actions/workflows/{workflow_id}/dispatches"
 
         print(f"url===>: {url}")
+        print(f"github_payload===>: {github_payload}")
+        print(f"headers===>: {headers}")
         
         response = requests.post(url, json=github_payload, headers=headers)
         

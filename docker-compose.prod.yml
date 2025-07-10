@@ -25,4 +25,7 @@ services:
       - backend
       - frontend
     networks:
-      - my_network 
+      - my_network
+  db:
+    ports:
+      - "5431:5432" 

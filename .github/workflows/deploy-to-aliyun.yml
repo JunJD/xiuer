@@ -111,6 +111,7 @@ jobs:
                   - RESET_PASSWORD_SECRET_KEY=\${RESET_PASSWORD_SECRET_KEY}
                   - VERIFICATION_SECRET_KEY=\${VERIFICATION_SECRET_KEY}
                   - CORS_ORIGINS=\${CORS_ORIGINS}
+                  - GITHUB_TOKEN=\${GITHUB_TOKEN}
                   - AUTO_MIGRATE=true
                 networks:
                   - my_network

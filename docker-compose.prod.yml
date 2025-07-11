@@ -7,13 +7,19 @@ services:
     image: ${ALIYUN_REGISTRY_URL}/${ALIYUN_NAMESPACE}/backend:latest
     command: sh /start.prod.sh
     restart: always
+    environment:
+      - AUTO_MIGRATE=true
 
   frontend:
     image: ${ALIYUN_REGISTRY_URL}/${ALIYUN_NAMESPACE}/frontend:latest
     restart: always
     environment:
-      - API_BASE_URL=http://backend:8000
       - NODE_ENV=production
+
+  db:
+    ports:
+      - "5431:5432"
+    restart: always
 
   nginx:
     image: nginx:1.25-alpine
@@ -26,6 +32,4 @@ services:
       - frontend
     networks:
       - my_network
-  db:
-    ports:
-      - "5431:5432" 
+    restart: always 

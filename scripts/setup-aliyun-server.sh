@@ -154,37 +154,16 @@ install_docker() {
 # 安装Docker Compose
 install_docker_compose() {
     log_info "安装Docker Compose..."
-    
-    # 检查Docker Compose是否已安装
     if command -v docker-compose &> /dev/null; then
         log_warning "Docker Compose已安装，跳过安装步骤"
         return
     fi
-    
-    echo "🔧 正在安装 Docker Compose..."
-    # 先移除可能存在的旧版本二进制文件
-    if [ -f "/usr/local/bin/docker-compose" ]; then
-        echo "  -> 发现旧的 docker-compose 二进制文件，正在移除..."
-        sudo rm -f /usr/local/bin/docker-compose
-    fi
-    
-    # 安装 pip
-    echo "  -> 安装 pip..."
-    if ! command -v pip3 &> /dev/null; then
-        sudo yum install -y python3-pip
-    fi
-
-    # 使用 pip 安装 docker-compose
-    echo "  -> 使用 pip 安装 docker-compose..."
-    sudo pip3 install docker-compose
-
-    # 验证安装
-    if ! command -v docker-compose &> /dev/null; then
-        echo "❌ Docker Compose 安装失败，请检查错误。"
-        exit 1
-    fi
-    echo "✅ Docker Compose 安装成功！当前版本："
-    docker-compose --version
+    # 推荐用官方二进制安装，兼容性好
+    COMPOSE_VERSION="v2.29.2"
+    curl -L "https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+    chmod +x /usr/local/bin/docker-compose
+    ln -sf /usr/local/bin/docker-compose /usr/bin/docker-compose
+    docker-compose version
 }
 
 # 配置防火墙

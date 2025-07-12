@@ -85,7 +85,7 @@ jobs:
             POSTGRES_USER=${{ secrets.DB_USER }}
             POSTGRES_PASSWORD=${{ secrets.DB_PASSWORD }}
             POSTGRES_DB=${{ secrets.DB_NAME }}
-            DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+            DATABASE_URL=postgresql+asyncpg://${{ secrets.DB_USER }}:${{ secrets.DB_PASSWORD }}@db:5432/${{ secrets.DB_NAME }}
             # JWT Secret
             ACCESS_SECRET_KEY=${{ secrets.ACCESS_SECRET_KEY }}
             RESET_PASSWORD_SECRET_KEY=${{ secrets.RESET_PASSWORD_SECRET_KEY }}

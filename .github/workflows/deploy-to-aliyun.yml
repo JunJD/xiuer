@@ -50,7 +50,13 @@ jobs:
           file: ./config/nginx/Dockerfile
           push: true
           tags: ${{ secrets.ALIYUN_REGISTRY_URL }}/xiuer_2/nginx:1.25-alpine, ${{ secrets.ALIYUN_REGISTRY_URL }}/xiuer_2/nginx:latest
-
+      - name: Build and push postgres image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./config/postgres/Dockerfile
+          push: true
+          tags: ${{ secrets.ALIYUN_REGISTRY_URL }}/xiuer_2/postgres:17, ${{ secrets.ALIYUN_REGISTRY_URL }}/xiuer_2/postgres:latest
       - name: Deploy to server
         uses: appleboy/ssh-action@master
         with:

@@ -56,7 +56,7 @@ jobs:
           context: .
           file: ./config/postgres/Dockerfile
           push: true
-          tags: ${{ secrets.ALIYUN_REGISTRY_URL }}/xiuer_2/postgres:17, ${{ secrets.ALIYUN_REGISTRY_URL }}/xiuer_2/postgres:latest
+          tags: ${{ secrets.ALIYUN_REGISTRY_URL }}/xiuer_2/postgres:14, ${{ secrets.ALIYUN_REGISTRY_URL }}/xiuer_2/postgres:latest
       - name: Deploy to server
         uses: appleboy/ssh-action@master
         with:

@@ -68,7 +68,7 @@ jobs:
             # Clone repo if it doesn't exist, otherwise pull latest changes
             if [ ! -d "/app/xiuer" ]; then
               echo "Cloning repository..."
-              git clone https://ghproxy.com/https://github.com/JunJD/xiuer.git /app/xiuer
+              git clone https://github.com/JunJD/xiuer.git /app/xiuer
             fi
             cd /app/xiuer || exit 1
             echo "Pulling latest changes..."

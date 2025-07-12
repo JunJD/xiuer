@@ -70,9 +70,9 @@ jobs:
               echo "Cloning repository..."
               git clone https://github.com/JunJD/xiuer.git /app/xiuer
             fi
-            cd /app/xiuer
+            cd /app/xiuer || exit 1
             echo "Pulling latest changes..."
-            git pull
+            git pull || exit 1
 
             echo "Creating .env file from secrets..."
             cat <<EOF > .env
@@ -99,9 +99,9 @@ jobs:
             EOF
             
             echo "Pulling latest images with Docker Compose..."
-            docker-compose -f docker-compose.yml -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
             
             echo "Starting application with force recreate..."
-            docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --force-recreate
+            docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --force-recreate
             
             echo "Deployment finished!" 

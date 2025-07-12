@@ -43,6 +43,14 @@ jobs:
           build-args: |
             API_BASE_URL=http://backend:8000
 
+      - name: Build and push nginx image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./config/nginx
+          file: ./config/nginx/Dockerfile
+          push: true
+          tags: ${{ secrets.ALIYUN_REGISTRY_URL }}/xiuer_2/nginx:1.25-alpine, ${{ secrets.ALIYUN_REGISTRY_URL }}/xiuer_2/nginx:latest
+
       - name: Deploy to server
         uses: appleboy/ssh-action@master
         with:

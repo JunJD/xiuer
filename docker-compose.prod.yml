@@ -22,7 +22,7 @@ services:
     restart: always
 
   nginx:
-    image: nginx:1.25-alpine
+    image: ${ALIYUN_REGISTRY_URL}/${ALIYUN_NAMESPACE}/nginx:1.25-alpine
     ports:
       - "80:80"
     volumes:

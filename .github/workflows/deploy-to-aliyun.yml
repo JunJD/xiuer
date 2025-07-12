@@ -50,6 +50,7 @@ jobs:
       - name: Deploy to server
         uses: appleboy/ssh-action@master
         with:
+          port: 21
           host: ${{ secrets.ECS_HOST }}
           username: ${{ secrets.ECS_USERNAME }}
           key: ${{ secrets.ECS_SSH_KEY }}

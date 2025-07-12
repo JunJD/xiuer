@@ -64,6 +64,7 @@ jobs:
             cat <<EOF > .env
             # General
             COMPOSE_PROFILES=prod
+            FRONTEND_URL=http://localhost:3000
             ALIYUN_REGISTRY_URL=${{ secrets.ALIYUN_REGISTRY_URL }}
             ALIYUN_NAMESPACE=xiuer_2
             # Database credentials

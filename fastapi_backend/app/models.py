@@ -88,6 +88,7 @@ class XhsNote(Base):
     video_cover = Column(String(500), nullable=True)  # 视频封面URL
     video_addr = Column(String(500), nullable=True)  # 视频地址URL
     image_list = Column(JSON, nullable=True)  # 图片地址URL列表
+    author_avatar = Column(String(500), nullable=True)  # 作者头像URL
     
     # 标签和追踪字段
     current_tags = Column(JSON, nullable=True)  # 当前标签列表 [NoteTag.NEW, NoteTag.IMPORTANT]

@@ -111,19 +111,34 @@ export default function ExpandableNoteGrid({ notes }: ExpandableNoteGridProps) {
 
               <div>
                 <div className="flex justify-between items-start p-4">
-                  <div className="">
-                    <motion.h3
-                      layoutId={`title-${active.note_id}-${id}`}
-                      className="font-bold text-neutral-700 dark:text-neutral-200"
-                    >
-                      {active.title || '无标题'}
-                    </motion.h3>
-                    <motion.p
-                      layoutId={`author-${active.note_id}-${id}`}
-                      className="text-neutral-600 dark:text-neutral-400"
-                    >
-                      @{active.author_nickname || '未知作者'}
-                    </motion.p>
+                  <div className="flex items-start gap-3">
+                    <div className="w-12 h-12 bg-gradient-to-br from-red-400 to-pink-500 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
+                      {active.author_avatar ? (
+                        <img 
+                          src={active.author_avatar} 
+                          alt="author avatar" 
+                          className="w-full h-full object-cover rounded-full" 
+                        />
+                      ) : (
+                        <span className="text-white text-lg font-bold">
+                          {active.author_nickname?.charAt(0) || '?'}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <motion.h3
+                        layoutId={`title-${active.note_id}-${id}`}
+                        className="font-bold text-neutral-700 dark:text-neutral-200"
+                      >
+                        {active.title || '无标题'}
+                      </motion.h3>
+                      <motion.p
+                        layoutId={`author-${active.note_id}-${id}`}
+                        className="text-neutral-600 dark:text-neutral-400"
+                      >
+                        @{active.author_nickname || '未知作者'}
+                      </motion.p>
+                    </div>
                   </div>
 
                   <motion.a
@@ -256,11 +271,18 @@ export default function ExpandableNoteGrid({ notes }: ExpandableNoteGridProps) {
                     className="flex items-center justify-between"
                   >
                     <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 bg-gradient-to-br from-red-400 to-pink-500 rounded-full flex items-center justify-center">
-                      {note.author_avatar && <img src={note.author_avatar} alt="author avatar" className="w-full h-full object-cover rounded-full" />}
-                        <span className="text-white text-xs">
-                          {note.author_nickname?.charAt(0) || '?'}
-                        </span>
+                      <div className="w-6 h-6 bg-gradient-to-br from-red-400 to-pink-500 rounded-full flex items-center justify-center overflow-hidden">
+                        {note.author_avatar ? (
+                          <img 
+                            src={note.author_avatar} 
+                            alt="author avatar" 
+                            className="w-full h-full object-cover rounded-full" 
+                          />
+                        ) : (
+                          <span className="text-white text-xs">
+                            {note.author_nickname?.charAt(0) || '?'}
+                          </span>
+                        )}
                       </div>
                       <span className="text-xs text-gray-600 truncate max-w-[80px]">
                         {note.author_nickname || '未知作者'}

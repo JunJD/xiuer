@@ -73,6 +73,108 @@ async def update_task_status(db: AsyncSession, task_id: str, status: TaskStatus,
         logger.error(f"更新任务状态失败: {str(e)}")
 
 
+def transform_note_data(raw_data: dict) -> dict:
+    """
+    转换原始笔记数据为符合XhsNoteData schema的格式
+    将嵌套结构转换为扁平化结构
+    """
+    transformed = {}
+    
+    # 复制基础字段
+    for key in ['note_id', 'note_url', 'note_type', 'title', 'desc', 'tags', 
+                'upload_time', 'ip_location', 'video_cover', 
+                'image_list', 'xsec_token']:
+        if key in raw_data:
+            transformed[key] = raw_data[key]
+    
+    # 处理author嵌套字段
+    if 'author' in raw_data and isinstance(raw_data['author'], dict):
+        author = raw_data['author']
+        transformed['author_user_id'] = author.get('user_id')
+        transformed['author_nickname'] = author.get('nickname')
+        transformed['author_avatar'] = author.get('avatar')
+    
+    # 处理interact_info嵌套字段
+    if 'interact_info' in raw_data and isinstance(raw_data['interact_info'], dict):
+        interact = raw_data['interact_info']
+        transformed['liked_count'] = interact.get('liked_count', 0)
+        transformed['collected_count'] = interact.get('collected_count', 0)
+        transformed['comment_count'] = interact.get('comment_count', 0)
+        transformed['share_count'] = interact.get('share_count', 0)
+    else:
+        # 如果没有嵌套结构，尝试直接从根级别获取
+        transformed['liked_count'] = raw_data.get('liked_count', 0)
+        transformed['collected_count'] = raw_data.get('collected_count', 0)
+        transformed['comment_count'] = raw_data.get('comment_count', 0)
+        transformed['share_count'] = raw_data.get('share_count', 0)
+    
+    return transformed
+
+async def process_webhook_data_background(data: Any, db: AsyncSession, task_id: str = None):
+    """
+    后台处理webhook数据 - 简化版
+    """
+    try:
+        xhs_service = XhsDataService(db)
+        result = None
+        
+        # 处理数据
+        if isinstance(data, dict):
+            # 检查是否是包含notes数组的数据格式
+            if "notes" in data and isinstance(data["notes"], list):
+                notes_data = []
+                for item in data["notes"]:
+                    if isinstance(item, dict) and "note_id" in item:
+                        # 转换数据格式
+                        transformed_item = transform_note_data(item)
+                        notes_data.append(XhsNoteData(**transformed_item))
+                
+                if notes_data:
+                    result = await xhs_service.process_notes_batch(notes_data)
+                    logger.info(f"处理笔记批量数据完成: 新增{result.new_count}个笔记，变更{result.changed_count}个笔记")
+                else:
+                    logger.warning(f"notes数组为空或格式不正确")
+            # 检查是否是单个笔记
+            elif "note_id" in data:
+                # 转换数据格式
+                transformed_data = transform_note_data(data)
+                note_data = XhsNoteData(**transformed_data)
+                is_new, is_changed, is_important = await xhs_service.process_single_note(note_data)
+                logger.info(f"处理单个笔记完成: {note_data.note_id}")
+                # 为单个笔记创建处理结果
+                result = ProcessResult(
+                    total_processed=1,
+                    new_count=1 if is_new else 0,
+                    changed_count=1 if is_changed else 0,
+                    important_count=1 if is_important else 0,
+                    errors=[]
+                )
+            else:
+                logger.warning(f"未知的数据格式: {data}")
+                
+        elif isinstance(data, list):
+            # 处理笔记列表
+            notes_data = []
+            for item in data:
+                if isinstance(item, dict) and "note_id" in item:
+                    # 转换数据格式
+                    transformed_item = transform_note_data(item)
+                    notes_data.append(XhsNoteData(**transformed_item))
+            
+            if notes_data:
+                result = await xhs_service.process_notes_batch(notes_data)
+                logger.info(f"处理笔记批量数据完成: 新增{result.new_count}个笔记，变更{result.changed_count}个笔记")
+        
+        # 更新任务状态
+        if task_id and result:
+            await update_task_status(db, task_id, TaskStatus.COMPLETED, result)
+        
+    except Exception as e:
+        logger.error(f"后台处理webhook数据失败: {str(e)}")
+        if task_id:
+            await update_task_status(db, task_id, TaskStatus.FAILED, None, str(e))
+
+
 @router.post("/xhs-result", response_model=WebhookResponse)
 async def receive_xhs_webhook(
     webhook_data: WebhookRequest,
@@ -165,65 +267,6 @@ async def receive_xhs_webhook(
     except Exception as e:
         logger.error(f"处理webhook失败: {str(e)}")
         raise HTTPException(status_code=500, detail=f"处理webhook失败: {str(e)}")
-
-
-async def process_webhook_data_background(data: Any, db: AsyncSession, task_id: str = None):
-    """
-    后台处理webhook数据 - 简化版
-    """
-    try:
-        xhs_service = XhsDataService(db)
-        result = None
-        
-        # 处理数据
-        if isinstance(data, dict):
-            # 检查是否是包含notes数组的数据格式
-            if "notes" in data and isinstance(data["notes"], list):
-                notes_data = []
-                for item in data["notes"]:
-                    if isinstance(item, dict) and "note_id" in item:
-                        notes_data.append(XhsNoteData(**item))
-                
-                if notes_data:
-                    result = await xhs_service.process_notes_batch(notes_data)
-                    logger.info(f"处理笔记批量数据完成: 新增{result.new_count}个笔记，变更{result.changed_count}个笔记")
-                else:
-                    logger.warning(f"notes数组为空或格式不正确")
-            # 检查是否是单个笔记
-            elif "note_id" in data:
-                note_data = XhsNoteData(**data)
-                is_new, is_changed, is_important = await xhs_service.process_single_note(note_data)
-                logger.info(f"处理单个笔记完成: {note_data.note_id}")
-                # 为单个笔记创建处理结果
-                result = ProcessResult(
-                    total_processed=1,
-                    new_count=1 if is_new else 0,
-                    changed_count=1 if is_changed else 0,
-                    important_count=1 if is_important else 0,
-                    errors=[]
-                )
-            else:
-                logger.warning(f"未知的数据格式: {data}")
-                
-        elif isinstance(data, list):
-            # 处理笔记列表
-            notes_data = []
-            for item in data:
-                if isinstance(item, dict) and "note_id" in item:
-                    notes_data.append(XhsNoteData(**item))
-            
-            if notes_data:
-                result = await xhs_service.process_notes_batch(notes_data)
-                logger.info(f"处理笔记批量数据完成: 新增{result.new_count}个笔记，变更{result.changed_count}个笔记")
-        
-        # 更新任务状态
-        if task_id and result:
-            await update_task_status(db, task_id, TaskStatus.COMPLETED, result)
-        
-    except Exception as e:
-        logger.error(f"后台处理webhook数据失败: {str(e)}")
-        if task_id:
-            await update_task_status(db, task_id, TaskStatus.FAILED, None, str(e))
 
 
 @router.post("/test")

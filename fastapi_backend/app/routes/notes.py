@@ -79,7 +79,9 @@ async def search_notes(
                 is_changed=note.is_changed,
                 is_important=note.is_important,
                 first_crawl_time=note.first_crawl_time,
-                last_crawl_time=note.last_crawl_time
+                last_crawl_time=note.last_crawl_time,
+                image_list=note.image_list,
+                author_avatar=note.author_avatar
             )
             result.append(note_response)
         

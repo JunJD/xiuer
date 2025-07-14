@@ -400,6 +400,8 @@ export type XhsNoteResponse = {
   is_important: boolean;
   first_crawl_time: string;
   last_crawl_time: string;
+  image_list?: Array<string> | null;
+  author_avatar?: string | null;
 };
 
 export type AuthJwtLoginData = {

@@ -3134,6 +3134,31 @@
             "type": "string",
             "format": "date-time",
             "title": "Last Crawl Time"
+          },
+          "image_list": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image List"
+          },
+          "author_avatar": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Author Avatar"
           }
         },
         "type": "object",

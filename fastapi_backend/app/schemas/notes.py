@@ -77,6 +77,8 @@ class XhsNoteResponse(BaseModel):
     is_important: bool
     first_crawl_time: datetime
     last_crawl_time: datetime
+    image_list: Optional[List[str]] = None
+    author_avatar: Optional[str] = None
     
     class Config:
         from_attributes = True

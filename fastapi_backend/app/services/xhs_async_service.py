@@ -81,9 +81,18 @@ class XhsDataService:
     async def process_single_note(self, note_data: XhsNoteData) -> Tuple[bool, bool, bool]:
         """处理单个笔记数据，返回(is_new, is_changed, is_important)"""
         try:
-            # 查找现有笔记
+            # 获取今天00:00的时间用于过滤
+            today = datetime.utcnow().date()
+            today_start = datetime.combine(today, datetime.min.time())
+            
+            # 查找现有笔记（排除今天00:00之后的数据，确保对比准确性）
             result = await self.db.execute(
-                select(XhsNote).filter(XhsNote.note_id == note_data.note_id)
+                select(XhsNote).filter(
+                    and_(
+                        XhsNote.note_id == note_data.note_id,
+                        XhsNote.last_crawl_time < today_start
+                    )
+                )
             )
             existing_note = result.scalars().first()
             

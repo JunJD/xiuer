@@ -85,20 +85,15 @@ class XhsDataService:
     async def process_single_note(self, note_data: XhsNoteData) -> Tuple[bool, bool, bool]:
         """处理单个笔记数据，返回(is_new, is_changed, is_important)"""
         try:
-            # 获取今天00:00的时间用于过滤（使用时区感知的方法）
-            now = self._utc_now()
-            today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
-            
-            # 查找现有笔记（排除今天00:00之后的数据，确保对比准确性）
+            # 先查找现有笔记（不过滤时间，确保能找到已存在的记录）
             result = await self.db.execute(
-                select(XhsNote).filter(
-                    and_(
-                        XhsNote.note_id == note_data.note_id,
-                        XhsNote.last_crawl_time < today_start
-                    )
-                )
+                select(XhsNote).filter(XhsNote.note_id == note_data.note_id)
             )
             existing_note = result.scalars().first()
+            
+            # 获取今天00:00的时间用于对比逻辑
+            now = self._utc_now()
+            today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
             
             is_new = existing_note is None
             is_changed = False
@@ -115,10 +110,18 @@ class XhsDataService:
                 logger.info(f"创建新笔记: {note_data.note_id}")
                 
             else:
-                # 更新现有笔记
-                is_changed = self._update_existing_note_object(existing_note, note_data)
-                if is_changed:
-                    logger.info(f"更新笔记: {note_data.note_id}")
+                # 检查是否今天已经爬取过
+                already_crawled_today = existing_note.last_crawl_time >= today_start
+                
+                if already_crawled_today:
+                    # 今天已经爬取过，只更新数据，不重新检测变化
+                    is_changed = self._update_existing_note_simple(existing_note, note_data)
+                    logger.info(f"今日重复爬取笔记: {note_data.note_id}")
+                else:
+                    # 今天首次爬取，进行变化检测
+                    is_changed = self._update_existing_note_object(existing_note, note_data)
+                    if is_changed:
+                        logger.info(f"更新笔记: {note_data.note_id}")
                 
                 # 重新检查重要性
                 is_important = await self._check_note_importance(note_data)
@@ -201,6 +204,26 @@ class XhsDataService:
             existing_note.crawl_count += 1
         
         return is_changed
+    
+    def _update_existing_note_simple(self, existing_note: XhsNote, note_data: XhsNoteData) -> bool:
+        """简单更新现有笔记对象（不检测变化，用于同日重复爬取）"""
+        # 更新所有互动数据到最新值
+        existing_note.liked_count = note_data.liked_count
+        existing_note.collected_count = note_data.collected_count
+        existing_note.comment_count = note_data.comment_count
+        existing_note.share_count = note_data.share_count
+        
+        # 更新其他可能变化的字段
+        existing_note.title = note_data.title
+        existing_note.desc = note_data.desc
+        
+        # 更新爬取时间和计数，但保持现有的变化状态
+        existing_note.last_crawl_time = datetime.utcnow()
+        existing_note.crawl_count += 1
+        existing_note.is_new = False  # 确保不是新笔记
+        
+        # 返回 False，表示这次没有新的变化检测
+        return False
     
     async def _check_note_importance(self, note_data: XhsNoteData) -> bool:
         """检查笔记是否重要（简化版）"""

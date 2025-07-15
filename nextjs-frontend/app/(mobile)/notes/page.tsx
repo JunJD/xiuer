@@ -3,7 +3,12 @@ import { XhsNoteResponse } from "@/app/openapi-client";
 import ExpandableNoteGrid from "../_components/flow-list";
 
 export default async function MobileNotesPage() {
-  const notesData = await fetchNotes() as XhsNoteResponse[];
+  const notesData = await fetchNotes({
+    is_new: true,
+    is_changed: true,
+    is_important: true,
+    today_only: true,
+  }) as XhsNoteResponse[];
   const notes = Array.isArray(notesData) ? notesData : [];
 
   return (

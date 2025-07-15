@@ -2,7 +2,7 @@
 
 import { cookies } from "next/headers";
 import { getNotesStats, searchNotes, getNoteDetail } from "@/app/clientService";
-import { noteQuerySchema } from "@/lib/definitions";
+import { noteQuerySchema, NotesQueryParams } from "@/lib/definitions";
 
 export async function fetchNotesStats() {
   const cookieStore = await cookies();
@@ -25,16 +25,7 @@ export async function fetchNotesStats() {
   return data;
 }
 
-export async function fetchNotes(
-  keyword?: string,
-  is_new?: boolean,
-  is_changed?: boolean,
-  is_important?: boolean,
-  author_user_id?: string,
-  limit: number = 500,
-  offset: number = 0,
-  today_only: boolean = true,
-) {
+export async function fetchNotes(queryParams: Partial<NotesQueryParams> = {}) {
   const cookieStore = await cookies();
   const token = cookieStore.get("accessToken")?.value;
 
@@ -42,22 +33,32 @@ export async function fetchNotes(
     return { message: "No access token found" };
   }
 
-  const queryParams: Record<string, unknown> = {
-    limit,
-    offset,
+  // 使用默认值并合并用户提供的参数
+  const params: NotesQueryParams = {
+    limit: 500,
+    offset: 0,
+    today_only: true,
+    ...queryParams,
   };
 
-  if (keyword) queryParams.keyword = keyword;
-  if (is_new !== undefined) queryParams.is_new = is_new;
-  if (is_changed !== undefined) queryParams.is_changed = is_changed;
-  if (is_important !== undefined) queryParams.is_important = is_important;
-  if (author_user_id) queryParams.author_user_id = author_user_id;
-  if (today_only !== undefined) queryParams.today_only = today_only;
+  // 构建查询参数，只包含有效值
+  const searchParams: Record<string, unknown> = {
+    limit: params.limit,
+    offset: params.offset,
+  };
+
+  if (params.keyword) searchParams.keyword = params.keyword;
+  if (params.is_new !== undefined) searchParams.is_new = params.is_new;
+  if (params.is_changed !== undefined) searchParams.is_changed = params.is_changed;
+  if (params.is_important !== undefined) searchParams.is_important = params.is_important;
+  if (params.author_user_id) searchParams.author_user_id = params.author_user_id;
+  if (params.today_only !== undefined) searchParams.today_only = params.today_only;
+
   const { data, error } = await searchNotes({
     headers: {
       Authorization: `Bearer ${token}`,
     },
-    query: queryParams,
+    query: searchParams,
   });
 
   if (error) {

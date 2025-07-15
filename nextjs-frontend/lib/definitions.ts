@@ -74,3 +74,5 @@ export const noteQuerySchema = z.object({
   offset: z.number().min(0).optional().default(0),
   today_only: z.boolean().optional().default(true),
 });
+
+export type NotesQueryParams = z.infer<typeof noteQuerySchema>;

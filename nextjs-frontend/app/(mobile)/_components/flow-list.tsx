@@ -19,7 +19,7 @@ interface ExpandableNoteGridProps {
 // 处理小红书链接跳转的函数
 const handleXhsLinkClick = (noteId: string, noteUrl?: string | null) => {
   // 小红书 app 的 URL scheme
-  const xhsAppUrl = `xhsdiscover://item/${noteId}/`;
+  const xhsAppUrl = `xhsdiscover://item/${noteId}`;
   
   const iframe = document.createElement('iframe');
   iframe.style.display = 'none';

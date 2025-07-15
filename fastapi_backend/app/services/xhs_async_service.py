@@ -6,7 +6,7 @@
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional, Tuple
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import and_, or_, desc, func
@@ -35,6 +35,10 @@ class XhsDataService:
     
     def __init__(self, db: AsyncSession):
         self.db = db
+    
+    @staticmethod
+    def _utc_now() -> datetime:
+        return datetime.utcnow()
         
     async def process_notes_batch(self, notes_data: List[XhsNoteData]) -> ProcessResult:
         """处理笔记批量数据"""
@@ -81,9 +85,9 @@ class XhsDataService:
     async def process_single_note(self, note_data: XhsNoteData) -> Tuple[bool, bool, bool]:
         """处理单个笔记数据，返回(is_new, is_changed, is_important)"""
         try:
-            # 获取今天00:00的时间用于过滤
-            today = datetime.utcnow().date()
-            today_start = datetime.combine(today, datetime.min.time())
+            # 获取今天00:00的时间用于过滤（使用时区感知的方法）
+            now = self._utc_now()
+            today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
             
             # 查找现有笔记（排除今天00:00之后的数据，确保对比准确性）
             result = await self.db.execute(

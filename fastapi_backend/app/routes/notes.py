@@ -54,8 +54,8 @@ async def search_notes(
         # 处理today_only参数
         date_from = None
         if today_only:
-            # 获取今天00:00的时间（使用UTC时区）
-            now = datetime.now(timezone.utc)
+            # 获取今天00:00的时间（使用 naive datetime 匹配数据库字段）
+            now = datetime.utcnow()
             today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
             date_from = today_start
         

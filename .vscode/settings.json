@@ -16,6 +16,7 @@
         "sqlalchemy",
         "testdatabase",
         "venv",
+        "xhsdiscover",
         "xiuer"
     ]
 }

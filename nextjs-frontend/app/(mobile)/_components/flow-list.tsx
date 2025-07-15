@@ -19,47 +19,34 @@ interface ExpandableNoteGridProps {
 // 处理小红书链接跳转的函数
 const handleXhsLinkClick = (noteId: string, noteUrl?: string | null) => {
   // 小红书 app 的 URL scheme
-  const xhsAppUrl = `xhsdiscover://item/${noteId}`;
+  const xhsAppUrl = `xhsdiscover://item/${noteId}/`;
   
-  // 检测是否为移动端
-  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  const iframe = document.createElement('iframe');
+  iframe.style.display = 'none';
+  iframe.src = xhsAppUrl;
+  document.body.appendChild(iframe);
   
-  if (isMobile) {
-    // 移动端：尝试打开 app，失败时打开网页
-    const iframe = document.createElement('iframe');
-    iframe.style.display = 'none';
-    iframe.src = xhsAppUrl;
-    document.body.appendChild(iframe);
-    
-    // 设置超时，如果 app 没有打开，则打开网页
-    const timeoutId = setTimeout(() => {
-      document.body.removeChild(iframe);
-      if (noteUrl) {
-        window.open(noteUrl, '_blank');
-      }
-    }, 1500);
-    
-    // 如果页面失去焦点（说明 app 打开了），取消网页跳转
-    const handleVisibilityChange = () => {
-      if (document.hidden) {
-        clearTimeout(timeoutId);
-        document.body.removeChild(iframe);
-        document.removeEventListener('visibilitychange', handleVisibilityChange);
-      }
-    };
-    
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    
-    // 清理定时器
-    setTimeout(() => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    }, 3000);
-  } else {
-    // 桌面端：直接打开网页
+  // 设置超时，如果 app 没有打开，则打开网页
+  const timeoutId = setTimeout(() => {
+    document.body.removeChild(iframe);
     if (noteUrl) {
       window.open(noteUrl, '_blank');
     }
-  }
+  }, 1500);
+  
+  const handleVisibilityChange = () => {
+    if (document.hidden) {
+      clearTimeout(timeoutId);
+      document.body.removeChild(iframe);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    }
+  };
+  
+  document.addEventListener('visibilitychange', handleVisibilityChange);
+  
+  setTimeout(() => {
+    document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, 3000);
 };
 
 export default function ExpandableNoteGrid({ notes }: ExpandableNoteGridProps) {

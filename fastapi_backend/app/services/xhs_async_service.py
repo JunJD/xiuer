@@ -297,10 +297,10 @@ class XhsDataService:
                 query = query.filter(XhsNote.author_user_id == author_user_id)
             
             if date_from:
-                query = query.filter(XhsNote.first_crawl_time >= date_from)
+                query = query.filter(XhsNote.last_crawl_time >= date_from)
             
             if date_to:
-                query = query.filter(XhsNote.first_crawl_time <= date_to)
+                query = query.filter(XhsNote.last_crawl_time <= date_to)
             
             # 排序和分页
             query = query.order_by(desc(XhsNote.last_crawl_time))

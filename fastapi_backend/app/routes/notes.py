@@ -6,7 +6,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 
 from app.database import get_async_session
 from app.schemas.notes import (
@@ -42,6 +42,7 @@ async def search_notes(
     is_changed: bool = None,
     is_important: bool = None,
     author_user_id: str = None,
+    today_only: bool = False,
     limit: int = 50,
     offset: int = 0,
     db: AsyncSession = Depends(get_async_session)
@@ -50,6 +51,14 @@ async def search_notes(
     搜索和筛选笔记
     """
     try:
+        # 处理today_only参数
+        date_from = None
+        if today_only:
+            # 获取今天00:00的时间（使用UTC时区）
+            now = datetime.now(timezone.utc)
+            today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+            date_from = today_start
+        
         xhs_service = XhsDataService(db)
         notes = await xhs_service.search_notes(
             keyword=keyword,
@@ -57,6 +66,7 @@ async def search_notes(
             is_changed=is_changed,
             is_important=is_important,
             author_user_id=author_user_id,
+            date_from=date_from,
             limit=limit,
             offset=offset
         )

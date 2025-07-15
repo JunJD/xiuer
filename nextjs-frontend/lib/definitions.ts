@@ -72,4 +72,5 @@ export const noteQuerySchema = z.object({
   author_user_id: z.string().optional(),
   limit: z.number().min(1).max(1000).optional().default(50),
   offset: z.number().min(0).optional().default(0),
+  today_only: z.boolean().optional().default(true),
 });

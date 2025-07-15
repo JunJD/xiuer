@@ -33,6 +33,7 @@ export async function fetchNotes(
   author_user_id?: string,
   limit: number = 500,
   offset: number = 0,
+  today_only: boolean = true,
 ) {
   const cookieStore = await cookies();
   const token = cookieStore.get("accessToken")?.value;
@@ -51,7 +52,7 @@ export async function fetchNotes(
   if (is_changed !== undefined) queryParams.is_changed = is_changed;
   if (is_important !== undefined) queryParams.is_important = is_important;
   if (author_user_id) queryParams.author_user_id = author_user_id;
-
+  if (today_only !== undefined) queryParams.today_only = today_only;
   const { data, error } = await searchNotes({
     headers: {
       Authorization: `Bearer ${token}`,
@@ -121,6 +122,12 @@ export async function searchNotesByQuery(prevState: {}, formData: FormData) {
     author_user_id: formData.get("author_user_id") || undefined,
     limit: parseInt(formData.get("limit")?.toString() || "50"),
     offset: parseInt(formData.get("offset")?.toString() || "0"),
+    today_only:
+      formData.get("today_only") === "true"
+        ? true
+        : formData.get("today_only") === "false"
+          ? false
+          : undefined,
   });
 
   if (!validatedFields.success) {
@@ -135,6 +142,7 @@ export async function searchNotesByQuery(prevState: {}, formData: FormData) {
     author_user_id,
     limit,
     offset,
+    today_only,
   } = validatedFields.data;
 
   const queryParams: Record<string, unknown> = {
@@ -147,7 +155,7 @@ export async function searchNotesByQuery(prevState: {}, formData: FormData) {
   if (is_changed !== undefined) queryParams.is_changed = is_changed;
   if (is_important !== undefined) queryParams.is_important = is_important;
   if (author_user_id) queryParams.author_user_id = author_user_id;
-
+  if (today_only !== undefined) queryParams.today_only = today_only;
   const { data, error } = await searchNotes({
     headers: {
       Authorization: `Bearer ${token}`,

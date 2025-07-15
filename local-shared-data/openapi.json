@@ -1252,6 +1252,16 @@
             }
           },
           {
+            "name": "today_only",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Today Only"
+            }
+          },
+          {
             "name": "limit",
             "in": "query",
             "required": false,

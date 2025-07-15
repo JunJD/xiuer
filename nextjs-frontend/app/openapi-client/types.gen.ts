@@ -610,6 +610,7 @@ export type SearchNotesData = {
     keyword?: string;
     limit?: number;
     offset?: number;
+    today_only?: boolean;
   };
 };
 

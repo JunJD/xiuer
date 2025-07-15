@@ -16,37 +16,18 @@ interface ExpandableNoteGridProps {
   notes: XhsNoteResponse[];
 }
 
-// 处理小红书链接跳转的函数
 const handleXhsLinkClick = (noteId: string, noteUrl?: string | null) => {
-  // 小红书 app 的 URL scheme
   const xhsAppUrl = `xhsdiscover://item/${noteId}`;
-  
   const iframe = document.createElement('iframe');
   iframe.style.display = 'none';
   iframe.src = xhsAppUrl;
   document.body.appendChild(iframe);
   
-  // 设置超时，如果 app 没有打开，则打开网页
   const timeoutId = setTimeout(() => {
     document.body.removeChild(iframe);
-    if (noteUrl) {
-      window.open(noteUrl, '_blank');
-    }
+    clearTimeout(timeoutId);
   }, 1500);
   
-  const handleVisibilityChange = () => {
-    if (document.hidden) {
-      clearTimeout(timeoutId);
-      document.body.removeChild(iframe);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    }
-  };
-  
-  document.addEventListener('visibilitychange', handleVisibilityChange);
-  
-  setTimeout(() => {
-    document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, 3000);
 };
 
 export default function ExpandableNoteGrid({ notes }: ExpandableNoteGridProps) {

@@ -153,35 +153,39 @@ class XhsDataService:
         """更新现有笔记对象，返回是否有变更"""
         is_changed = False
         
-        # 检查互动数据变化
-        if (existing_note.liked_count != note_data.liked_count or
-            existing_note.collected_count != note_data.collected_count or
-            existing_note.comment_count != note_data.comment_count or
-            existing_note.share_count != note_data.share_count):
-            
-            existing_note.liked_count = note_data.liked_count
-            existing_note.collected_count = note_data.collected_count
-            existing_note.comment_count = note_data.comment_count
-            existing_note.share_count = note_data.share_count
-            is_changed = True
+        # 只检查评论数量变化
+        is_changed = existing_note.comment_count != note_data.comment_count
+        
+        # 更新所有互动数据（即使没有变化也要更新到最新值）
+        existing_note.liked_count = note_data.liked_count
+        existing_note.collected_count = note_data.collected_count
+        existing_note.comment_count = note_data.comment_count
+        existing_note.share_count = note_data.share_count
         
         # 更新其他可能变化的字段
-        if existing_note.title != note_data.title:
-            existing_note.title = note_data.title
-            is_changed = True
+        # if existing_note.title != note_data.title:
+        #     existing_note.title = note_data.title
+        #     is_changed = True
             
-        if existing_note.desc != note_data.desc:
-            existing_note.desc = note_data.desc
-            is_changed = True
+        # if existing_note.desc != note_data.desc:
+        #     existing_note.desc = note_data.desc
+        #     is_changed = True
         
         if is_changed:
             existing_note.is_changed = True
+            existing_note.is_new = False
             existing_note.last_crawl_time = datetime.utcnow()
             existing_note.crawl_count += 1
             
             # 更新标签
             if NoteTag.CHANGED.value not in existing_note.current_tags:
                 existing_note.current_tags.append(NoteTag.CHANGED.value)
+        else:
+            # 没有变化的情况下也要更新状态
+            existing_note.is_changed = False
+            existing_note.is_new = False
+            existing_note.last_crawl_time = datetime.utcnow()
+            existing_note.crawl_count += 1
         
         return is_changed
     

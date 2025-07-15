@@ -85,6 +85,7 @@ export default function ExpandableNoteGrid({ notes }: ExpandableNoteGridProps) {
                             src={image}
                             alt={`${active.title || '笔记图片'} ${index + 1}`}
                             className="w-full h-80 lg:h-80 sm:rounded-tr-lg sm:rounded-tl-lg object-cover object-top"
+                            referrerpolicy="no-referrer"
                           />
                         </CarouselItem>
                       ))}
@@ -118,6 +119,7 @@ export default function ExpandableNoteGrid({ notes }: ExpandableNoteGridProps) {
                           src={active.author_avatar} 
                           alt="author avatar" 
                           className="w-full h-full object-cover rounded-full" 
+                          referrerpolicy="no-referrer"
                         />
                       ) : (
                         <span className="text-white text-lg font-bold">
@@ -229,6 +231,7 @@ export default function ExpandableNoteGrid({ notes }: ExpandableNoteGridProps) {
                       src={note.image_list[0]}
                       alt={note.title || '笔记图片'}
                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      referrerpolicy="no-referrer"
                     />
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-red-400 to-pink-500 flex items-center justify-center text-white">
@@ -277,6 +280,7 @@ export default function ExpandableNoteGrid({ notes }: ExpandableNoteGridProps) {
                             src={note.author_avatar} 
                             alt="author avatar" 
                             className="w-full h-full object-cover rounded-full" 
+                            referrerpolicy="no-referrer"
                           />
                         ) : (
                           <span className="text-white text-xs">

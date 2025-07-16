@@ -9,7 +9,6 @@ services:
       - "8000:8000"
     volumes:
       - ./fastapi_backend:/app
-      - fastapi-venv:/app/.venv
       - ./local-shared-data:/app/shared-data
     environment:
       - OPENAPI_OUTPUT_FILE=./shared-data/openapi.json
@@ -26,7 +25,6 @@ services:
       - "3000:3000"
     volumes:
       - ./nextjs-frontend:/app
-      - nextjs-node-modules:/app/node_modules
       - ./local-shared-data:/app/shared-data
     environment:
       - OPENAPI_OUTPUT_FILE=./shared-data/openapi.json
@@ -42,7 +40,7 @@ services:
     environment:
       POSTGRES_USER: xiuer_user
       POSTGRES_PASSWORD: Dingjunjie123
-      POSTGRES_DB: xiuer_db
+      POSTGRES_DB: testdatabase
     ports:
       - "5433:5432"
     networks:

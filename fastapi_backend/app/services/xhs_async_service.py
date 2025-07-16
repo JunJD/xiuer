@@ -6,8 +6,8 @@
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime, timezone
-from typing import List, Optional, Tuple
+from datetime import datetime, timedelta, timezone
+from typing import List, Optional, Tuple, Dict
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import and_, or_, desc, func
 from sqlalchemy.future import select
@@ -28,6 +28,9 @@ from app.schemas.notes import (
 )
 from app.schemas.comments import XhsCommentData
 from app.core.logger import app_logger as logger
+
+# 定义 CST 时区，用于将输入的 naive datetime 转换为 aware datetime
+CST = timezone(timedelta(hours=8))
 
 
 class XhsDataService:
@@ -324,23 +327,42 @@ class XhsDataService:
                     )
                 )
             
+            # 将 is_new, is_changed, is_important 的筛选条件收集起来，作为并集（OR）处理
+            boolean_filters = []
             if is_new is not None:
-                query = query.filter(XhsNote.is_new == is_new)
+                boolean_filters.append(XhsNote.is_new == is_new)
             
             if is_changed is not None:
-                query = query.filter(XhsNote.is_changed == is_changed)
-            
+                boolean_filters.append(XhsNote.is_changed == is_changed)
+
             if is_important is not None:
-                query = query.filter(XhsNote.is_important == is_important)
-            
+                boolean_filters.append(XhsNote.is_important == is_important)
+
+            if boolean_filters:
+                query = query.filter(or_(*boolean_filters))
+
             if author_user_id:
                 query = query.filter(XhsNote.author_user_id == author_user_id)
             
             if date_from:
-                query = query.filter(XhsNote.last_crawl_time >= date_from)
+                # 1. 将输入的 naive datetime 视为中国时区 (CST)
+                aware_date_from = date_from.replace(tzinfo=CST)
+                # 2. 转换为 aware UTC datetime
+                utc_date_from = aware_date_from.astimezone(timezone.utc)
+                # 3. 移除 tzinfo，使其成为 naive UTC datetime，以匹配数据库列类型
+                naive_utc_date_from = utc_date_from.replace(tzinfo=None)
+                logger.info(f"原始中国时间 {date_from} 被转换为 UTC 时间 {naive_utc_date_from} 进行查询")
+                query = query.filter(XhsNote.last_crawl_time >= naive_utc_date_from)
             
             if date_to:
-                query = query.filter(XhsNote.last_crawl_time <= date_to)
+                # 1. 将输入的 naive datetime 视为中国时区 (CST)
+                aware_date_to = date_to.replace(tzinfo=CST)
+                # 2. 转换为 aware UTC datetime
+                utc_date_to = aware_date_to.astimezone(timezone.utc)
+                # 3. 移除 tzinfo，使其成为 naive UTC datetime，以匹配数据库列类型
+                naive_utc_date_to = utc_date_to.replace(tzinfo=None)
+                logger.info(f"原始中国时间 {date_to} 被转换为 UTC 时间 {naive_utc_date_to} 进行查询")
+                query = query.filter(XhsNote.last_crawl_time <= naive_utc_date_to)
             
             # 排序和分页
             query = query.order_by(desc(XhsNote.last_crawl_time))

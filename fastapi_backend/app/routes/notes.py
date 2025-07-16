@@ -54,10 +54,11 @@ async def search_notes(
         # 处理today_only参数
         date_from = None
         if today_only:
-            # 获取今天00:00的时间（使用 naive datetime 匹配数据库字段）
-            now = datetime.utcnow()
-            today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+            # 获取中国时区的当前时间（通过UTC+8小时），然后取其零点，生成一个 naive datetime
+            now_in_cst = datetime.utcnow() + timedelta(hours=8)
+            today_start = now_in_cst.replace(hour=0, minute=0, second=0, microsecond=0)
             date_from = today_start
+            print(f"date_from3: {date_from}")
         
         xhs_service = XhsDataService(db)
         notes = await xhs_service.search_notes(

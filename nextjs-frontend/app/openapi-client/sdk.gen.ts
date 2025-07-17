@@ -41,14 +41,6 @@ import type {
   UsersDeleteUserData,
   UsersDeleteUserError,
   UsersDeleteUserResponse,
-  ReadItemError,
-  ReadItemResponse,
-  CreateItemData,
-  CreateItemError,
-  CreateItemResponse,
-  DeleteItemData,
-  DeleteItemError,
-  DeleteItemResponse,
   GetKeywordsData,
   GetKeywordsError,
   GetKeywordsResponse,
@@ -296,54 +288,6 @@ export const usersDeleteUser = <ThrowOnError extends boolean = false>(
   >({
     ...options,
     url: "/api/users/{id}",
-  });
-};
-
-/**
- * Read Item
- */
-export const readItem = <ThrowOnError extends boolean = false>(
-  options?: OptionsLegacyParser<unknown, ThrowOnError>,
-) => {
-  return (options?.client ?? client).get<
-    ReadItemResponse,
-    ReadItemError,
-    ThrowOnError
-  >({
-    ...options,
-    url: "/api/items/",
-  });
-};
-
-/**
- * Create Item
- */
-export const createItem = <ThrowOnError extends boolean = false>(
-  options: OptionsLegacyParser<CreateItemData, ThrowOnError>,
-) => {
-  return (options?.client ?? client).post<
-    CreateItemResponse,
-    CreateItemError,
-    ThrowOnError
-  >({
-    ...options,
-    url: "/api/items/",
-  });
-};
-
-/**
- * Delete Item
- */
-export const deleteItem = <ThrowOnError extends boolean = false>(
-  options: OptionsLegacyParser<DeleteItemData, ThrowOnError>,
-) => {
-  return (options?.client ?? client).delete<
-    DeleteItemResponse,
-    DeleteItemError,
-    ThrowOnError
-  >({
-    ...options,
-    url: "/api/items/{item_id}",
   });
 };
 

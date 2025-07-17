@@ -13,15 +13,10 @@ from sqlalchemy import and_, or_, desc, func
 from sqlalchemy.future import select
 import json
 
-from app.models import (
-    XhsNote, 
-    XhsComment, 
-    NoteTagLog, 
-    BusinessKeyword,
-    NoteTag,
-    CrawlTask,
-    TaskStatus
-)
+from app.models.note import XhsNote, NoteTag, NoteTagLog
+from app.models.comment import XhsComment
+from app.models.keyword import BusinessKeyword
+from app.models.task import CrawlTask, TaskStatus
 from app.schemas.notes import (
     XhsNoteData, 
     ProcessResult

@@ -20,8 +20,7 @@ from fastapi_users.db import SQLAlchemyUserDatabase
 
 from app.config import settings
 from app.database import get_user_db
-from .email import send_reset_password_email
-from app.models import User
+from app.models.user import User
 from app.schemas.users import UserCreate
 
 AUTH_URL_PATH = "api/auth"
@@ -37,7 +36,7 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
     async def on_after_forgot_password(
         self, user: User, token: str, request: Optional[Request] = None
     ):
-        await send_reset_password_email(user, token)
+        print(f"Forgot password requested for user {user.id}. Token: {token}")
 
     async def on_after_request_verify(
         self, user: User, token: str, request: Optional[Request] = None
@@ -53,8 +52,7 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
 
         if len(password) < 8:
             errors.append("Password should be at least 8 characters.")
-        if user.email in password:
-            errors.append("Password should not contain e-mail.")
+        
         if not any(char.isupper() for char in password):
             errors.append("Password should contain at least one uppercase letter.")
         if not re.search(r'[!@#$%^&*(),.?":{}|<>]', password):

@@ -20,6 +20,9 @@ export async function login(prevState: unknown, formData: FormData) {
   }
 
   const { username, password } = validatedFields.data;
+  
+  // 获取重定向URL
+  const redirectUrl = formData.get("redirect") as string;
 
   const input = {
     body: {
@@ -40,5 +43,8 @@ export async function login(prevState: unknown, formData: FormData) {
       server_error: "An unexpected error occurred. Please try again later.",
     };
   }
-  redirect("/dashboard");
+  
+  // 如果有重定向URL，则重定向到该URL，否则重定向到dashboard
+  const targetUrl = redirectUrl ? decodeURIComponent(redirectUrl) : "/dashboard";
+  redirect(targetUrl);
 }

@@ -8,7 +8,8 @@ from app.database import (
     get_async_session,
     get_user_db,
 )
-from app.models import Base, User
+from app.models.base import Base
+from app.models.user import User
 
 
 @pytest.fixture

@@ -26,7 +26,8 @@ from app.schemas.tasks import (
     TaskQueryParams,
     TaskStatusEnum
 )
-from app.models import CrawlTask, TaskStatus, User
+from app.models.task import CrawlTask, TaskStatus
+from app.models.user import User
 from sqlalchemy import select, func, and_, case, literal_column
 from app.core.logger import app_logger as logger
 

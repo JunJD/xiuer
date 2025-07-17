@@ -21,7 +21,7 @@ from app.schemas.notes import (
     ProcessResult
 )
 from app.services.xhs_async_service import XhsDataService
-from app.models import CrawlTask, TaskStatus
+from app.models.task import CrawlTask, TaskStatus
 from app.core.logger import app_logger as logger
 from sqlalchemy import select
 from datetime import datetime

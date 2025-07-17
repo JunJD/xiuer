@@ -6,7 +6,7 @@ Tasks 路由测试
 import pytest
 from fastapi import status
 from unittest.mock import AsyncMock, patch, MagicMock
-from app.models import CrawlTask, TaskStatus
+from app.models.task import CrawlTask, TaskStatus
 
 
 class TestTasks:

@@ -6,7 +6,8 @@ from fastapi_users.password import PasswordHelper
 import uuid
 
 from app.config import settings
-from app.models import User, Base
+from app.models.user import User
+from app.models.base import Base
 
 from app.database import get_user_db, get_async_session
 from app.main import app

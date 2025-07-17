@@ -15,9 +15,12 @@ import { login } from "@/components/actions/login-action";
 import { useActionState } from "react";
 import { SubmitButton } from "@/components/ui/submitButton";
 import { FieldError, FormError } from "@/components/ui/FormError";
+import { useSearchParams } from "next/navigation";
 
 export default function Page() {
   const [state, dispatch] = useActionState(login, undefined);
+  const searchParams = useSearchParams();
+  const redirectUrl = searchParams.get("redirect");
   return (
     <div className="flex h-screen w-full items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
       <form action={dispatch}>
@@ -31,6 +34,10 @@ export default function Page() {
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-6 p-6">
+            {/* 隐藏字段传递重定向URL */}
+            {redirectUrl && (
+              <input type="hidden" name="redirect" value={redirectUrl} />
+            )}
             <div className="grid gap-3">
               <Label
                 htmlFor="username"

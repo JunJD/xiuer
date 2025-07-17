@@ -6,7 +6,7 @@ Notes 路由测试
 import pytest
 from fastapi import status
 from unittest.mock import AsyncMock, patch
-from app.models import XhsNote
+from app.models.note import XhsNote
 from sqlalchemy import insert
 
 

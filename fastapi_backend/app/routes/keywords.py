@@ -10,7 +10,8 @@ from sqlalchemy.future import select
 from sqlalchemy import desc
 
 from ..database import get_async_session
-from ..models import BusinessKeyword, User
+from ..models.keyword import BusinessKeyword
+from ..models.user import User
 from ..schemas.keywords import (
     KeywordCreate,
     KeywordUpdate,

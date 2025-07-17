@@ -268,6 +268,9 @@ export default function ExpandableNoteGrid({ notes }: ExpandableNoteGridProps) {
                     {note.is_new && (
                       <span className="bg-green-500 text-white px-2 py-1 rounded-full text-xs">新</span>
                     )}
+                    {note.is_changed && (
+                      <span className="bg-orange-500 text-white px-2 py-1 rounded-full text-xs">变更</span>
+                    )}
                     {note.is_important && (
                       <span className="bg-red-500 text-white px-2 py-1 rounded-full text-xs">重要</span>
                     )}

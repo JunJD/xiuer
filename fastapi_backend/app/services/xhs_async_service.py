@@ -226,7 +226,7 @@ class XhsDataService:
         existing_note.is_new = False  # 确保不是新笔记
         
         # 返回 False，表示这次没有新的变化检测
-        return False
+        return existing_note.is_changed
     
     async def _check_note_importance(self, note_data: XhsNoteData) -> bool:
         """检查笔记是否重要（简化版）"""
@@ -335,8 +335,8 @@ class XhsDataService:
             if is_changed is not None:
                 boolean_filters.append(XhsNote.is_changed == is_changed)
 
-            if is_important is not None:
-                boolean_filters.append(XhsNote.is_important == is_important)
+            # if is_important is not None:
+            #     boolean_filters.append(XhsNote.is_important == is_important)
 
             if boolean_filters:
                 query = query.filter(or_(*boolean_filters))

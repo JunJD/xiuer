@@ -3,7 +3,6 @@ from .schemas.users import UserCreate, UserRead, UserUpdate
 from .services.users import auth_backend, fastapi_users, AUTH_URL_PATH
 from fastapi.middleware.cors import CORSMiddleware
 from .utils import simple_generate_unique_route_id
-from app.routes.items import router as items_router
 from app.routes.keywords import router as keywords_router
 from app.routes.webhook import router as webhook_router
 from app.routes.notes import router as notes_router
@@ -53,8 +52,6 @@ app.include_router(
     tags=["users"],
 )
 
-# Include items routes
-app.include_router(items_router, prefix="/api/items", tags=["items"])
 
 # Include keywords management routes
 app.include_router(keywords_router, prefix="/api/keywords", tags=["keywords"])

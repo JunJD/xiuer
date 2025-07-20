@@ -4,6 +4,19 @@ import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { usersCurrentUser } from '@/app/clientService';
 
+function getCookie(name: string): string | undefined {
+  if (typeof document === 'undefined') {
+    return undefined;
+  }
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) {
+    const cookieValue = parts.pop()?.split(';').shift();
+    return cookieValue ? decodeURIComponent(cookieValue) : undefined;
+  }
+  return undefined;
+}
+
 interface AuthGuardProps {
   children: React.ReactNode;
   fallback?: React.ReactNode;
@@ -15,24 +28,22 @@ export default function AuthGuard({ children, fallback }: AuthGuardProps) {
   const pathname = usePathname();
 
   useEffect(() => {
+    if (isAuthenticated) {
+      return;
+    }
+
     const checkAuth = async () => {
       try {
-        // 获取token from cookies
-        const cookies = document.cookie.split(';');
-        const accessTokenCookie = cookies.find(cookie => 
-          cookie.trim().startsWith('accessToken=')
-        );
+        const token = getCookie('accessToken');
         
-        if (!accessTokenCookie) {
-          // 没有token，重定向到登录页
+        if (!token) {
+          // No token, redirect to login page
           const redirectUrl = encodeURIComponent(pathname);
           router.push(`/login?redirect=${redirectUrl}`);
           return;
         }
-
-        const token = accessTokenCookie.split('=')[1];
         
-        // 验证token有效性
+        // Validate token with the backend
         const { error } = await usersCurrentUser({
           headers: {
             Authorization: `Bearer ${token}`,
@@ -40,26 +51,22 @@ export default function AuthGuard({ children, fallback }: AuthGuardProps) {
         });
 
         if (error) {
-          // Token无效，重定向到登录页
           const redirectUrl = encodeURIComponent(pathname);
           router.push(`/login?redirect=${redirectUrl}`);
           return;
         }
 
-        // 认证成功
         setIsAuthenticated(true);
       } catch (error) {
         console.error('Auth check failed:', error);
-        // 出错时重定向到登录页
         const redirectUrl = encodeURIComponent(pathname);
         router.push(`/login?redirect=${redirectUrl}`);
       }
     };
 
     checkAuth();
-  }, [router, pathname]);
+  }, [router, pathname, isAuthenticated]);
 
-  // 正在检查认证状态时显示加载状态
   if (isAuthenticated === null) {
     return fallback || (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -71,11 +78,11 @@ export default function AuthGuard({ children, fallback }: AuthGuardProps) {
     );
   }
 
-  // 已认证，显示子组件
+  // If authenticated, render the child components
   if (isAuthenticated) {
     return <>{children}</>;
   }
 
-  // 认证失败时不渲染任何内容（因为会重定向）
+  // If not authenticated, render nothing because a redirect is in progress
   return null;
 } 

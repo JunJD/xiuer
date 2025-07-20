@@ -6,7 +6,8 @@ export async function middleware(request: NextRequest) {
   const token = request.cookies.get("accessToken");
 
   if (!token) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    const redirectUrl = encodeURIComponent(request.nextUrl.pathname + request.nextUrl.search);
+    return NextResponse.redirect(new URL(`/login?redirect=${redirectUrl}`, request.url));
   }
 
   const options = {
@@ -18,11 +19,16 @@ export async function middleware(request: NextRequest) {
   const { error } = await usersCurrentUser(options);
 
   if (error) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    const redirectUrl = encodeURIComponent(request.nextUrl.pathname + request.nextUrl.search);
+    return NextResponse.redirect(new URL(`/login?redirect=${redirectUrl}`, request.url));
   }
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*"],
+  matcher: [
+    "/dashboard/:path*",
+    "/notes/:path*",
+    "/(mobile)/notes/:path*"
+  ],
 };

@@ -4,12 +4,25 @@ import {
   parseAsInteger,
   parseAsString,
 } from "nuqs/server";
-import { getFiltersStateParser } from "@/lib/parsers";
+import { getFiltersStateParser, getSortingStateParser } from "@/lib/parsers";
+
+// 定义 notes 的列 ID
+const notesColumnIds = new Set([
+  "title",
+  "author_nickname", 
+  "liked_count",
+  "comment_count",
+  "is_new",
+  "is_changed",
+  "is_important",
+  "last_crawl_time",
+]);
 
 export const searchParamsCache = createSearchParamsCache({
   page: parseAsInteger.withDefault(1),
   perPage: parseAsInteger.withDefault(10),
-  filters: getFiltersStateParser().withDefault([]),
+  filters: getFiltersStateParser(notesColumnIds).withDefault([]),
+  sort: getSortingStateParser(notesColumnIds).withDefault([]),
   keyword: parseAsString.withDefault(""),
   is_new: parseAsBoolean,
   is_changed: parseAsBoolean,

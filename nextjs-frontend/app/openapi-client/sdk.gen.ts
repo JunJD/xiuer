@@ -463,7 +463,7 @@ export const getNotesStats = <ThrowOnError extends boolean = false>(
 
 /**
  * Search Notes
- * 搜索和筛选笔记 - 支持分页
+ * 搜索和筛选笔记 - 支持分页、筛选和排序
  */
 export const searchNotes = <ThrowOnError extends boolean = false>(
   options?: OptionsLegacyParser<SearchNotesData, ThrowOnError>,

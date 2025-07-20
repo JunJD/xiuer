@@ -46,10 +46,13 @@ async def search_notes(
     today_only: bool = False,
     page: int = 1,
     size: int = 50,
+    # 新增的筛选和排序参数
+    filters: str = None,
+    sort: str = None,
     db: AsyncSession = Depends(get_async_session)
 ):
     """
-    搜索和筛选笔记 - 支持分页
+    搜索和筛选笔记 - 支持分页、筛选和排序
     """
     try:
         # 处理today_only参数
@@ -74,6 +77,7 @@ async def search_notes(
             is_important=is_important,
             author_user_id=author_user_id,
             date_from=date_from,
+            filters=filters,
         )
         
         # 获取笔记列表
@@ -85,7 +89,9 @@ async def search_notes(
             author_user_id=author_user_id,
             date_from=date_from,
             limit=size,
-            offset=offset
+            offset=offset,
+            filters=filters,
+            sort=sort,
         )
         
         # 转换为响应模式

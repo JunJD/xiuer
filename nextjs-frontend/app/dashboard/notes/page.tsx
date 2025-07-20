@@ -29,6 +29,9 @@ export default async function NotesPage(props: NotesPageProps) {
     is_changed: search.is_changed ?? undefined,
     is_important: search.is_important ?? undefined,
     today_only: search.today_only,
+    // 新增的筛选和排序参数
+    filters: validFilters,
+    sort: search.sort,
   });
 
   return (

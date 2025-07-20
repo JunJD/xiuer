@@ -7,7 +7,8 @@ from __future__ import annotations
 
 import asyncio
 from datetime import datetime, timedelta, timezone
-from typing import List, Optional, Tuple, Dict
+from typing import List, Optional, Tuple, Dict, Any
+from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import and_, or_, desc, func
 from sqlalchemy.future import select
@@ -16,13 +17,11 @@ import json
 from app.models.note import XhsNote, NoteTag, NoteTagLog
 from app.models.comment import XhsComment
 from app.models.keyword import BusinessKeyword
-from app.models.task import CrawlTask, TaskStatus
-from app.schemas.notes import (
-    XhsNoteData, 
-    ProcessResult
-)
+from app.models.task import CrawlTask
+from app.schemas.notes import XhsNoteData, ProcessResult
 from app.schemas.comments import XhsCommentData
 from app.core.logger import app_logger as logger
+from app.utils import parse_filters, parse_sort, apply_filters_to_query, apply_sorting_to_query
 
 # 定义 CST 时区，用于将输入的 naive datetime 转换为 aware datetime
 CST = timezone(timedelta(hours=8))
@@ -308,59 +307,30 @@ class XhsDataService:
                           date_from: Optional[datetime] = None,
                           date_to: Optional[datetime] = None,
                           limit: int = 50,
-                          offset: int = 0) -> List[XhsNote]:
-        """搜索笔记"""
+                          offset: int = 0,
+                          filters: Optional[str] = None,
+                          sort: Optional[str] = None) -> List[XhsNote]:
+        """搜索笔记 - 支持高级筛选和排序"""
         try:
             query = select(XhsNote)
             
-            # 添加过滤条件
-            if keyword:
-                query = query.filter(
-                    or_(
-                        XhsNote.title.ilike(f"%{keyword}%"),
-                        XhsNote.desc.ilike(f"%{keyword}%")
-                    )
-                )
+            # 应用基础筛选条件
+            query = self._apply_basic_filters(query, keyword, is_new, is_changed, is_important, author_user_id, date_from, date_to)
             
-            # 将 is_new, is_changed, is_important 的筛选条件收集起来，作为并集（OR）处理
-            boolean_filters = []
-            if is_new is not None:
-                boolean_filters.append(XhsNote.is_new == is_new)
+            # 应用高级筛选
+            if filters:
+                filter_list = parse_filters(filters)
+                query = apply_filters_to_query(query, filter_list, XhsNote)
             
-            if is_changed is not None:
-                boolean_filters.append(XhsNote.is_changed == is_changed)
-
-            # if is_important is not None:
-            #     boolean_filters.append(XhsNote.is_important == is_important)
-
-            if boolean_filters:
-                query = query.filter(or_(*boolean_filters))
-
-            if author_user_id:
-                query = query.filter(XhsNote.author_user_id == author_user_id)
+            # 应用排序
+            if sort:
+                sort_list = parse_sort(sort)
+                query = apply_sorting_to_query(query, sort_list, XhsNote)
+            else:
+                # 默认排序
+                query = query.order_by(desc(XhsNote.last_crawl_time))
             
-            if date_from:
-                # 1. 将输入的 naive datetime 视为中国时区 (CST)
-                aware_date_from = date_from.replace(tzinfo=CST)
-                # 2. 转换为 aware UTC datetime
-                utc_date_from = aware_date_from.astimezone(timezone.utc)
-                # 3. 移除 tzinfo，使其成为 naive UTC datetime，以匹配数据库列类型
-                naive_utc_date_from = utc_date_from.replace(tzinfo=None)
-                logger.info(f"原始中国时间 {date_from} 被转换为 UTC 时间 {naive_utc_date_from} 进行查询")
-                query = query.filter(XhsNote.last_crawl_time >= naive_utc_date_from)
-            
-            if date_to:
-                # 1. 将输入的 naive datetime 视为中国时区 (CST)
-                aware_date_to = date_to.replace(tzinfo=CST)
-                # 2. 转换为 aware UTC datetime
-                utc_date_to = aware_date_to.astimezone(timezone.utc)
-                # 3. 移除 tzinfo，使其成为 naive UTC datetime，以匹配数据库列类型
-                naive_utc_date_to = utc_date_to.replace(tzinfo=None)
-                logger.info(f"原始中国时间 {date_to} 被转换为 UTC 时间 {naive_utc_date_to} 进行查询")
-                query = query.filter(XhsNote.last_crawl_time <= naive_utc_date_to)
-            
-            # 排序和分页
-            query = query.order_by(desc(XhsNote.last_crawl_time))
+            # 分页
             query = query.offset(offset).limit(limit)
             
             result = await self.db.execute(query)
@@ -377,51 +347,19 @@ class XhsDataService:
                          is_important: Optional[bool] = None,
                          author_user_id: Optional[str] = None,
                          date_from: Optional[datetime] = None,
-                         date_to: Optional[datetime] = None) -> int:
-        """计算符合条件的笔记总数"""
+                         date_to: Optional[datetime] = None,
+                         filters: Optional[str] = None) -> int:
+        """计算符合条件的笔记总数 - 支持高级筛选"""
         try:
             query = select(func.count(XhsNote.id))
             
-            # 添加过滤条件 - 与 search_notes 中的条件保持一致
-            if keyword:
-                query = query.filter(
-                    or_(
-                        XhsNote.title.ilike(f"%{keyword}%"),
-                        XhsNote.desc.ilike(f"%{keyword}%")
-                    )
-                )
+            # 应用基础筛选条件
+            query = self._apply_basic_filters(query, keyword, is_new, is_changed, is_important, author_user_id, date_from, date_to)
             
-            # 将 is_new, is_changed, is_important 的筛选条件收集起来，作为并集（OR）处理
-            boolean_filters = []
-            if is_new is not None:
-                boolean_filters.append(XhsNote.is_new == is_new)
-            
-            if is_changed is not None:
-                boolean_filters.append(XhsNote.is_changed == is_changed)
-
-            if boolean_filters:
-                query = query.filter(or_(*boolean_filters))
-
-            if author_user_id:
-                query = query.filter(XhsNote.author_user_id == author_user_id)
-            
-            if date_from:
-                # 1. 将输入的 naive datetime 视为中国时区 (CST)
-                aware_date_from = date_from.replace(tzinfo=CST)
-                # 2. 转换为 aware UTC datetime
-                utc_date_from = aware_date_from.astimezone(timezone.utc)
-                # 3. 移除 tzinfo，使其成为 naive UTC datetime，以匹配数据库列类型
-                naive_utc_date_from = utc_date_from.replace(tzinfo=None)
-                query = query.filter(XhsNote.last_crawl_time >= naive_utc_date_from)
-            
-            if date_to:
-                # 1. 将输入的 naive datetime 视为中国时区 (CST)
-                aware_date_to = date_to.replace(tzinfo=CST)
-                # 2. 转换为 aware UTC datetime
-                utc_date_to = aware_date_to.astimezone(timezone.utc)
-                # 3. 移除 tzinfo，使其成为 naive UTC datetime，以匹配数据库列类型
-                naive_utc_date_to = utc_date_to.replace(tzinfo=None)
-                query = query.filter(XhsNote.last_crawl_time <= naive_utc_date_to)
+            # 应用高级筛选
+            if filters:
+                filter_list = parse_filters(filters)
+                query = apply_filters_to_query(query, filter_list, XhsNote)
             
             result = await self.db.execute(query)
             return result.scalar() or 0
@@ -429,6 +367,51 @@ class XhsDataService:
         except Exception as e:
             logger.error(f"计算笔记总数失败: {str(e)}")
             return 0
+    
+    def _apply_basic_filters(self, query, keyword=None, is_new=None, is_changed=None, is_important=None, author_user_id=None, date_from=None, date_to=None):
+        """应用基础筛选条件的通用方法"""
+        # 添加过滤条件 - 与原有逻辑保持一致
+        if keyword:
+            query = query.filter(
+                or_(
+                    XhsNote.title.ilike(f"%{keyword}%"),
+                    XhsNote.desc.ilike(f"%{keyword}%")
+                )
+            )
+        
+        # 将 is_new, is_changed, is_important 的筛选条件收集起来，作为并集（OR）处理
+        boolean_filters = []
+        if is_new is not None:
+            boolean_filters.append(XhsNote.is_new == is_new)
+        
+        if is_changed is not None:
+            boolean_filters.append(XhsNote.is_changed == is_changed)
+
+        if boolean_filters:
+            query = query.filter(or_(*boolean_filters))
+
+        if author_user_id:
+            query = query.filter(XhsNote.author_user_id == author_user_id)
+        
+        if date_from:
+            # 1. 将输入的 naive datetime 视为中国时区 (CST)
+            aware_date_from = date_from.replace(tzinfo=CST)
+            # 2. 转换为 aware UTC datetime
+            utc_date_from = aware_date_from.astimezone(timezone.utc)
+            # 3. 移除 tzinfo，使其成为 naive UTC datetime，以匹配数据库列类型
+            naive_utc_date_from = utc_date_from.replace(tzinfo=None)
+            query = query.filter(XhsNote.last_crawl_time >= naive_utc_date_from)
+        
+        if date_to:
+            # 1. 将输入的 naive datetime 视为中国时区 (CST)
+            aware_date_to = date_to.replace(tzinfo=CST)
+            # 2. 转换为 aware UTC datetime
+            utc_date_to = aware_date_to.astimezone(timezone.utc)
+            # 3. 移除 tzinfo，使其成为 naive UTC datetime，以匹配数据库列类型
+            naive_utc_date_to = utc_date_to.replace(tzinfo=None)
+            query = query.filter(XhsNote.last_crawl_time <= naive_utc_date_to)
+        
+        return query
     
     async def get_note_by_id(self, note_id: str) -> Optional[XhsNote]:
         """根据note_id获取笔记"""

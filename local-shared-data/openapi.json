@@ -1080,7 +1080,7 @@
           "notes"
         ],
         "summary": "Search Notes",
-        "description": "\u641c\u7d22\u548c\u7b5b\u9009\u7b14\u8bb0 - \u652f\u6301\u5206\u9875",
+        "description": "\u641c\u7d22\u548c\u7b5b\u9009\u7b14\u8bb0 - \u652f\u6301\u5206\u9875\u3001\u7b5b\u9009\u548c\u6392\u5e8f",
         "operationId": "search_notes",
         "parameters": [
           {
@@ -1156,6 +1156,24 @@
               "type": "integer",
               "default": 50,
               "title": "Size"
+            }
+          },
+          {
+            "name": "filters",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Filters"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "title": "Sort"
             }
           }
         ],

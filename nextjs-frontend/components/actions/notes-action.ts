@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { getNotesStats, searchNotes, getNoteDetail } from "@/app/clientService";
 import { noteQuerySchema, NotesQueryParams } from "@/lib/definitions";
 import type { HTTPValidationError, NotesListResponse } from "@/app/openapi-client/types.gen";
+import type { ExtendedColumnFilter, ExtendedColumnSort } from "@/types/data-table";
 
 export async function fetchNotesStats() {
   const cookieStore = await cookies();
@@ -35,6 +36,9 @@ export async function getNotes(params: {
   is_important?: boolean;
   author_user_id?: string;
   today_only?: boolean;
+  // 新增的筛选和排序参数
+  filters?: ExtendedColumnFilter<any>[];
+  sort?: ExtendedColumnSort<any>[];
 }): Promise<NotesListResponse | { message: string } | { message: HTTPValidationError }> {
   const cookieStore = await cookies();
   const token = cookieStore.get("accessToken")?.value;
@@ -55,6 +59,16 @@ export async function getNotes(params: {
   if (params.is_changed !== undefined) searchParams.is_changed = params.is_changed;
   if (params.is_important !== undefined) searchParams.is_important = params.is_important;
   if (params.author_user_id) searchParams.author_user_id = params.author_user_id;
+
+  // 添加筛选参数
+  if (params.filters && params.filters.length > 0) {
+    searchParams.filters = JSON.stringify(params.filters);
+  }
+
+  // 添加排序参数  
+  if (params.sort && params.sort.length > 0) {
+    searchParams.sort = JSON.stringify(params.sort);
+  }
 
   const { data, error } = await searchNotes({
     headers: {

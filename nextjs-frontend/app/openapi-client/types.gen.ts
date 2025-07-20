@@ -587,12 +587,14 @@ export type GetNotesStatsError = unknown;
 export type SearchNotesData = {
   query?: {
     author_user_id?: string;
+    filters?: string;
     is_changed?: boolean;
     is_important?: boolean;
     is_new?: boolean;
     keyword?: string;
     page?: number;
     size?: number;
+    sort?: string;
     today_only?: boolean;
   };
 };

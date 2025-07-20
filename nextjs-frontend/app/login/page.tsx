@@ -1,11 +1,12 @@
 
 import LoginForm from './login-form';
 
-export default function Page({
-  searchParams,
-}: {
-  searchParams: { [key: string]: string | string[] | undefined };
-}) {
-  const redirectUrl = searchParams.redirect as string | undefined;
+type Props = {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+};
+
+export default async function Page({ searchParams }: Props) {
+  const params = await searchParams;
+  const redirectUrl = params.redirect as string | undefined;
   return <LoginForm redirectUrl={redirectUrl} />;
 }

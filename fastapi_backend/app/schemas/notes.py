@@ -84,6 +84,14 @@ class XhsNoteResponse(BaseModel):
         from_attributes = True
 
 
+class NotesListResponse(BaseModel):
+    """笔记列表响应 - 包含分页信息"""
+    notes: List[XhsNoteResponse]
+    total: int = Field(description="总笔记数")
+    page: int = Field(description="当前页码")
+    size: int = Field(description="每页大小")
+
+
 class NoteStatsResponse(BaseModel):
     """笔记统计响应"""
     total_notes: int

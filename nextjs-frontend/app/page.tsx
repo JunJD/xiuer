@@ -8,7 +8,7 @@ export default function Home() {
     <main className="flex min-h-screen flex-col items-center justify-center bg-gray-50 dark:bg-gray-900">
       <XiuerHero
         ToDashboard={() => {
-          router.push("/dashboard");
+          router.push("/dashboard/notes");
         }}
       />
     </main>

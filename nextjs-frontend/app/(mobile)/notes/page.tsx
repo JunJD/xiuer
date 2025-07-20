@@ -1,5 +1,6 @@
 import { fetchNotes } from "@/components/actions/notes-action";
 import { XhsNoteResponse } from "@/app/openapi-client";
+import type { NotesListResponse } from "@/app/openapi-client/types.gen";
 import ExpandableNoteGrid from "../_components/flow-list";
 
 export default async function MobileNotesPage() {
@@ -8,8 +9,13 @@ export default async function MobileNotesPage() {
     is_changed: true,
     is_important: true,
     today_only: true,
-  }) as XhsNoteResponse[];
-  const notes = Array.isArray(notesData) ? notesData : [];
+  });
+  
+  // 现在需要从 NotesListResponse 中提取 notes 数组
+  let notes: XhsNoteResponse[] = [];
+  if (notesData && typeof notesData === 'object' && 'notes' in notesData) {
+    notes = (notesData as NotesListResponse).notes;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

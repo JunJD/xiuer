@@ -5,63 +5,27 @@ import { DataTable } from "@/components/data-table/data-table";
 import { DataTableAdvancedToolbar } from "@/components/data-table/data-table-advanced-toolbar";
 import { DataTableFilterMenu } from "@/components/data-table/data-table-filter-menu";
 import { DataTableSortList } from "@/components/data-table/data-table-sort-list";
+import { DataTableActionBar, DataTableActionBarAction, DataTableActionBarSelection } from "@/components/data-table/data-table-action-bar";
 import { useDataTable } from "@/hooks/use-data-table";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Download, Trash2, Eye, X } from "lucide-react";
+import { MoreHorizontal, Download, Trash2, Eye } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { ColumnDef, Table } from "@tanstack/react-table";
+import { Checkbox } from "@/components/ui/checkbox";
+import type { ColumnDef } from "@tanstack/react-table";
 import { XhsNoteResponse } from "@/app/openapi-client";
+import type { HTTPValidationError, NotesListResponse } from "@/app/openapi-client/types.gen";
 
 interface NotesDataTableProps {
-  notes: XhsNoteResponse[];
+  notesPromise: Promise<NotesListResponse | { message: string } | { message: HTTPValidationError }>;
 }
 
-// 简单的自定义操作栏组件
-function SimpleActionBar({
-  table,
-  onExport,
-  onDelete,
-}: {
-  table: Table<XhsNoteResponse>;
-  onExport: () => void;
-  onDelete: () => void;
-}) {
-  const selectedCount = table.getFilteredSelectedRowModel().rows.length;
-
-  if (selectedCount === 0) return null;
-
-  return (
-    <div className="fixed inset-x-0 bottom-6 z-50 mx-auto flex w-fit items-center gap-2 rounded-md border bg-background p-2 shadow-lg">
-      <div className="flex items-center gap-2 rounded-md border px-3 py-1">
-        <span className="text-sm">{selectedCount} 项已选择</span>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => table.toggleAllRowsSelected(false)}
-          className="h-6 w-6 p-0"
-        >
-          <X className="h-3 w-3" />
-        </Button>
-      </div>
-      <Button variant="secondary" size="sm" onClick={onExport}>
-        <Download className="mr-1 h-3 w-3" />
-        导出
-      </Button>
-      <Button variant="destructive" size="sm" onClick={onDelete}>
-        <Trash2 className="mr-1 h-3 w-3" />
-        删除
-      </Button>
-    </div>
-  );
-}
-
-export default function NotesDataTable({ notes }: NotesDataTableProps) {
-  const [selectedRows, setSelectedRows] = React.useState<XhsNoteResponse[]>([]);
+export default function NotesDataTable({ notesPromise }: NotesDataTableProps) {
+  const notesData = React.use(notesPromise);
 
   const handleViewDetail = React.useCallback(async (row: XhsNoteResponse) => {
     // TODO: 实现查看详情功能
@@ -70,18 +34,38 @@ export default function NotesDataTable({ notes }: NotesDataTableProps) {
 
   const handleBatchExport = React.useCallback(async () => {
     // TODO: 实现批量导出功能
-    console.log("批量导出", selectedRows);
-  }, [selectedRows]);
+    console.log("批量导出");
+  }, []);
 
   const handleBatchDelete = React.useCallback(async () => {
     // TODO: 实现批量删除功能
-    console.log("批量删除", selectedRows);
-  }, [selectedRows]);
+    console.log("批量删除");
+  }, []);
 
   const columns: ColumnDef<XhsNoteResponse>[] = React.useMemo(
     () => [
       {
         id: "select",
+        header: ({ table }) => (
+          <Checkbox
+            checked={
+              table.getIsAllPageRowsSelected() ||
+              (table.getIsSomePageRowsSelected() && "indeterminate")
+            }
+            onCheckedChange={(value) =>
+              table.toggleAllPageRowsSelected(!!value)
+            }
+            aria-label="Select all"
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
+          />
+        ),
+        size: 32,
         enableSorting: false,
         enableHiding: false,
         enableColumnFilter: false,
@@ -286,38 +270,69 @@ export default function NotesDataTable({ notes }: NotesDataTableProps) {
     [handleViewDetail],
   );
 
-  const { table } = useDataTable({
+  const notes = notesData && "notes" in notesData ? notesData.notes : [];
+  const pageCount = notesData && "notes" in notesData ? Math.ceil(notesData.total / notesData.size) : 0;
+  
+  const { table } = useDataTable<XhsNoteResponse>({
     data: notes,
     columns,
-    pageCount: Math.ceil(notes.length / 10),
+    pageCount,
     initialState: {
-      pagination: { pageIndex: 0, pageSize: 10 },
       sorting: [{ id: "last_crawl_time", desc: true }],
+      columnPinning: { right: ["actions"] },
     },
-    enableAdvancedFilter: true,
-    enableRowSelection: true,
+    getRowId: (originalRow) => originalRow.id,
+    shallow: false,
+    clearOnDefault: true,
   });
 
-  // 监听选中行变化
-  React.useEffect(() => {
-    const selectedRowModel = table.getFilteredSelectedRowModel();
-    setSelectedRows(selectedRowModel.rows.map((row) => row.original));
-  }, [table]);
+  if (!notesData || !("notes" in notesData)) {
+    let errorMessage = "Unknown error";
+    if (notesData && "message" in notesData) {
+      if (typeof notesData.message === "string") {
+        errorMessage = notesData.message;
+      } else if (notesData.message && typeof notesData.message === "object") {
+        errorMessage = "Validation error";
+      }
+    }
+    
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <h3 className="text-lg font-semibold mb-2">加载失败</h3>
+          <p className="text-muted-foreground">
+            Error: {errorMessage}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
-      <DataTable table={table}>
+      <DataTable
+        table={table}
+        actionBar={
+          <DataTableActionBar table={table}>
+            <DataTableActionBarAction isPending={false}>
+              <DataTableActionBarSelection table={table} />
+              <Button variant="secondary" size="sm" onClick={handleBatchExport}>
+                <Download className="mr-1 h-3 w-3" />
+                导出
+              </Button>
+              <Button variant="destructive" size="sm" onClick={handleBatchDelete}>
+                <Trash2 className="mr-1 h-3 w-3" />
+                删除
+              </Button>
+            </DataTableActionBarAction>
+          </DataTableActionBar>
+        }
+      >
         <DataTableAdvancedToolbar table={table}>
           <DataTableFilterMenu table={table} />
           <DataTableSortList table={table} />
         </DataTableAdvancedToolbar>
       </DataTable>
-
-      <SimpleActionBar
-        table={table}
-        onExport={handleBatchExport}
-        onDelete={handleBatchDelete}
-      />
     </div>
   );
 }

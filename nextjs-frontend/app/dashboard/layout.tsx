@@ -41,7 +41,7 @@ export default function DashboardLayout({
             />
           </Link>
           <Link
-            href="/dashboard"
+            href="/dashboard/notes"
             className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
           >
             <List className="h-5 w-5" />

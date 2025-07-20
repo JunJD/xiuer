@@ -21,6 +21,7 @@ from .notes import (
     XhsNoteData,
     NoteQueryParams,
     XhsNoteResponse,
+    NotesListResponse,
     NoteStatsResponse,
     ProcessResult
 )
@@ -74,6 +75,7 @@ __all__ = [
     "XhsNoteData",
     "NoteQueryParams",
     "XhsNoteResponse",
+    "NotesListResponse",
     "NoteStatsResponse",
     "ProcessResult",
     

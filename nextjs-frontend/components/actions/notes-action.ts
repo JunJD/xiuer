@@ -3,6 +3,7 @@
 import { cookies } from "next/headers";
 import { getNotesStats, searchNotes, getNoteDetail } from "@/app/clientService";
 import { noteQuerySchema, NotesQueryParams } from "@/lib/definitions";
+import type { HTTPValidationError, NotesListResponse } from "@/app/openapi-client/types.gen";
 
 export async function fetchNotesStats() {
   const cookieStore = await cookies();
@@ -22,6 +23,51 @@ export async function fetchNotesStats() {
     return { message: error };
   }
 
+  return data;
+}
+
+export async function getNotes(params: {
+  page?: number;
+  size?: number;
+  keyword?: string;
+  is_new?: boolean;
+  is_changed?: boolean;
+  is_important?: boolean;
+  author_user_id?: string;
+  today_only?: boolean;
+}): Promise<NotesListResponse | { message: string } | { message: HTTPValidationError }> {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("accessToken")?.value;
+
+  if (!token) {
+    return { message: "No access token found" };
+  }
+
+  // 构建查询参数
+  const searchParams: Record<string, unknown> = {
+    page: params.page || 1,
+    size: params.size || 10,
+    today_only: params.today_only !== undefined ? params.today_only : true,
+  };
+
+  if (params.keyword) searchParams.keyword = params.keyword;
+  if (params.is_new !== undefined) searchParams.is_new = params.is_new;
+  if (params.is_changed !== undefined) searchParams.is_changed = params.is_changed;
+  if (params.is_important !== undefined) searchParams.is_important = params.is_important;
+  if (params.author_user_id) searchParams.author_user_id = params.author_user_id;
+
+  const { data, error } = await searchNotes({
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    query: searchParams,
+  });
+
+  if (error) {
+    return { message: error };
+  }
+
+  // 现在可以直接返回，因为类型已经匹配
   return data;
 }
 

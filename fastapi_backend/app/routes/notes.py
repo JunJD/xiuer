@@ -12,6 +12,7 @@ from app.database import get_async_session
 from app.schemas.notes import (
     NoteStatsResponse,
     XhsNoteResponse,
+    NotesListResponse,
 )
 from app.services.xhs_async_service import XhsDataService
 from app.core.logger import app_logger as logger
@@ -35,7 +36,7 @@ async def get_notes_stats(db: AsyncSession = Depends(get_async_session)):
         raise HTTPException(status_code=500, detail=f"获取统计失败: {str(e)}")
 
 
-@router.get("/", response_model=List[XhsNoteResponse])
+@router.get("/", response_model=NotesListResponse)
 async def search_notes(
     keyword: str = None,
     is_new: bool = None,
@@ -43,12 +44,12 @@ async def search_notes(
     is_important: bool = None,
     author_user_id: str = None,
     today_only: bool = False,
-    limit: int = 50,
-    offset: int = 0,
+    page: int = 1,
+    size: int = 50,
     db: AsyncSession = Depends(get_async_session)
 ):
     """
-    搜索和筛选笔记
+    搜索和筛选笔记 - 支持分页
     """
     try:
         # 处理today_only参数
@@ -60,7 +61,22 @@ async def search_notes(
             date_from = today_start
             print(f"date_from3: {date_from}")
         
+        # 计算偏移量
+        offset = (page - 1) * size
+        
         xhs_service = XhsDataService(db)
+        
+        # 获取总数
+        total = await xhs_service.count_notes(
+            keyword=keyword,
+            is_new=is_new,
+            is_changed=is_changed,
+            is_important=is_important,
+            author_user_id=author_user_id,
+            date_from=date_from,
+        )
+        
+        # 获取笔记列表
         notes = await xhs_service.search_notes(
             keyword=keyword,
             is_new=is_new,
@@ -68,7 +84,7 @@ async def search_notes(
             is_important=is_important,
             author_user_id=author_user_id,
             date_from=date_from,
-            limit=limit,
+            limit=size,
             offset=offset
         )
         
@@ -96,7 +112,12 @@ async def search_notes(
             )
             result.append(note_response)
         
-        return result
+        return NotesListResponse(
+            notes=result,
+            total=total,
+            page=page,
+            size=size
+        )
         
     except Exception as e:
         logger.error(f"搜索笔记失败: {str(e)}")

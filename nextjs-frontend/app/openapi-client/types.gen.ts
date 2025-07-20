@@ -107,6 +107,25 @@ export type login = {
 };
 
 /**
+ * 笔记列表响应 - 包含分页信息
+ */
+export type NotesListResponse = {
+  notes: Array<XhsNoteResponse>;
+  /**
+   * 总笔记数
+   */
+  total: number;
+  /**
+   * 当前页码
+   */
+  page: number;
+  /**
+   * 每页大小
+   */
+  size: number;
+};
+
+/**
  * 笔记统计响应
  */
 export type NoteStatsResponse = {
@@ -572,13 +591,13 @@ export type SearchNotesData = {
     is_important?: boolean;
     is_new?: boolean;
     keyword?: string;
-    limit?: number;
-    offset?: number;
+    page?: number;
+    size?: number;
     today_only?: boolean;
   };
 };
 
-export type SearchNotesResponse = Array<XhsNoteResponse>;
+export type SearchNotesResponse = NotesListResponse;
 
 export type SearchNotesError = HTTPValidationError;
 

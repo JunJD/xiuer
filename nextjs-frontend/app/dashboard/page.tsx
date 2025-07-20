@@ -1,17 +1,14 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { fetchNotes, fetchNotesStats } from "@/components/actions/notes-action";
-import { XhsNoteResponse, NoteStatsResponse } from "../openapi-client";
+import { fetchNotesStats, getNotes } from "@/components/actions/notes-action";
+import { NoteStatsResponse } from "../openapi-client";
 import NotesDataTable from "@/components/NotesDataTable";
+import { Suspense } from "react";
 
 export default async function DashboardPage() {
-  // 获取notes数据和统计信息
-  const [notesData, statsData] = await Promise.all([
-    fetchNotes() as Promise<XhsNoteResponse[]>,
-    fetchNotesStats() as Promise<NoteStatsResponse>,
-  ]);
-
-  const notes = Array.isArray(notesData) ? notesData : [];
+  // 获取统计信息
+  const statsData = await fetchNotesStats() as NoteStatsResponse;
+  
   const stats = statsData || {
     total_notes: 0,
     new_notes: 0,
@@ -19,6 +16,13 @@ export default async function DashboardPage() {
     important_notes: 0,
     today_crawled: 0,
   };
+
+  // 创建 notes Promise - 只显示少量数据作为预览
+  const notesPromise = getNotes({
+    page: 1,
+    size: 5, // 只显示5条作为预览
+    today_only: true,
+  });
 
   return (
     <div>
@@ -60,22 +64,23 @@ export default async function DashboardPage() {
       </div>
 
       <div className="mb-6 flex gap-4">
-        <Link href="/keywords">
+        <Link href="/dashboard/notes">
+          <Button className="text-lg px-4 py-2">
+            查看所有笔记
+          </Button>
+        </Link>
+        <Link href="/dashboard/tasks">
+          <Button variant="outline" className="text-lg px-4 py-2">
+            管理任务
+          </Button>
+        </Link>
+        {/* <Link href="/keywords">
           <Button variant="outline" className="text-lg px-4 py-2">
             管理关键词
           </Button>
-        </Link>
-        <Link href="/dashboard/search-notes">
-          <Button variant="outline" className="text-lg px-4 py-2">
-            搜索笔记
-          </Button>
-        </Link>
+        </Link> */}
       </div>
 
-      <section className="p-6 bg-white rounded-lg shadow-lg mt-8">
-        <h2 className="text-xl font-semibold mb-4">最新笔记数据</h2>
-        <NotesDataTable notes={notes} />
-      </section>
     </div>
   );
 }

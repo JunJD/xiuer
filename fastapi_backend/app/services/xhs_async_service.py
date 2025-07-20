@@ -369,6 +369,66 @@ class XhsDataService:
         except Exception as e:
             logger.error(f"搜索笔记失败: {str(e)}")
             return []
+
+    async def count_notes(self,
+                         keyword: Optional[str] = None,
+                         is_new: Optional[bool] = None,
+                         is_changed: Optional[bool] = None,
+                         is_important: Optional[bool] = None,
+                         author_user_id: Optional[str] = None,
+                         date_from: Optional[datetime] = None,
+                         date_to: Optional[datetime] = None) -> int:
+        """计算符合条件的笔记总数"""
+        try:
+            query = select(func.count(XhsNote.id))
+            
+            # 添加过滤条件 - 与 search_notes 中的条件保持一致
+            if keyword:
+                query = query.filter(
+                    or_(
+                        XhsNote.title.ilike(f"%{keyword}%"),
+                        XhsNote.desc.ilike(f"%{keyword}%")
+                    )
+                )
+            
+            # 将 is_new, is_changed, is_important 的筛选条件收集起来，作为并集（OR）处理
+            boolean_filters = []
+            if is_new is not None:
+                boolean_filters.append(XhsNote.is_new == is_new)
+            
+            if is_changed is not None:
+                boolean_filters.append(XhsNote.is_changed == is_changed)
+
+            if boolean_filters:
+                query = query.filter(or_(*boolean_filters))
+
+            if author_user_id:
+                query = query.filter(XhsNote.author_user_id == author_user_id)
+            
+            if date_from:
+                # 1. 将输入的 naive datetime 视为中国时区 (CST)
+                aware_date_from = date_from.replace(tzinfo=CST)
+                # 2. 转换为 aware UTC datetime
+                utc_date_from = aware_date_from.astimezone(timezone.utc)
+                # 3. 移除 tzinfo，使其成为 naive UTC datetime，以匹配数据库列类型
+                naive_utc_date_from = utc_date_from.replace(tzinfo=None)
+                query = query.filter(XhsNote.last_crawl_time >= naive_utc_date_from)
+            
+            if date_to:
+                # 1. 将输入的 naive datetime 视为中国时区 (CST)
+                aware_date_to = date_to.replace(tzinfo=CST)
+                # 2. 转换为 aware UTC datetime
+                utc_date_to = aware_date_to.astimezone(timezone.utc)
+                # 3. 移除 tzinfo，使其成为 naive UTC datetime，以匹配数据库列类型
+                naive_utc_date_to = utc_date_to.replace(tzinfo=None)
+                query = query.filter(XhsNote.last_crawl_time <= naive_utc_date_to)
+            
+            result = await self.db.execute(query)
+            return result.scalar() or 0
+            
+        except Exception as e:
+            logger.error(f"计算笔记总数失败: {str(e)}")
+            return 0
     
     async def get_note_by_id(self, note_id: str) -> Optional[XhsNote]:
         """根据note_id获取笔记"""

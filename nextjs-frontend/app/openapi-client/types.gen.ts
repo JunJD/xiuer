@@ -403,6 +403,7 @@ export type XhsNoteResponse = {
   is_new: boolean;
   is_changed: boolean;
   is_important: boolean;
+  is_deleted: boolean;
   first_crawl_time: string;
   last_crawl_time: string;
   image_list?: Array<string> | null;
@@ -612,6 +613,16 @@ export type GetNoteDetailData = {
 export type GetNoteDetailResponse = unknown;
 
 export type GetNoteDetailError = HTTPValidationError;
+
+export type SoftDeleteNoteEndpointData = {
+  path: {
+    note_id: string;
+  };
+};
+
+export type SoftDeleteNoteEndpointResponse = void;
+
+export type SoftDeleteNoteEndpointError = HTTPValidationError;
 
 export type TriggerCrawlTaskData = {
   body: CrawlTaskRequest;

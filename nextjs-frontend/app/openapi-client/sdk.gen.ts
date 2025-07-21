@@ -73,6 +73,9 @@ import type {
   GetNoteDetailData,
   GetNoteDetailError,
   GetNoteDetailResponse,
+  SoftDeleteNoteEndpointData,
+  SoftDeleteNoteEndpointError,
+  SoftDeleteNoteEndpointResponse,
   TriggerCrawlTaskData,
   TriggerCrawlTaskError,
   TriggerCrawlTaskResponse,
@@ -488,6 +491,23 @@ export const getNoteDetail = <ThrowOnError extends boolean = false>(
   return (options?.client ?? client).get<
     GetNoteDetailResponse,
     GetNoteDetailError,
+    ThrowOnError
+  >({
+    ...options,
+    url: "/api/notes/{note_id}",
+  });
+};
+
+/**
+ * Soft Delete Note Endpoint
+ * 软删除一个笔记
+ */
+export const softDeleteNoteEndpoint = <ThrowOnError extends boolean = false>(
+  options: OptionsLegacyParser<SoftDeleteNoteEndpointData, ThrowOnError>,
+) => {
+  return (options?.client ?? client).delete<
+    SoftDeleteNoteEndpointResponse,
+    SoftDeleteNoteEndpointError,
     ThrowOnError
   >({
     ...options,

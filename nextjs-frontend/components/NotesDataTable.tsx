@@ -1,24 +1,27 @@
 "use client";
 
 import React from "react";
+import { useRouter } from "next/navigation";
 import { DataTable } from "@/components/data-table/data-table";
 import { DataTableAdvancedToolbar } from "@/components/data-table/data-table-advanced-toolbar";
 import { DataTableFilterMenu } from "@/components/data-table/data-table-filter-menu";
 import { DataTableSortList } from "@/components/data-table/data-table-sort-list";
-import { DataTableActionBar, DataTableActionBarAction, DataTableActionBarSelection } from "@/components/data-table/data-table-action-bar";
+import {
+  DataTableActionBar,
+  DataTableActionBarAction,
+  DataTableActionBarSelection,
+} from "@/components/data-table/data-table-action-bar";
 import { useDataTable } from "@/hooks/use-data-table";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Download, Trash2, Eye } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Download, Trash2, Eye } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { ColumnDef } from "@tanstack/react-table";
-import { XhsNoteResponse } from "@/app/openapi-client";
-import type { HTTPValidationError, NotesListResponse } from "@/app/openapi-client/types.gen";
+import { XhsNoteResponse, softDeleteNoteEndpoint } from "@/app/openapi-client";
+import { DeleteConfirmationDialog } from "@/components/ui/delete-confirmation-dialog";
+import type {
+  HTTPValidationError,
+  NotesListResponse,
+} from "@/app/openapi-client/types.gen";
 
 interface NotesDataTableProps {
   notesPromise: Promise<NotesListResponse | { message: string } | { message: HTTPValidationError }>;
@@ -26,21 +29,28 @@ interface NotesDataTableProps {
 
 export default function NotesDataTable({ notesPromise }: NotesDataTableProps) {
   const notesData = React.use(notesPromise);
-
-  const handleViewDetail = React.useCallback(async (row: XhsNoteResponse) => {
-    // TODO: 实现查看详情功能
-    console.log("查看详情", row);
-  }, []);
+  const router = useRouter();
+  const [deletingNoteId, setDeletingNoteId] = React.useState<string | null>(null);
 
   const handleBatchExport = React.useCallback(async () => {
     // TODO: 实现批量导出功能
     console.log("批量导出");
   }, []);
 
-  const handleBatchDelete = React.useCallback(async () => {
-    // TODO: 实现批量删除功能
-    console.log("批量删除");
-  }, []);
+  const handleSoftDelete = React.useCallback(
+    async (noteId: string) => {
+      setDeletingNoteId(noteId);
+      try {
+        await softDeleteNoteEndpoint({ path: { note_id: noteId } });
+      } catch (error) {
+        console.error("Failed to delete note:", error);
+      } finally {
+        setDeletingNoteId(null);
+        router.refresh();
+      }
+    },
+    [router],
+  );
 
   const columns: ColumnDef<XhsNoteResponse>[] = React.useMemo(
     () => [
@@ -237,29 +247,35 @@ export default function NotesDataTable({ notesPromise }: NotesDataTableProps) {
         id: "actions",
         header: "操作",
         cell: ({ row }) => (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">打开菜单</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => handleViewDetail(row.original)}>
-                <Eye className="mr-2 h-4 w-4" />
-                查看详情
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => {
-                  if (row.original.note_url) {
-                    window.open(row.original.note_url, "_blank");
-                  }
-                }}
+          <div className="flex items-center space-x-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => {
+                if (row.original.note_url) {
+                  window.open(row.original.note_url, "_blank");
+                }
+              }}
+            >
+              <Eye className="h-4 w-4" />
+              <span className="sr-only">查看原文</span>
+            </Button>
+            <DeleteConfirmationDialog
+              onConfirm={() => handleSoftDelete(row.original.note_id)}
+              isPending={deletingNoteId === row.original.note_id}
+              description="您确定要删除此笔记吗？"
+            >
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-red-500 hover:text-red-600"
               >
-                查看原文
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                <Trash2 className="h-4 w-4" />
+                <span className="sr-only">删除</span>
+              </Button>
+            </DeleteConfirmationDialog>
+          </div>
         ),
         enableSorting: false,
         enableHiding: false,
@@ -267,7 +283,7 @@ export default function NotesDataTable({ notesPromise }: NotesDataTableProps) {
         size: 100,
       },
     ],
-    [handleViewDetail],
+    [handleSoftDelete, deletingNoteId],
   );
 
   const notes = notesData && "notes" in notesData ? notesData.notes : [];
@@ -285,6 +301,28 @@ export default function NotesDataTable({ notesPromise }: NotesDataTableProps) {
     shallow: false,
     clearOnDefault: true,
   });
+
+  const [isBatchDeleting, setIsBatchDeleting] = React.useState(false);
+  const handleBatchDelete = React.useCallback(async () => {
+    const selectedRows = table.getSelectedRowModel().rows;
+    if (selectedRows.length === 0) return;
+
+    setIsBatchDeleting(true);
+    try {
+      const deletePromises = selectedRows.map((row) =>
+        softDeleteNoteEndpoint({ path: { note_id: row.original.note_id } }),
+      );
+      await Promise.all(deletePromises);
+      table.toggleAllPageRowsSelected(false);
+      // TODO: show success toast
+    } catch (error) {
+      console.error("Failed to batch delete notes:", error);
+      // TODO: show error toast
+    } finally {
+      setIsBatchDeleting(false);
+      router.refresh();
+    }
+  }, [table, router]);
 
   if (!notesData || !("notes" in notesData)) {
     let errorMessage = "Unknown error";
@@ -314,16 +352,26 @@ export default function NotesDataTable({ notesPromise }: NotesDataTableProps) {
         table={table}
         actionBar={
           <DataTableActionBar table={table}>
-            <DataTableActionBarAction isPending={false}>
+            <DataTableActionBarAction isPending={isBatchDeleting}>
               <DataTableActionBarSelection table={table} />
               <Button variant="secondary" size="sm" onClick={handleBatchExport}>
                 <Download className="mr-1 h-3 w-3" />
                 导出
               </Button>
-              <Button variant="destructive" size="sm" onClick={handleBatchDelete}>
-                <Trash2 className="mr-1 h-3 w-3" />
-                删除
-              </Button>
+              <DeleteConfirmationDialog
+                onConfirm={handleBatchDelete}
+                isPending={isBatchDeleting}
+                itemCount={table.getSelectedRowModel().rows.length}
+              >
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  disabled={isBatchDeleting}
+                >
+                  <Trash2 className="mr-1 h-3 w-3" />
+                  删除
+                </Button>
+              </DeleteConfirmationDialog>
             </DataTableActionBarAction>
           </DataTableActionBar>
         }

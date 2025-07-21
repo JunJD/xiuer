@@ -1240,6 +1240,40 @@
             }
           }
         }
+      },
+      "delete": {
+        "tags": [
+          "notes"
+        ],
+        "summary": "Soft Delete Note Endpoint",
+        "description": "\u8f6f\u5220\u9664\u4e00\u4e2a\u7b14\u8bb0",
+        "operationId": "soft_delete_note_endpoint",
+        "parameters": [
+          {
+            "name": "note_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Note Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/tasks/trigger-crawl": {
@@ -2979,6 +3013,10 @@
             "type": "boolean",
             "title": "Is Important"
           },
+          "is_deleted": {
+            "type": "boolean",
+            "title": "Is Deleted"
+          },
           "first_crawl_time": {
             "type": "string",
             "format": "date-time",
@@ -3030,6 +3068,7 @@
           "is_new",
           "is_changed",
           "is_important",
+          "is_deleted",
           "first_crawl_time",
           "last_crawl_time"
         ],

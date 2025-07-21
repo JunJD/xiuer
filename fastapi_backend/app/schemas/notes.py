@@ -75,6 +75,7 @@ class XhsNoteResponse(BaseModel):
     is_new: bool
     is_changed: bool
     is_important: bool
+    is_deleted: bool
     first_crawl_time: datetime
     last_crawl_time: datetime
     image_list: Optional[List[str]] = None

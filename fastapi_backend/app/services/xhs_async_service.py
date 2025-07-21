@@ -368,8 +368,12 @@ class XhsDataService:
             logger.error(f"计算笔记总数失败: {str(e)}")
             return 0
     
-    def _apply_basic_filters(self, query, keyword=None, is_new=None, is_changed=None, is_important=None, author_user_id=None, date_from=None, date_to=None):
+    def _apply_basic_filters(self, query, keyword=None, is_new=None, is_changed=None, is_important=None, author_user_id=None, date_from=None, date_to=None, include_deleted: bool = False):
         """应用基础筛选条件的通用方法"""
+        # 默认过滤掉软删除的笔记
+        if not include_deleted:
+            query = query.filter(XhsNote.is_deleted == False)
+
         # 添加过滤条件 - 与原有逻辑保持一致
         if keyword:
             query = query.filter(
@@ -417,10 +421,31 @@ class XhsDataService:
         """根据note_id获取笔记"""
         try:
             result = await self.db.execute(
-                select(XhsNote).filter(XhsNote.note_id == note_id)
+                select(XhsNote).filter(XhsNote.note_id == note_id, XhsNote.is_deleted == False)
             )
             return result.scalars().first()
             
         except Exception as e:
             logger.error(f"获取笔记详情失败: {str(e)}")
-            return None 
+            return None
+
+    async def soft_delete_note(self, note_id: str) -> bool:
+        """软删除一个笔记"""
+        try:
+            result = await self.db.execute(
+                select(XhsNote).filter(XhsNote.note_id == note_id)
+            )
+            note_to_delete = result.scalars().first()
+            
+            if not note_to_delete:
+                return False
+            
+            note_to_delete.is_deleted = True
+            await self.db.commit()
+            logger.info(f"笔记 {note_id} 已被软删除。")
+            return True
+            
+        except Exception as e:
+            await self.db.rollback()
+            logger.error(f"软删除笔记 {note_id} 失败: {str(e)}")
+            raise 

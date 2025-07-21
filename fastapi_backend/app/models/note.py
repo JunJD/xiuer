@@ -46,6 +46,7 @@ class XhsNote(Base):
     is_new: Mapped[bool] = mapped_column(Boolean, default=True)
     is_changed: Mapped[bool] = mapped_column(Boolean, default=False)
     is_important: Mapped[bool] = mapped_column(Boolean, default=False)
+    is_deleted: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
     change_reason: Mapped[str] = mapped_column(String(200), nullable=True)
     important_comment_ids: Mapped[List[Any]] = mapped_column(JSON, nullable=True)
     first_crawl_time: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
@@ -61,6 +62,7 @@ class XhsNote(Base):
     __table_args__ = (
         Index('idx_note_crawl_time', 'last_crawl_time'),
         Index('idx_note_tags', 'is_new', 'is_changed', 'is_important'),
+        Index('idx_note_deleted', 'is_deleted'),
         Index('idx_author_id', 'author_user_id'),
     )
 

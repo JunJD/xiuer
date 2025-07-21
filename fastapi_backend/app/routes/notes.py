@@ -111,6 +111,7 @@ async def search_notes(
                 is_new=note.is_new,
                 is_changed=note.is_changed,
                 is_important=note.is_important,
+                is_deleted=note.is_deleted,
                 first_crawl_time=note.first_crawl_time,
                 last_crawl_time=note.last_crawl_time,
                 image_list=note.image_list,
@@ -159,6 +160,7 @@ async def get_note_detail(
             is_new=note.is_new,
             is_changed=note.is_changed,
             is_important=note.is_important,
+            is_deleted=note.is_deleted,
             first_crawl_time=note.first_crawl_time,
             last_crawl_time=note.last_crawl_time
         )
@@ -167,4 +169,26 @@ async def get_note_detail(
         raise
     except Exception as e:
         logger.error(f"获取笔记详情失败: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"获取详情失败: {str(e)}") 
+        raise HTTPException(status_code=500, detail=f"获取详情失败: {str(e)}")
+
+
+@router.delete("/{note_id}", status_code=204)
+async def soft_delete_note_endpoint(
+    note_id: str,
+    db: AsyncSession = Depends(get_async_session)
+):
+    """
+    软删除一个笔记
+    """
+    try:
+        xhs_service = XhsDataService(db)
+        success = await xhs_service.soft_delete_note(note_id)
+        
+        if not success:
+            raise HTTPException(status_code=404, detail="笔记不存在")
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"软删除笔记失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"软删除失败: {str(e)}") 

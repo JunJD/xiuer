@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
 from app.models.base import Base
+from app.models import user, note, keyword, comment, task  # 确保所有模型都被导入
 from dotenv import load_dotenv
 
 load_dotenv()

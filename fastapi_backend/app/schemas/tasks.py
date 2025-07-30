@@ -22,6 +22,8 @@ class SortTypeEnum(int, Enum):
     GENERAL = 0  # 综合
     LATEST = 1   # 最新
     POPULAR = 2  # 最热
+    EXTENDED_1 = 3  # 扩展排序类型1
+    EXTENDED_2 = 4  # 扩展排序类型2
     
     
 # === 基础模式 ===
@@ -30,7 +32,7 @@ class TaskBase(BaseModel):
     task_name: str = Field(..., description="任务名称", max_length=200)
     keyword: str = Field(..., description="搜索关键词", max_length=200)
     target_count: int = Field(default=200, ge=1, le=1000, description="目标爬取数量")
-    sort_type: int = Field(default=1, ge=0, le=2, description="排序方式")
+    sort_type: int = Field(default=1, ge=0, le=4, description="排序方式")
     cookies: Optional[str] = Field(None, description="自定义cookies")
 
 
